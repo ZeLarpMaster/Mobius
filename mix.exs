@@ -41,8 +41,6 @@ defmodule Mobius.MixProject do
   end
 
   defp aliases do
-    [
-      test: "test --no-start"
-    ]
+    []
   end
 end
