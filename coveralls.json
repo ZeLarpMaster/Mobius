@@ -1,0 +1,14 @@
+{
+    "skip_files": [
+        "test/support",
+        "lib/mobius/application.ex",
+        "lib/mobius/constants.ex",
+        "lib/mobius/exceptions.ex",
+        "lib/mobius/error_codes.ex",
+        "lib/mobius/models",
+        "lib/mobius/shard/gateway_state.ex",
+        "lib/mobius/shard/gatekeeper.ex",
+        "lib/mobius/shard/socket.ex",
+        "lib/mobius/shard/socket/gun.ex"
+    ]
+}
