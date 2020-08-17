@@ -10,7 +10,6 @@ defmodule Mobius.Api.Client do
   @type error :: {:error, errors() | Utils.error()}
 
   @api_vsn 6
-  @adapter Application.compile_env!(:mobius, :tesla_adapter)
 
   defguardp is_not_error(value) when not is_tuple(value) or elem(value, 0) != :error
 
@@ -35,7 +34,9 @@ defmodule Mobius.Api.Client do
       {Tesla.Middleware.Headers, headers}
     ]
 
-    Tesla.client(middleware, @adapter)
+    adapter = Application.get_env(:mobius, :tesla_adapter, Tesla.Adapter.Hackney)
+
+    Tesla.client(middleware, adapter)
   end
 
   @spec base_url :: String.t()

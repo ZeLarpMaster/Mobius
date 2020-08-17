@@ -11,7 +11,7 @@ defmodule Mobius.Shard.MemberRequest do
 
   alias Mobius.TimeoutError
 
-  @timeout Application.fetch_env!(:mobius, :member_request_timeout_ms)
+  @timeout Application.compile_env(:mobius, :member_request_timeout_ms, 10_000)
 
   # Request specific members in specific guilds
   def request_with_ids(_, _, user_ids, _) when length(user_ids) > 100 do

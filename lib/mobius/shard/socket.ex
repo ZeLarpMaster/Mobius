@@ -42,6 +42,6 @@ defmodule Mobius.Shard.Socket do
   def close(socket), do: impl().close(socket)
 
   defp impl do
-    Application.fetch_env!(:mobius, :socket_impl)
+    Application.get_env(:mobius, :socket_impl, __MODULE__.Gun)
   end
 end

@@ -12,5 +12,5 @@ defmodule Mobius.Shard.Ratelimiter do
   @spec request_access(GenServer.server(), bucket()) :: :ok | :ratelimited
   def request_access(server, bucket), do: impl().request_access(server, bucket)
 
-  defp impl, do: Application.fetch_env!(:mobius, :ratelimiter_impl)
+  defp impl, do: Application.get_env(:mobius, :ratelimiter_impl, __MODULE__.SelfRefill)
 end

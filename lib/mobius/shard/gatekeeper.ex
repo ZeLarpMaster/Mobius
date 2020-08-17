@@ -35,6 +35,6 @@ defmodule Mobius.Shard.Gatekeeper do
   def ack_identified(gatekeeper), do: impl().ack_identified(gatekeeper)
 
   defp impl do
-    Application.fetch_env!(:mobius, :gatekeeper_impl)
+    Application.get_env(:mobius, :gatekeeper_impl, __MODULE__.Timed)
   end
 end
