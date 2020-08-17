@@ -1,7 +1,6 @@
 import Config
 
 config :mobius,
-  token: "a token",
   member_request_timeout_ms: 500,
   time_between_connections_ms: 500,
   skip_resuming_sleep: true,

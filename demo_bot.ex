@@ -248,7 +248,7 @@ end
 Supervisor.start_link(
   [
     {Task.Supervisor, name: DemoBot.TaskSupervisor},
-    {DemoBot, token: Application.fetch_env!(:mobius, :token)}
+    {DemoBot, token: System.fetch_env!("MOBIUS_BOT_TOKEN")}
   ],
   strategy: :one_for_one,
   name: DemoBot.Supervisor

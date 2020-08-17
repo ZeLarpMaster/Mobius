@@ -24,5 +24,3 @@ mobius-*.tar
 
 .vscode
 .elixir_ls
-config/dev.exs
-config/prod.exs
