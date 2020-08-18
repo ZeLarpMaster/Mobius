@@ -5,10 +5,12 @@ defmodule Mobius.Utils do
   @disable_randomness Mix.env() == :test
 
   @doc """
-  Converts bitflags into a MapSet of values
+  Converts bitflags into a MapSet of flag values
 
-  The ordering of the list starts at the first element for the least significant bit.
+  Values from the list are included starting from the least significant bit.
   Parsing is stopped and the current result is returned when the list of things is exhausted.
+
+  This function is the inverse of `create_bitflags/2`
 
   ## Examples
 
@@ -26,6 +28,10 @@ defmodule Mobius.Utils do
 
       iex> Mobius.Utils.parse_bitflags(0b11111111, [])
       #MapSet<[]>
+
+      iex> flags = [:a, :b, :c, :d]
+      iex> Mobius.Utils.parse_bitflags(0b1010, flags) |> Mobius.Utils.create_bitflags(flags)
+      0b1010
   """
   @spec parse_bitflags(integer, [arg | nil], MapSet.t(arg)) :: MapSet.t(arg) when arg: var
   def parse_bitflags(num, flags, out \\ MapSet.new())
@@ -36,6 +42,44 @@ defmodule Mobius.Utils do
     import Bitwise
     out = if (num &&& 1) == 1 and flag != nil, do: MapSet.put(out, flag), else: out
     parse_bitflags(num >>> 1, flags, out)
+  end
+
+  @doc """
+  Converts a list of flags into an integer of bitflags
+
+  Foreach flag, if it can be found in the input, its associated bit will be 1 in the result.
+  Starting from the least significant bit.
+
+  This function is the inverse of `parse_bitflags/2`
+
+  ## Examples
+
+      iex> Mobius.Utils.create_bitflags(MapSet.new([:a, :b]), [:a, :b])
+      0b11
+
+      iex> Mobius.Utils.create_bitflags(MapSet.new([:b]), [:a, :b])
+      0b10
+
+      iex> Mobius.Utils.create_bitflags(MapSet.new([]), [:a, :b])
+      0
+
+      iex> Mobius.Utils.create_bitflags(MapSet.new([:a, :b]), [])
+      0
+
+      iex> flags = [:a, :b, :c, :d]
+      iex> Mobius.Utils.parse_bitflags(0b1010, flags) |> Mobius.Utils.create_bitflags(flags)
+      0b1010
+  """
+  @spec create_bitflags(MapSet.t(arg), list(arg)) :: integer when arg: var
+  def create_bitflags(input, flags) when is_list(flags) do
+    import Bitwise
+
+    flags
+    |> Stream.with_index()
+    |> Stream.map(fn {flag, index} -> {flag, 1 <<< index} end)
+    |> Stream.filter(fn {flag, _index} -> flag in input end)
+    |> Stream.map(fn {_flag, index} -> index end)
+    |> Enum.reduce(0, &Bitwise.bor/2)
   end
 
   @doc """
