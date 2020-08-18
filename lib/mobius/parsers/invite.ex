@@ -32,7 +32,7 @@ defmodule Mobius.Parsers.Invite do
     [
       {:required, :banner, "banner"},
       {:required, :description, "description"},
-      {:required, :features, {:via, "features", Guild, :parse_features}},
+      {:required, :features, {:raw, "features", Guild, :parse_features}},
       {:required, :icon, "icon"},
       {:required, :id, {:via, "id", Utils, :parse_snowflake}},
       {:required, :name, "name"},

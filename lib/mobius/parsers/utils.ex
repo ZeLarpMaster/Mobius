@@ -9,22 +9,14 @@ defmodule Mobius.Parsers.Utils do
   @type input :: map | list(map)
 
   @type required :: :required | :optional
-  @type source :: String.t() | {:via, String.t(), module, atom}
+  @type source :: String.t() | {:via | :raw, String.t(), module, atom}
   @type spec :: [{required(), atom, source()}]
 
   @spec filter_nil(Enumerable.t()) :: Enumerable.t()
   def filter_nil(enumerable), do: Enum.filter(enumerable, fn x -> x != nil end)
 
-  @spec parse_flags(integer, [atom | nil], [atom]) :: [atom]
-  def parse_flags(num, flags, out \\ [])
-  def parse_flags(_num, [], out), do: out
-  def parse_flags(0, _flags, out), do: out
-
-  def parse_flags(num, [flag | flags], out) do
-    import Bitwise
-    out = if (num &&& 1) == 1 and flag != nil, do: [flag | out], else: out
-    parse_flags(num >>> 1, flags, out)
-  end
+  @spec parse_flags(integer, [atom | nil]) :: MapSet.t(atom)
+  def parse_flags(num, flags), do: Mobius.Utils.parse_bitflags(num, flags)
 
   @spec parse_iso8601(String.t(), path()) :: DateTime.t()
   def parse_iso8601(timestamp, path \\ nil) do
@@ -81,6 +73,7 @@ defmodule Mobius.Parsers.Utils do
     end
   end
 
+  defp get_map_key({:raw, map_key, _, _}), do: map_key
   defp get_map_key({:via, map_key, _, _}), do: map_key
   defp get_map_key(map_key), do: map_key
 
@@ -88,11 +81,13 @@ defmodule Mobius.Parsers.Utils do
     Map.fetch!(map, map_key)
   end
 
-  defp get_key({:via, map_key, module, parser}, map, path) when is_binary(map_key) do
+  defp get_key({type, map_key, module, parser}, map, path)
+       when is_binary(map_key)
+       when type in [:via, :raw] do
     case Map.fetch!(map, map_key) do
       nil -> nil
       [] -> []
-      value when is_list(value) -> apply_map(module, parser, value, path)
+      value when is_list(value) and type == :via -> apply_map(module, parser, value, path)
       value -> apply(module, parser, [value, path])
     end
   end

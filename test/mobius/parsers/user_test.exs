@@ -42,9 +42,9 @@ defmodule Mobius.Parsers.UserTest do
       locale: raw["locale"],
       verified?: raw["verified"],
       email: raw["email"],
-      flags: [:verified_bot_developer],
+      flags: MapSet.new([:verified_bot_developer]),
       premium_type: :nitro,
-      public_flags: [:verified_bot_developer]
+      public_flags: MapSet.new([:verified_bot_developer])
     }
 
     assert user == Parsers.User.parse_user(raw)

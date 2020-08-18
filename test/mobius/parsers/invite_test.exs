@@ -49,7 +49,7 @@ defmodule Mobius.Parsers.InviteTest do
       splash: raw["splash"],
       vanity_url_code: raw["vanity_url_code"],
       verification_level: :high,
-      features: [:public]
+      features: MapSet.new([:public])
     }
 
     assert invite_guild == Parsers.Invite.parse_invite_guild(raw)

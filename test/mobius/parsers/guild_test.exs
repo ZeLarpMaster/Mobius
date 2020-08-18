@@ -11,7 +11,7 @@ defmodule Mobius.Parsers.GuildTest do
       id: Parsers.Utils.parse_snowflake(raw["id"]),
       name: raw["name"],
       icon: raw["icon"],
-      features: [String.to_atom(String.downcase(hd(raw["features"])))],
+      features: MapSet.new([String.to_atom(String.downcase(hd(raw["features"])))]),
       owner?: raw["owner"],
       permissions: raw["permissions"]
     }
@@ -84,12 +84,13 @@ defmodule Mobius.Parsers.GuildTest do
     guild = %{
       system_channel_id: Parsers.Utils.parse_snowflake(raw["system_channel_id"]),
       premium_tier: raw["premium_tier"],
-      system_channel_flags: [:suppress_premium_subscriptions, :suppress_join_notifications],
+      system_channel_flags:
+        MapSet.new([:suppress_premium_subscriptions, :suppress_join_notifications]),
       discovery_splash: raw["discovery_splash"],
       application_id: Parsers.Utils.parse_snowflake(raw["application_id"]),
       owner_id: Parsers.Utils.parse_snowflake(raw["owner_id"]),
       banner: raw["banner"],
-      features: [:verified],
+      features: MapSet.new([:verified]),
       id: Parsers.Utils.parse_snowflake(raw["id"]),
       public_updates_channel_id: Parsers.Utils.parse_snowflake(raw["public_updates_channel_id"]),
       verification_level: :very_high,
@@ -120,13 +121,14 @@ defmodule Mobius.Parsers.GuildTest do
       widget_channel_id: Parsers.Utils.parse_snowflake(raw["widget_channel_id"]),
       system_channel_id: Parsers.Utils.parse_snowflake(raw["system_channel_id"]),
       premium_tier: 3,
-      system_channel_flags: [:suppress_premium_subscriptions, :suppress_join_notifications],
+      system_channel_flags:
+        MapSet.new([:suppress_premium_subscriptions, :suppress_join_notifications]),
       discovery_splash: raw["discovery_splash"],
       application_id: Parsers.Utils.parse_snowflake(raw["application_id"]),
       owner?: false,
       owner_id: Parsers.Utils.parse_snowflake(raw["owner_id"]),
       banner: raw["banner"],
-      features: [:verified],
+      features: MapSet.new([:verified]),
       id: Parsers.Utils.parse_snowflake(raw["id"]),
       public_updates_channel_id: Parsers.Utils.parse_snowflake(raw["public_updates_channel_id"]),
       verification_level: :very_high,

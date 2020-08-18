@@ -27,24 +27,20 @@ defmodule Mobius.Parsers.MessageTest do
       pinned?: false,
       webhook_id: Parsers.Utils.parse_snowflake(raw["webhook_id"]),
       type: :default,
-      flags: [:suppress_embeds]
+      flags: MapSet.new([:suppress_embeds])
     }
 
     assert message == Parsers.Message.parse_message(raw)
   end
 
   test "parse_message_flags/2" do
-    flags = Parsers.Message.parse_message_flags(31, "map")
-
-    expected_flags = [
-      :crossposted,
-      :is_crosspost,
-      :suppress_embeds,
-      :source_message_deleted,
-      :urgent
-    ]
-
-    assert Enum.all?(flags, fn x -> x in expected_flags end)
-    assert length(expected_flags) == length(flags)
+    assert Parsers.Message.parse_message_flags(31, "map") ==
+             MapSet.new([
+               :crossposted,
+               :is_crosspost,
+               :suppress_embeds,
+               :source_message_deleted,
+               :urgent
+             ])
   end
 end

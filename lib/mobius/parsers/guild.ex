@@ -27,7 +27,7 @@ defmodule Mobius.Parsers.Guild do
        {:via, "explicit_content_filter", __MODULE__, :parse_content_filter}},
       {:required, :roles, {:via, "roles", Role, :parse_role}},
       {:required, :emojis, "emojis"},
-      {:required, :features, {:via, "features", __MODULE__, :parse_features}},
+      {:required, :features, {:raw, "features", __MODULE__, :parse_features}},
       {:required, :mfa_level, {:via, "mfa_level", __MODULE__, :parse_mfa_level}},
       {:required, :application_id, {:via, "application_id", Utils, :parse_snowflake}},
       {:optional, :widget_enabled?, "widget_enabled"},
@@ -71,7 +71,7 @@ defmodule Mobius.Parsers.Guild do
       {:required, :id, {:via, "id", Utils, :parse_snowflake}},
       {:required, :name, "name"},
       {:required, :icon, "icon"},
-      {:required, :features, {:via, "features", __MODULE__, :parse_features}},
+      {:required, :features, {:raw, "features", __MODULE__, :parse_features}},
       {:required, :owner?, "owner"},
       {:required, :permissions, "permissions"}
     ]
@@ -97,11 +97,13 @@ defmodule Mobius.Parsers.Guild do
   def parse_content_filter(2, _path), do: :all_members
   def parse_content_filter(value, _path), do: value
 
-  @spec parse_features(String.t(), Utils.path()) :: atom
-  def parse_features(feature, _path) do
-    feature
-    |> String.downcase()
-    |> String.to_atom()
+  @spec parse_features(list(String.t()), Utils.path()) :: MapSet.t(atom)
+  def parse_features(features, _path) do
+    MapSet.new(features, fn feature ->
+      feature
+      |> String.downcase()
+      |> String.to_atom()
+    end)
   end
 
   @spec parse_mfa_level(integer, Utils.path()) :: atom | integer
@@ -110,7 +112,7 @@ defmodule Mobius.Parsers.Guild do
   def parse_mfa_level(value, _path), do: value
 
   @system_channel_flags [:suppress_join_notifications, :suppress_premium_subscriptions]
-  @spec parse_system_channel_flags(integer, Utils.path()) :: list(atom)
+  @spec parse_system_channel_flags(integer, Utils.path()) :: MapSet.t(atom)
   def parse_system_channel_flags(value, _path),
     do: Utils.parse_flags(value, @system_channel_flags)
 end

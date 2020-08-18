@@ -6,13 +6,13 @@ defmodule Mobius.Parsers.UtilsTest do
   test "parse_flags/2" do
     flags = [:flag1, :flag2, :flag4]
 
-    assert [] == Utils.parse_flags(0, flags)
-    assert [:flag1] == Utils.parse_flags(1, flags)
-    assert [:flag4] == Utils.parse_flags(4, flags)
-    assert [:flag4, :flag1] == Utils.parse_flags(5, flags)
-    assert [:flag4, :flag2, :flag1] == Utils.parse_flags(7, flags)
-    assert [] == Utils.parse_flags(8, flags)
-    assert [:flag1] == Utils.parse_flags(9, flags)
+    assert MapSet.new() == Utils.parse_flags(0, flags)
+    assert MapSet.new([:flag1]) == Utils.parse_flags(1, flags)
+    assert MapSet.new([:flag4]) == Utils.parse_flags(4, flags)
+    assert MapSet.new([:flag4, :flag1]) == Utils.parse_flags(5, flags)
+    assert MapSet.new([:flag4, :flag2, :flag1]) == Utils.parse_flags(7, flags)
+    assert MapSet.new() == Utils.parse_flags(8, flags)
+    assert MapSet.new([:flag1]) == Utils.parse_flags(9, flags)
   end
 
   test "parse_iso8601/2" do
