@@ -23,7 +23,7 @@ defmodule Mobius.Parsers.User do
     |> Utils.parse(value, path)
   end
 
-  @spec parse_user_flags(integer, Utils.path()) :: [atom]
+  @spec parse_user_flags(integer, Utils.path()) :: MapSet.t(atom)
   def parse_user_flags(num, _path), do: Utils.parse_flags(num, user_flags())
 
   @spec parse_user_premium(integer, Utils.path()) :: atom | integer

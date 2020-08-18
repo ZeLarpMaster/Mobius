@@ -50,6 +50,6 @@ defmodule Mobius.Parsers.Message do
   def parse_message_type(type, _path), do: type
 
   @message_flags [:crossposted, :is_crosspost, :suppress_embeds, :source_message_deleted, :urgent]
-  @spec parse_message_flags(integer, any) :: [atom]
+  @spec parse_message_flags(integer, any) :: MapSet.t(atom)
   def parse_message_flags(num, _path), do: Utils.parse_flags(num, @message_flags)
 end
