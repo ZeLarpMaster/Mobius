@@ -29,8 +29,11 @@ defmodule Mobius.Application do
     :ok = DynamicSupervisor.terminate_child(@ratelimit_supervisor, pid)
   end
 
-  @spec start_bot(Range.t(), atom, String.t(), String.t()) :: Mobius.Bot.t() | :already_started
-  def start_bot(shard_range, id, url, token) do
+  @spec start_bot(keyword) :: {:ok, Mobius.Bot.t()} | :already_started | {:error, any}
+  def start_bot(opts) do
+    shard_range = Keyword.fetch!(opts, :shard_range)
+    id = Keyword.fetch!(opts, :id)
+
     if not is_non_neg_range?(shard_range) do
       raise ArgumentError, message: "Shard range cannot include negative numbers"
     end
@@ -47,13 +50,18 @@ defmodule Mobius.Application do
 
     spec =
       Supervisor.child_spec(
-        {Mobius.Supervisor, bot: bot, url: url, token: token, name: :"Bot.#{id}.Supervisor"},
+        {Mobius.Supervisor,
+         bot: bot,
+         intents: Keyword.fetch!(opts, :intents),
+         url: Keyword.fetch!(opts, :url),
+         token: Keyword.fetch!(opts, :token),
+         name: :"Bot.#{id}.Supervisor"},
         id: id
       )
 
     with {:ok, _pid} <- Supervisor.start_child(@supervisor, spec) do
       Logger.debug("Started bot: #{inspect(bot)}")
-      bot
+      {:ok, bot}
     end
   end
 

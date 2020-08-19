@@ -11,12 +11,10 @@ defmodule Mobius.Supervisor do
   @impl Supervisor
   def init(opts) do
     bot = Keyword.fetch!(opts, :bot)
-    token = Keyword.fetch!(opts, :token)
-    url = Keyword.fetch!(opts, :url)
 
     shards =
       for i <- bot.shard_range do
-        gateway(bot, url, token, i, Enum.count(bot.shard_range))
+        gateway(opts, i, Enum.count(bot.shard_range))
       end
 
     children =
@@ -29,17 +27,19 @@ defmodule Mobius.Supervisor do
     Supervisor.init(children, strategy: :one_for_one, max_restarts: 1)
   end
 
-  @spec gateway(Bot.t(), String.t(), String.t(), non_neg_integer(), pos_integer()) ::
-          Supervisor.child_spec()
-  def gateway(bot, url, token, shard_num, shard_count) do
+  @spec gateway(keyword, non_neg_integer(), pos_integer()) :: Supervisor.child_spec()
+  def gateway(opts, shard_num, shard_count) do
+    bot = Keyword.fetch!(opts, :bot)
+
     Supervisor.child_spec(
       {Mobius.Shard.Gateway,
-       gateway_url: url,
+       gateway_url: Keyword.fetch!(opts, :url),
        shard_num: shard_num,
        shard_count: shard_count,
        pubsub: pubsub_name(),
        bot_id: bot.id,
-       token: token,
+       token: Keyword.fetch!(opts, :token),
+       intents: Keyword.fetch!(opts, :intents),
        ratelimiter: ratelimiter_name(bot),
        gatekeeper: gatekeeper_name(bot),
        name: gateway_name(bot, shard_num)},

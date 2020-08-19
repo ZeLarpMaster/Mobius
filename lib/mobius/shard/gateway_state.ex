@@ -18,6 +18,7 @@ defmodule Mobius.Shard.GatewayState do
     # Settings
     :bot_id,
     :token,
+    :intents,
     # Shards
     :shard_num,
     :shard_count,
@@ -103,6 +104,7 @@ defmodule Mobius.Shard.GatewayState do
           member_request_pids: member_request_pids,
           bot_id: bot_id,
           token: token,
+          intents: Mobius.Intents.intents(),
           shard_num: shard_number,
           shard_count: shard_count,
           heartbeat_timer: heartbeat_timer,

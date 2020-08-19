@@ -80,6 +80,13 @@ defmodule Mobius.Intents do
     end
   end
 
+  @spec events_for_intents(intents()) :: list(atom)
+  def events_for_intents(intents) do
+    @intents
+    |> Stream.map(fn {name, _} -> name end)
+    |> Enum.filter(&has_intent_for_event?(&1, intents))
+  end
+
   @spec has_intent_for_event?(atom, list(atom)) :: boolean
   def has_intent_for_event?(event_name, intents)
 

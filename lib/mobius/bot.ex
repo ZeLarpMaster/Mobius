@@ -24,6 +24,7 @@ defmodule Mobius.Bot do
           shard_range: Range.t(),
           id: String.t(),
           client: Mobius.Api.Client.client(),
+          ratelimit_server: pid,
           registry: atom
         }
 
@@ -50,8 +51,9 @@ defmodule Mobius.Bot do
 
   This function is not idempotent, two calls with the same arguments will not return the exact same struct.
   """
-  @spec start_bot(atom, String.t()) :: Bot.t() | {:error, :unauthorized_token | :ratelimited}
-  def start_bot(id, token) do
+  @spec start_bot(atom, String.t(), Mobius.Intents.intents()) ::
+          Bot.t() | {:error, :unauthorized_token | :ratelimited}
+  def start_bot(id, token, intents) do
     # TODO: Figure out how to cleanup the ratelimit server in case of errors
     {:ok, ratelimit_server} = Mobius.Application.start_ratelimit_server()
     client = Client.new(token, ratelimit_server)
@@ -60,8 +62,17 @@ defmodule Mobius.Bot do
       shard_range = 0..(info.shards - 1)
       "wss://" <> url = info.url
       # TODO: Consider `info.session_start_limit` to prevent abuse
-      bot = Mobius.Application.start_bot(shard_range, id, url, token)
-      %__MODULE__{bot | client: client, ratelimit_server: ratelimit_server}
+
+      with {:ok, bot} <-
+             Mobius.Application.start_bot(
+               shard_range: shard_range,
+               id: id,
+               intents: intents,
+               url: url,
+               token: token
+             ) do
+        %__MODULE__{bot | client: client, ratelimit_server: ratelimit_server}
+      end
     end
   end
 

@@ -1,6 +1,8 @@
 defmodule Mobius.Shard.Opcodes do
   @moduledoc false
 
+  require Logger
+
   alias Mobius.Shard.GatewayState
 
   # Gateway payloads
@@ -11,11 +13,14 @@ defmodule Mobius.Shard.Opcodes do
   end
 
   @spec identify(GatewayState.t()) :: map
-  def identify(%GatewayState{shard_num: shard, shard_count: shard_count, token: token}) do
+  def identify(%GatewayState{} = state) do
     {family, name} = :os.type()
 
+    Logger.debug("Identifying with intents #{inspect(state.intents)}")
+    Logger.debug("Intended events: #{inspect(Mobius.Intents.events_for_intents(state.intents))}")
+
     %{
-      "token" => token,
+      "token" => state.token,
       "properties" => %{
         "$os" => Atom.to_string(family) <> " " <> Atom.to_string(name),
         "$browser" => "Mobius",
@@ -23,10 +28,8 @@ defmodule Mobius.Shard.Opcodes do
       },
       # Compression here can't be enabled because we're using ETF
       "compress" => false,
-      "shard" => [shard, shard_count],
-      # TODO: Have a way to choose this
-      "guild_subscriptions" => false
-      # "intents" => 0, TODO
+      "shard" => [state.shard_num, state.shard_count],
+      "intents" => Mobius.Intents.intents_to_integer(state.intents)
     }
     |> serialize(:identify)
   end
