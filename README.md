@@ -21,6 +21,7 @@ be found at [https://hexdocs.pm/mobius](https://hexdocs.pm/mobius).
 
 ## Missing features
 
+- [ ] Rewrite the demo_bot so we can run it from iex
 - [ ] System test which starts a real bot and tries as many endpoints as possible
 - [ ] Intents
 - [ ] Implement all missing api endpoints
