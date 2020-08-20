@@ -43,6 +43,7 @@ defmodule Mobius.Models.Permissions do
   @spec has_permission?(atom, permission()) :: boolean
   @spec mfa_required?(atom) :: boolean
   @spec permission_applies?(atom, :text | :voice) :: boolean
+
   for {name, bit, applicable_channel_types, mfa_required?} <- @permissions do
     def has_permission?(unquote(name), value), do: (value &&& unquote(bit)) == unquote(bit)
     def mfa_required?(unquote(name)), do: unquote(mfa_required?)
@@ -52,5 +53,10 @@ defmodule Mobius.Models.Permissions do
     end
 
     def permission_applies?(unquote(name), _channel_type), do: false
+  end
+
+  @spec permission_from_names(MapSet.t(atom)) :: permission()
+  def permission_from_names(names) do
+    Mobius.Utils.create_bitflags(names, Enum.map(@permissions, &elem(&1, 0)))
   end
 end

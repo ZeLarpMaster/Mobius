@@ -15,9 +15,12 @@ defmodule Mobius.Shard.Opcodes do
   @spec identify(GatewayState.t()) :: map
   def identify(%GatewayState{} = state) do
     {family, name} = :os.type()
+    intents = Mobius.Intents.intents_to_integer(state.intents)
 
-    Logger.debug("Identifying with intents #{inspect(state.intents)}")
-    Logger.debug("Intended events: #{inspect(Mobius.Intents.events_for_intents(state.intents))}")
+    Logger.debug(
+      "Intended events for #{inspect(state.intents)} (#{intents}): " <>
+        "#{inspect(Mobius.Intents.events_for_intents(state.intents))}"
+    )
 
     %{
       "token" => state.token,
@@ -29,7 +32,7 @@ defmodule Mobius.Shard.Opcodes do
       # Compression here can't be enabled because we're using ETF
       "compress" => false,
       "shard" => [state.shard_num, state.shard_count],
-      "intents" => Mobius.Intents.intents_to_integer(state.intents)
+      "intents" => intents
     }
     |> serialize(:identify)
   end

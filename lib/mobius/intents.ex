@@ -10,6 +10,7 @@ defmodule Mobius.Intents do
     :guilds,
     :guild_members,
     :guild_bans,
+    :guild_emojis,
     :guild_integrations,
     :guild_webhooks,
     :guild_invites,
@@ -68,6 +69,9 @@ defmodule Mobius.Intents do
     WEBHOOKS_UPDATE: [:guild_webhooks]
   ]
 
+  @spec all_intents() :: intents()
+  def all_intents, do: MapSet.new(@intents)
+
   @spec intents_to_integer(intents()) :: integer
   def intents_to_integer(intents), do: Mobius.Utils.create_bitflags(intents, @intents)
 
@@ -82,7 +86,7 @@ defmodule Mobius.Intents do
 
   @spec events_for_intents(intents()) :: list(atom)
   def events_for_intents(intents) do
-    @intents
+    @event_intents
     |> Stream.map(fn {name, _} -> name end)
     |> Enum.filter(&has_intent_for_event?(&1, intents))
   end

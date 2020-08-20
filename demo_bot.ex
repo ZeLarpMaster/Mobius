@@ -37,7 +37,8 @@ defmodule DemoBot do
 
   @spec init(keyword) :: {:ok, state(), {:continue, atom}}
   def init(opts) do
-    bot = Bot.start_bot(:demo_bot, Keyword.fetch!(opts, :token))
+    intents = MapSet.new([:guilds, :guild_messages, :direct_messages])
+    bot = Bot.start_bot(:demo_bot, Keyword.fetch!(opts, :token), intents)
 
     Bot.subscribe_events(bot, [:READY])
 
@@ -51,7 +52,7 @@ defmodule DemoBot do
     end
 
     Bot.unsubscribe_events(state.bot)
-    Bot.subscribe_events(state.bot, [:MESSAGE_CREATE])
+    Bot.subscribe_events(state.bot, [:MESSAGE_CREATE, :GUILD_CREATE])
 
     Bot.update_status(state.bot, %Mobius.Models.Status{game: %{"type" => 0, "name" => "Ready!"}})
 
