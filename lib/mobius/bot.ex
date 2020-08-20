@@ -63,16 +63,16 @@ defmodule Mobius.Bot do
       "wss://" <> url = info.url
       # TODO: Consider `info.session_start_limit` to prevent abuse
 
-      with {:ok, bot} <-
-             Mobius.Application.start_bot(
-               shard_range: shard_range,
-               id: id,
-               intents: intents,
-               url: url,
-               token: token
-             ) do
-        %__MODULE__{bot | client: client, ratelimit_server: ratelimit_server}
-      end
+      {:ok, bot} =
+        Mobius.Application.start_bot(
+          shard_range: shard_range,
+          id: id,
+          intents: intents,
+          url: url,
+          token: token
+        )
+
+      %__MODULE__{bot | client: client, ratelimit_server: ratelimit_server}
     end
   end
 

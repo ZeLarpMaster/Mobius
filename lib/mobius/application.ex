@@ -29,7 +29,7 @@ defmodule Mobius.Application do
     :ok = DynamicSupervisor.terminate_child(@ratelimit_supervisor, pid)
   end
 
-  @spec start_bot(keyword) :: {:ok, Mobius.Bot.t()} | :already_started | {:error, any}
+  @spec start_bot(keyword) :: {:ok, Mobius.Bot.t()} | {:error, any}
   def start_bot(opts) do
     shard_range = Keyword.fetch!(opts, :shard_range)
     id = Keyword.fetch!(opts, :id)
@@ -59,9 +59,9 @@ defmodule Mobius.Application do
         id: id
       )
 
-    with {:ok, _pid} <- Supervisor.start_child(@supervisor, spec) do
-      Logger.debug("Started bot: #{inspect(bot)}")
-      {:ok, bot}
+    case Supervisor.start_child(@supervisor, spec) do
+      {:ok, _pid} -> {:ok, bot}
+      {:error, error} -> error
     end
   end
 
