@@ -52,7 +52,7 @@ defmodule DemoBot do
     end
 
     Bot.unsubscribe_events(state.bot)
-    Bot.subscribe_events(state.bot, [:MESSAGE_CREATE, :GUILD_CREATE])
+    Bot.subscribe_events(state.bot, [:MESSAGE_CREATE])
 
     Bot.update_status(state.bot, %Mobius.Models.Status{game: %{"type" => 0, "name" => "Ready!"}})
 

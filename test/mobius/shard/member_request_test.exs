@@ -23,6 +23,19 @@ defmodule Mobius.Shard.MemberRequestTest do
       end
     end
 
+    @tag intents: MapSet.new()
+    test "returns an error when asking for presences without the intent", ctx do
+      {:error, error} =
+        MemberRequest.request_with_ids(
+          ctx.gateway,
+          random_snowflake(),
+          [random_snowflake()],
+          true
+        )
+
+      assert error == "Cannot request presences without the :guild_presences intent"
+    end
+
     test "calls the socket with the proper payload", %{gateway: gateway_pid} do
       guild_id = random_snowflake()
       user_id = random_snowflake()
@@ -55,6 +68,35 @@ defmodule Mobius.Shard.MemberRequestTest do
       assert_raise RuntimeError, "Cannot request for all members when using a prefix", fn ->
         MemberRequest.request_with_prefix(nil, random_snowflake(), "a", 0, false)
       end
+    end
+
+    @tag intents: MapSet.new()
+    test "returns an error when asking for presences without the intent", ctx do
+      {:error, error} =
+        MemberRequest.request_with_prefix(
+          ctx.gateway,
+          random_snowflake(),
+          "a",
+          50,
+          true
+        )
+
+      assert error == "Cannot request presences without the :guild_presences intent"
+    end
+
+    @tag intents: MapSet.new()
+    test "returns an error when asking for all members without the intent", ctx do
+      {:error, error} =
+        MemberRequest.request_with_prefix(
+          ctx.gateway,
+          random_snowflake(),
+          "",
+          0,
+          false
+        )
+
+      assert error ==
+               "Cannot request all members (empty prefix) without the :guild_members intent"
     end
 
     test "calls the socket with the proper payload", %{gateway: gateway_pid} do

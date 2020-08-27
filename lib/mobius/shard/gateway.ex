@@ -20,6 +20,8 @@ defmodule Mobius.Shard.Gateway do
 
   @gateway_querystring "/?encoding=etf&compress=zlib-stream&v=6"
 
+  @type ratelimited :: {:error, :ratelimited}
+
   # Gateway's Client API
   @spec start_link(keyword) :: {:ok, pid}
   def start_link(opts) do
@@ -46,19 +48,24 @@ defmodule Mobius.Shard.Gateway do
     GenServer.call(gateway, {:update_intents, intents})
   end
 
-  # TODO: Revisit once intents are implemented (there's additional limits)
+  @spec request_guild_members(GenServer.server(), String.t(), [String.t()], boolean) ::
+          MemberRequest.out()
   def request_guild_members(gateway, guild_ids, user_ids, presences?) do
     MemberRequest.request_with_ids(gateway, guild_ids, user_ids, presences?)
   end
 
+  @spec request_guild_members(GenServer.server(), String.t(), String.t(), integer, boolean) ::
+          MemberRequest.out()
   def request_guild_members(gateway, guild_ids, username_prefix, limit, presences?) do
     MemberRequest.request_with_prefix(gateway, guild_ids, username_prefix, limit, presences?)
   end
 
+  @spec update_status(GenServer.server(), map) :: :ok | ratelimited()
   def update_status(gateway, status) when is_map(status) do
     GenServer.call(gateway, {:update_status, status})
   end
 
+  @spec update_voice_status(GenServer.server(), map) :: :ok | ratelimited()
   def update_voice_status(gateway, %{"guild_id" => guild_id} = status) when guild_id != nil do
     GenServer.call(gateway, {:update_voice_status, status})
   end
@@ -178,11 +185,16 @@ defmodule Mobius.Shard.Gateway do
   end
 
   def handle_call({:member_request, task_pid, payload}, _from, %GatewayState{} = state) do
-    case check_global_ratelimit(state) do
-      :ratelimited ->
+    intent_check = MemberRequest.check_intents(payload, state.intents)
+
+    cond do
+      check_global_ratelimit(state) == :ratelimited ->
         {:reply, {:error, :ratelimited}, state}
 
-      :ok ->
+      match?({:error, _}, intent_check) ->
+        {:reply, intent_check, state}
+
+      true ->
         nonce = Utils.random_string(32)
         payload = Map.put(payload, "nonce", nonce)
         state = store_task_nonce(state, nonce, task_pid)
