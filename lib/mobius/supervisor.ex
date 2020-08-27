@@ -22,6 +22,9 @@ defmodule Mobius.Supervisor do
     children =
       [
         {Registry, keys: :unique, name: bot.registry},
+        {Mobius.Cache.Manager, name: cache_name(bot), shelf: shelf_name()},
+        {Mobius.Cache.Filler,
+         bot_id: bot.id, cache: cache_name(bot), name: cache_filler_name(bot)},
         {Mobius.Shard.Ratelimiter.SelfRefill, name: ratelimiter_name(bot)},
         {Mobius.Shard.Gatekeeper.Timed, [gatekeeper_name(bot)]}
       ] ++ shards
@@ -50,9 +53,16 @@ defmodule Mobius.Supervisor do
   @spec gateway_name(Bot.t(), non_neg_integer()) :: GenServer.name()
   def gateway_name(bot, shard), do: {:via, Registry, {bot.registry, "gateway #{shard}"}}
 
+  @spec cache_name(Bot.t()) :: GenServer.name()
+  def cache_name(bot), do: {:via, Registry, {bot.registry, "cache_manager"}}
+
   @spec pubsub_name() :: atom
   def pubsub_name, do: Mobius.PubSub
 
+  @spec shelf_name() :: atom
+  def shelf_name, do: Mobius.ETSShelf
+
+  defp cache_filler_name(bot), do: {:via, Regsitry, {bot.registry, "cache_filler"}}
   defp ratelimiter_name(bot), do: {:via, Registry, {bot.registry, "ratelimiter"}}
   defp gatekeeper_name(bot), do: {:via, Registry, {bot.registry, "gatekeeper"}}
 end

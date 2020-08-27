@@ -103,6 +103,7 @@ defmodule DemoBot.Commands do
 
   alias Mobius.Api
   alias Mobius.Bot
+  alias Mobius.Cache
   alias DemoBot.Context
 
   @spec handle_command(Context.t(), String.t()) :: DemoBot.reply()
@@ -128,14 +129,14 @@ defmodule DemoBot.Commands do
   end
 
   def handle_command(ctx, "owner?") do
-    owners = get_owners(Api.Gateway.get_app_info(ctx.client))
+    owners = get_owners(Cache.Bot.get_app_info())
     {:reply, content: "Owner ids: #{inspect(owners)}"}
   end
 
   def handle_command(ctx, "setschedulers " <> num) do
     integer = parse_int(num)
 
-    owners = get_owners(Api.Gateway.get_app_info(ctx.client))
+    owners = get_owners(Cache.Bot.get_app_info())
 
     cond do
       ctx.message["author"]["id"] not in owners ->
@@ -206,7 +207,7 @@ defmodule DemoBot.Commands do
     end
   end
 
-  defp get_owners({:ok, app}) do
+  defp get_owners(app) do
     if :team_user in app.owner.flags do
       Enum.map(app.team.members, fn member -> member.user.id end)
     else

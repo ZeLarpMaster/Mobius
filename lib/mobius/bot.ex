@@ -61,6 +61,7 @@ defmodule Mobius.Bot do
       "wss://" <> url = info.url
       # TODO: Consider `info.session_start_limit` to prevent abuse
       bot = Mobius.Application.start_bot(shard_range, id, url, token)
+      update_app_info(Mobius.Supervisor.cache_name(bot), client)
       %__MODULE__{bot | client: client, ratelimit_server: ratelimit_server}
     end
   end
@@ -262,6 +263,11 @@ defmodule Mobius.Bot do
   @spec unsubscribe_events(Bot.t()) :: :ok
   def unsubscribe_events(bot) do
     PubSub.unsubscribe(pubsub_name(), bot_events_topic(bot.id))
+  end
+
+  defp update_app_info(cache, client) do
+    {:ok, app_info} = Api.Gateway.get_app_info(client)
+    Mobius.Cache.Bot.update_app_info(cache, app_info)
   end
 
   defp snowflake_to_string(nil), do: nil

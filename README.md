@@ -23,6 +23,7 @@ be found at [https://hexdocs.pm/mobius](https://hexdocs.pm/mobius).
 
 - [ ] System test which starts a real bot and tries as many endpoints as possible
 - [ ] Intents
+- [ ] Telemetry
 - [ ] Implement all missing api endpoints
 - [ ] Implement a cache of objects
 - [ ] Sanitize event data

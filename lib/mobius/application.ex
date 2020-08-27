@@ -12,6 +12,7 @@ defmodule Mobius.Application do
   def start(_type, _args) do
     children = [
       {DynamicSupervisor, strategy: :one_for_one, name: @ratelimit_supervisor},
+      {Mobius.ETSShelf, name: Mobius.Supervisor.shelf_name()},
       {Mobius.PubSub, name: Mobius.Supervisor.pubsub_name()}
     ]
 

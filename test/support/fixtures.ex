@@ -3,6 +3,7 @@ defmodule Mobius.Fixtures do
 
   import ExUnit.Callbacks
 
+  alias Mobius.ETSShelf
   alias Mobius.PubSub
   alias Mobius.Api.Client
   alias Mobius.Shard.Gateway
@@ -55,6 +56,11 @@ defmodule Mobius.Fixtures do
     name = :"PubSubTest#{random_id()}"
     start_supervised!({PubSub, name: name})
     [pubsub: name]
+  end
+
+  def create_shelf(_context) do
+    {:ok, server} = ETSShelf.start_link([])
+    [shelf: server]
   end
 
   def create_pid(_context) do
