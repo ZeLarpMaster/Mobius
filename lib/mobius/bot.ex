@@ -110,6 +110,20 @@ defmodule Mobius.Bot do
   end
 
   @doc """
+  Returns the current intents in each shard in an ordered list
+
+  The nth element of the list is the intents of the nth shard
+  """
+  @spec get_intents(Bot.t()) :: list(Intents.intents())
+  def get_intents(bot) do
+    for shard_num <- bot.shard_range do
+      bot
+      |> gateway_name(shard_num)
+      |> Gateway.get_intents()
+    end
+  end
+
+  @doc """
   Set the bot's new `Mobius.Models.Status`
 
   Returns an ordered list where the nth element is the return value of the nth shard
