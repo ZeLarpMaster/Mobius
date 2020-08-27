@@ -124,6 +124,24 @@ defmodule Mobius.Bot do
   end
 
   @doc """
+  Updates the intents in each shard
+
+  **Warning**
+  This function causes all shards to disconnect from the gateway and attempt to reconnect with the new intents.
+  If you have more than one shard, this takes 5 seconds per shard after the first one!
+  During this time, you won't receive events from guilds on shards which haven't reconnected yet and
+  you won't be able to interact with those shards in any way either.
+  """
+  @spec update_intents(Bot.t(), Intents.intents()) :: list(:ok)
+  def update_intents(bot, intents) do
+    for shard_num <- bot.shard_range do
+      bot
+      |> gateway_name(shard_num)
+      |> Gateway.update_intents(intents)
+    end
+  end
+
+  @doc """
   Set the bot's new `Mobius.Models.Status`
 
   Returns an ordered list where the nth element is the return value of the nth shard

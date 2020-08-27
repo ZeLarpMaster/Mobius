@@ -28,3 +28,4 @@ be found at [https://hexdocs.pm/mobius](https://hexdocs.pm/mobius).
 - [ ] Implement a cache of objects
 - [ ] Sanitize event data
 - [ ] Struct-ify data
+- [ ] Updating intents without closing all shards at once
