@@ -36,7 +36,7 @@ defmodule Mobius.Bot do
   alias Mobius.Api
   alias Mobius.Api.Client
   alias Mobius.Shard.Gateway
-  alias Mobius.Models.{Status, Snowflake}
+  alias Mobius.Models.{Status, Snowflake, Intents}
 
   @typedoc "Return value for ratelimited asynchronous function calls"
   @type ratelimited :: {:error, :ratelimited}
@@ -51,7 +51,7 @@ defmodule Mobius.Bot do
 
   This function is not idempotent, two calls with the same arguments will not return the exact same struct.
   """
-  @spec start_bot(atom, String.t(), Mobius.Intents.intents()) ::
+  @spec start_bot(atom, String.t(), Intents.intents()) ::
           Bot.t() | {:error, :unauthorized_token | :ratelimited}
   def start_bot(id, token, intents) do
     # TODO: Figure out how to cleanup the ratelimit server in case of errors

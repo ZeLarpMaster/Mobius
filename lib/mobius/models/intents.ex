@@ -1,4 +1,4 @@
-defmodule Mobius.Intents do
+defmodule Mobius.Models.Intents do
   @moduledoc false
 
   require Logger

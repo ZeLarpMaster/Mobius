@@ -3,6 +3,7 @@ defmodule Mobius.Shard.Opcodes do
 
   require Logger
 
+  alias Mobius.Models.Intents
   alias Mobius.Shard.GatewayState
 
   # Gateway payloads
@@ -15,11 +16,11 @@ defmodule Mobius.Shard.Opcodes do
   @spec identify(GatewayState.t()) :: map
   def identify(%GatewayState{} = state) do
     {family, name} = :os.type()
-    intents = Mobius.Intents.intents_to_integer(state.intents)
+    intents = Intents.intents_to_integer(state.intents)
 
     Logger.debug(
       "Intended events for #{inspect(state.intents)} (#{intents}): " <>
-        "#{inspect(Mobius.Intents.events_for_intents(state.intents))}"
+        "#{inspect(Intents.events_for_intents(state.intents))}"
     )
 
     %{

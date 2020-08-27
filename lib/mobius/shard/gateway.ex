@@ -2,6 +2,7 @@ defmodule Mobius.Shard.Gateway do
   @moduledoc false
 
   alias Mobius.{ErrorCodes, Utils}
+  alias Mobius.Models.Intents
 
   alias Mobius.Shard.{
     GatewayState,
@@ -117,7 +118,7 @@ defmodule Mobius.Shard.Gateway do
   def handle_info({:socket_closed, close_num, reason}, state) do
     {close_reason, what_can_do} = ErrorCodes.translate_gateway_error(close_num)
     Logger.warn("Socket closed (#{close_num}: #{close_reason}) #{reason}")
-    if close_num == 4014, do: Mobius.Intents.warn_privileged_intents(state.intents)
+    if close_num == 4014, do: Intents.warn_privileged_intents(state.intents)
     state = stop_heartbeat(state)
 
     case what_can_do do
