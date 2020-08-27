@@ -5,6 +5,7 @@ defmodule Mobius.Fixtures do
 
   alias Mobius.PubSub
   alias Mobius.Api.Client
+  alias Mobius.Models.Intents
   alias Mobius.Shard.Gateway
   alias Mobius.Shard.Ratelimiter
 
@@ -28,6 +29,7 @@ defmodule Mobius.Fixtures do
          gateway_url: "",
          name: :"TestGateway #{shard_num}",
          bot_id: Integer.to_string(shard_num),
+         intents: Intents.all_intents(),
          token: token,
          shard_num: shard_num,
          shard_count: 1,

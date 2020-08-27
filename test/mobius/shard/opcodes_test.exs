@@ -3,6 +3,7 @@ defmodule Mobius.Shard.OpcodesTest do
 
   import Mobius.Fixtures
 
+  alias Mobius.Models.Intents
   alias Mobius.Shard.{Opcodes, GatewayState}
 
   describe "heartbeat/1" do
@@ -27,7 +28,7 @@ defmodule Mobius.Shard.OpcodesTest do
 
   describe "identify/1" do
     test "serializes with the right opcode" do
-      %GatewayState{}
+      %GatewayState{intents: Intents.all_intents()}
       |> Opcodes.identify()
       |> assert_opcode(:identify)
     end
@@ -38,6 +39,7 @@ defmodule Mobius.Shard.OpcodesTest do
       shard = 1
       shard_count = 2
       token = random_hex(8)
+      intents = Intents.all_intents()
 
       expected_value = %{
         "token" => token,
@@ -48,11 +50,11 @@ defmodule Mobius.Shard.OpcodesTest do
         },
         "compress" => false,
         "shard" => [shard, shard_count],
-        "guild_subscriptions" => false
+        "intents" => Intents.intents_to_integer(intents)
       }
 
       data =
-        %GatewayState{shard_num: shard, shard_count: shard_count, token: token}
+        %GatewayState{shard_num: shard, shard_count: shard_count, token: token, intents: intents}
         |> Opcodes.identify()
         |> deserialize()
         |> elem(1)
