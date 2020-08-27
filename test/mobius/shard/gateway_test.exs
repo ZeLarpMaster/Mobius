@@ -5,6 +5,7 @@ defmodule Mobius.Shard.GatewayTest do
   import Mobius.Fixtures
 
   alias Mobius.PubSub
+  alias Mobius.Models.Intents
   alias Mobius.Shard.{Socket, Gatekeeper, Opcodes, EventProcessor, Gateway, Ratelimiter}
 
   @moduletag gatekeeper_impl: Gatekeeper.Observing
@@ -220,7 +221,42 @@ defmodule Mobius.Shard.GatewayTest do
       ping = Gateway.get_heartbeat_ping(ctx.gateway)
       after_time = System.monotonic_time(:millisecond)
 
-      assert ping <= after_time - before_time
+      # 10 ms of tolerance
+      assert ping <= after_time - before_time + 10
+    end
+  end
+
+  describe "intents" do
+    @tag intents: MapSet.new([:guilds])
+    test "get_intents/1 returns the intents given when starting", ctx do
+      assert ctx.intents == Gateway.get_intents(ctx.gateway)
+    end
+
+    test "update_intents/2 closes the socket and reidentifies with new intents", ctx do
+      session_id = random_hex(16)
+      intents = MapSet.new([:guilds, :guild_messages])
+      send_opcode(ctx.gateway, :hello, %{heartbeat_interval: 100})
+      receive_from_gateway(:identify)
+      send_opcode(ctx.gateway, :dispatch, %{session_id: session_id}, 1, :READY)
+      receive_from_gateway(:heartbeat)
+      send_opcode(ctx.gateway, :heartbeat_ack)
+
+      assert Intents.all_intents() == Gateway.get_intents(ctx.gateway)
+
+      :ok = Gateway.update_intents(ctx.gateway, intents)
+      assert_receive :socket_close
+      # Gateway expects a down notification when the socket is closed
+      Socket.notify_down(ctx.gateway, "Testing")
+
+      # At any time after this, the gateway is expected to reply with the new intents
+      assert intents == Gateway.get_intents(ctx.gateway)
+
+      # Socket is brought back up
+      Socket.notify_up(ctx.gateway)
+      send_opcode(ctx.gateway, :hello, %{heartbeat_interval: 100})
+      # Gateway reidentifies with the new intents even though we had a session
+      data = receive_from_gateway(:identify)
+      assert data["intents"] == Intents.intents_to_integer(intents)
     end
   end
 

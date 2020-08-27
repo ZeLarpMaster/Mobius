@@ -29,7 +29,7 @@ defmodule Mobius.Fixtures do
          gateway_url: "",
          name: :"TestGateway #{shard_num}",
          bot_id: Integer.to_string(shard_num),
-         intents: Intents.all_intents(),
+         intents: Map.get(context, :intents, Intents.all_intents()),
          token: token,
          shard_num: shard_num,
          shard_count: 1,

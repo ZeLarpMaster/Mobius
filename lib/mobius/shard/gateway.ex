@@ -36,6 +36,16 @@ defmodule Mobius.Shard.Gateway do
     GenServer.call(gateway, :get_ping)
   end
 
+  @spec get_intents(GenServer.server()) :: Intents.intents()
+  def get_intents(gateway) do
+    GenServer.call(gateway, :get_intents)
+  end
+
+  @spec update_intents(GenServer.server(), Intents.intents()) :: :ok
+  def update_intents(gateway, intents) do
+    GenServer.call(gateway, {:update_intents, intents})
+  end
+
   # TODO: Revisit once intents are implemented (there's additional limits)
   def request_guild_members(gateway, guild_ids, user_ids, presences?) do
     MemberRequest.request_with_ids(gateway, guild_ids, user_ids, presences?)
@@ -184,6 +194,15 @@ defmodule Mobius.Shard.Gateway do
 
   def handle_call(:get_ping, _from, %GatewayState{heartbeat_ping: ping} = state) do
     {:reply, ping, state}
+  end
+
+  def handle_call(:get_intents, _from, %GatewayState{intents: intents} = state) do
+    {:reply, intents, state}
+  end
+
+  def handle_call({:update_intents, intents}, _from, %GatewayState{} = state) do
+    Socket.close(state.socket_pid)
+    {:reply, :ok, %GatewayState{state | session_id: nil, intents: intents}}
   end
 
   def handle_call({:update_status, status}, _from, %GatewayState{} = state) do
