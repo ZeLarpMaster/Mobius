@@ -12,6 +12,7 @@ defmodule Mobius.Shard.MemberRequest do
 
   # TODO: What to do with the not_founds?
   # TODO: Presences are currently unused
+  # TODO: Figure out a way to timeout the chunk task if the stream is never consumed
 
   require Logger
 

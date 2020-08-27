@@ -162,28 +162,29 @@ defmodule Mobius.Bot do
   Query the members of a guild by id
 
   `user_ids` can be either one user id snowflake or a list of user ids. You cannot request more than 100 user ids.
+  You must have the :guild_presences intent to set `presences?` to true otherwise `{:error, binary}` will be returned instead.
 
   This returns a `Stream` of [guild member objects](https://discord.com/developers/docs/resources/guild#guild-member-object) as maps with string keys.
-  The resulting `Stream` may raise a `Mobius.TimeoutError` if Discord fails to send chunks quickly enough.
-  It may also raise a `Mobius.RatelimitError` if this request would exceed Discord's ratelimits.
+  The resulting `Stream` may raise a `Mobius.TimeoutError` when consumed if Discord fails to send chunks quickly enough.
+
+  **Important note**
+  This function initiates a request to Discord immediately and starts a process to handle the chunks sent by Discord.
+  It is therefore important to consume the `Stream` returned by this function, otherwise you will cause a memory leak.
 
   **This function is asynchronous!** See the section `Synchronous vs Asynchronous` for details about what this means.
 
-  As mentioned above, the resulting `Stream` may raise a `Mobius.RatelimitError` if it is dropped.
-  Note that the exception is raised *when the stream is executed* and not when this function is called.
-  This is to prevent requesting members without actually doing anything with them as this operation is expensive in populous guilds.
+  This function may return `{:error, :ratelimited}` instead of a `Stream` when the request is dropped.
 
-  In the following example, the line which would raise the exception is `usernames = Enum.to_list(stream)`.
-  All lines before that one will *not* initiate the request and will *not* raise a `Mobius.RatelimitError` or a `Mobius.TimeoutError`.
+  In the following example, the line which would raise the `Mobius.TimeoutError` exception is `usernames = Enum.to_list(stream)`.
   ```elixir
-  stream = Bot.request_members(guild_id, user_ids, presences?)
+  stream = Bot.request_members(bot, guild_id, user_ids, presences?)
   stream = Stream.map(stream, fn member -> member.user.username end)
   usernames = Enum.to_list(stream)
   ```
   """
   @doc asynchronous: true
   @spec request_members(Bot.t(), Snowflake.t(), Snowflake.t() | list(Snowflake.t()), boolean) ::
-          term
+          Stream.t() | {:error, :ratelimited} | {:error, String.t()}
   def request_members(bot, guild_id, user_ids, presences?) when is_integer(guild_id) do
     user_ids =
       cond do
@@ -208,29 +209,32 @@ defmodule Mobius.Bot do
   @doc """
   Query the members of a guild by prefix
 
-  You may put an empty string for the prefix and a limit of 0 to request all members in the guild.
+  You may put an empty string for the prefix and a limit of 0 to request all members in the guild,
+    but doing so requires the :guild_members intent otherwise `{:error, binary}` will be returned instead.
   The limit cannot be greater than 100. A limit of 0 and a non-empty prefix is also not allowed.
+  You must have the :guild_presences intent to set `presences?` to true otherwise `{:error, binary}` will be returned instead.
 
   This returns a `Stream` of [guild member objects](https://discord.com/developers/docs/resources/guild#guild-member-object) as maps with string keys.
   The resulting `Stream` may raise a `Mobius.TimeoutError` if Discord fails to send chunks quickly enough.
-  It may also raise a `Mobius.RatelimitError` if this request would exceed Discord's ratelimits.
+
+  **Important note**
+  This function initiates a request to Discord immediately and starts a process to handle the chunks sent by Discord.
+  It is therefore important to consume the `Stream` returned by this function, otherwise you will cause a memory leak.
 
   **This function is asynchronous!** See the section `Synchronous vs Asynchronous` for details about what this means.
 
-  As mentioned above, the resulting `Stream` may raise a `Mobius.RatelimitError` if it is dropped.
-  Note that the exception is raised *when the stream is executed* and not when this function is called.
-  This is to prevent requesting members without actually doing anything with them as this operation is expensive in populous guilds.
+  This function may return `{:error, :ratelimited}` instead of a `Stream` when the request is dropped.
 
-  In the following example, the line which would raise the exception is `usernames = Enum.to_list(stream)`.
-  All lines before that one will *not* initiate the request and will *not* raise a `Mobius.RatelimitError` or a `Mobius.TimeoutError`.
+  In the following example, the line which would raise the `Mobius.TimeoutError` exception is `usernames = Enum.to_list(stream)`.
   ```elixir
-  stream = Bot.request_members(guild_id, "", 0, presences?)
+  stream = Bot.request_members(bot, guild_id, "", 0, presences?)
   stream = Stream.map(stream, fn member -> member.user.username end)
   usernames = Enum.to_list(stream)
   ```
   """
   @doc asynchronous: true
-  @spec request_members(Bot.t(), Snowflake.t(), String.t(), pos_integer(), boolean) :: term
+  @spec request_members(Bot.t(), Snowflake.t(), String.t(), pos_integer(), boolean) ::
+          Stream.t() | {:error, :ratelimited} | {:error, String.t()}
   def request_members(bot, guild_id, prefix, limit, presences?)
       when is_integer(guild_id) and is_binary(prefix) and 0 <= limit and limit <= 100 do
     Gateway.request_guild_members(
