@@ -7,13 +7,9 @@ defmodule Mobius.Application do
 
   def start(_type, _args) do
     children = [
-      # Starts a worker by calling: Mobius.Worker.start_link(arg)
-      # {Mobius.Worker, arg}
+      {DynamicSupervisor, name: Mobius.Supervisor.Heartbeat, strategy: :one_for_one}
     ]
 
-    # See https://hexdocs.pm/elixir/Supervisor.html
-    # for other strategies and supported options
-    opts = [strategy: :one_for_one, name: Mobius.Supervisor]
-    Supervisor.start_link(children, opts)
+    Supervisor.start_link(children, strategy: :one_for_one, name: Mobius.Supervisor)
   end
 end

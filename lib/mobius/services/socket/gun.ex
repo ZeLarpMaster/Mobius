@@ -23,22 +23,26 @@ defmodule Mobius.Services.Socket.Gun do
 
   # Socket callbacks
   @impl Socket
+  @spec start_link(keyword) :: GenServer.on_start()
   def start_link(opts) do
-    GenServer.start_link(__MODULE__, opts, name: Keyword.get(opts, :name))
+    GenServer.start_link(__MODULE__, opts, name: Keyword.fetch!(opts, :name))
   end
 
   @impl Socket
+  @spec send_message(GenServer.server(), term) :: :ok
   def send_message(socket, message) do
     GenServer.call(socket, {:send, message})
   end
 
   @impl Socket
+  @spec close(GenServer.server()) :: :ok
   def close(socket) do
     GenServer.call(socket, :close)
   end
 
   # GenServer and :gun stuff
   @impl GenServer
+  @spec init(keyword) :: {:ok, state(), {:continue, :ok}}
   def init(opts) do
     zlib_stream = :zlib.open()
     :zlib.inflateInit(zlib_stream)
@@ -47,13 +51,15 @@ defmodule Mobius.Services.Socket.Gun do
       url: Keyword.fetch!(opts, :url),
       query: Keyword.fetch!(opts, :query),
       zlib_stream: zlib_stream,
-      shard: Keyword.fetch!(opts, :shard)
+      shard: Keyword.fetch!(opts, :shard),
+      gun_pid: nil
     }
 
     {:ok, state, {:continue, :ok}}
   end
 
   @impl GenServer
+  @spec handle_continue(:ok, state()) :: {:noreply, state()}
   def handle_continue(:ok, state) do
     {:ok, worker} = :gun.open(String.to_charlist(state.url), 443, %{protocols: [:http]})
     {:ok, :http} = :gun.await_up(worker, @timeout_connect)
@@ -63,21 +69,17 @@ defmodule Mobius.Services.Socket.Gun do
   end
 
   @impl GenServer
-  def handle_cast({:send, payload}, state) do
-    message = :erlang.term_to_binary(payload)
+  def handle_call({:send, payload}, _from, state) do
+    payload
+    |> :erlang.term_to_binary()
+    |> send_msg(state.gun_pid)
 
-    if byte_size(message) < 4096 do
-      :ok = :gun.ws_send(state.gun_pid, {:binary, message})
-    else
-      Logger.warn("Attempted to send a ws message longer than 4096 bytes! Dropped it instead.")
-    end
-
-    {:noreply, state}
+    {:reply, :ok, state}
   end
 
-  def handle_cast(:close, state) do
+  def handle_call(:close, _from, state) do
     :ok = :gun.ws_send(state.gun_pid, :close)
-    {:noreply, state}
+    {:reply, :ok, state}
   end
 
   @impl GenServer
@@ -88,26 +90,30 @@ defmodule Mobius.Services.Socket.Gun do
       |> :erlang.iolist_to_binary()
       |> :erlang.binary_to_term()
 
-    Socket.notify_message(state.parent_pid, message)
+    Socket.notify_payload(state.shard, message)
     {:noreply, state}
   end
 
   def handle_info({:gun_ws, _worker, _stream, {:close, close_num, reason}}, state) do
-    Socket.notify_closed(state.parent_pid, close_num, reason)
+    Socket.notify_closed(state.shard, close_num, reason)
     {:noreply, state}
   end
 
   def handle_info({:gun_down, _worker, _protocol, reason, _killed, _unprocessed}, state) do
-    Socket.notify_down(state.parent_pid, reason)
+    Socket.notify_down(state.shard, reason)
     {:noreply, state}
   end
 
   def handle_info({:gun_up, worker, _protocol}, state) do
     await_gun_upgrade(worker, state.query)
-    Socket.notify_up(state.parent_pid)
+    Socket.notify_up(state.shard)
     :ok = :zlib.inflateReset(state.zlib_stream)
     {:noreply, state}
   end
+
+  # Byte size limit specified here: https://discord.com/developers/docs/topics/gateway#sending-payloads
+  defp send_msg(msg, pid) when byte_size(msg) < 4096, do: :gun.ws_send(pid, {:binary, msg})
+  defp send_msg(_msg, _pid), do: Logger.warn("Dropped a ws message longer than 4096 bytes!")
 
   defp await_gun_upgrade(worker, query) do
     stream = :gun.ws_upgrade(worker, query)

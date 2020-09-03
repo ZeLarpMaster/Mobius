@@ -3,9 +3,13 @@ defmodule Mobius.Services.Heartbeat do
 
   use GenServer
 
+  require Logger
+
   alias Mobius.Core.HeartbeatInfo
+  alias Mobius.Core.Opcode
   alias Mobius.Core.ShardInfo
   alias Mobius.Services.Shard
+  alias Mobius.Services.Socket
 
   @typep state :: %{
            seq: integer,
@@ -14,9 +18,27 @@ defmodule Mobius.Services.Heartbeat do
            info: HeartbeatInfo.t()
          }
 
+  @spec start_link({ShardInfo.t(), keyword}) :: GenServer.on_start()
+  def start_link({shard, opts}) do
+    GenServer.start_link(__MODULE__, opts, name: via(shard))
+  end
+
+  @spec start_heartbeat(ShardInfo.t(), integer) :: DynamicSupervisor.on_start_child()
+  def start_heartbeat(shard, interval_ms) do
+    DynamicSupervisor.start_child(
+      Mobius.Supervisor.Heartbeat,
+      {__MODULE__, {shard, interval_ms: interval_ms}}
+    )
+  end
+
   @spec get_ping(ShardInfo.t()) :: integer
   def get_ping(shard) do
     GenServer.call(via(shard), :get_ping)
+  end
+
+  @spec update_seq(ShardInfo.t(), integer) :: :ok
+  def update_seq(shard, seq) do
+    GenServer.call(via(shard), {:update_seq, seq})
   end
 
   @spec request_heartbeat(ShardInfo.t()) :: :ok
@@ -24,7 +46,12 @@ defmodule Mobius.Services.Heartbeat do
     GenServer.call(via(shard), :request)
   end
 
-  @spec received_ack(ShardInfo.t()) :: :ok
+  @spec request_shutdown(ShardInfo.t()) :: :ok
+  def request_shutdown(shard) do
+    GenServer.call(via(shard), :shutdown)
+  end
+
+  @spec received_ack(ShardInfo.t()) :: {:ok, ping_ms :: integer}
   def received_ack(shard) do
     GenServer.call(via(shard), :ack)
   end
@@ -41,17 +68,24 @@ defmodule Mobius.Services.Heartbeat do
       info: HeartbeatInfo.new()
     }
 
+    schedule_heartbeat(state.interval_ms)
+
     {:ok, state}
   end
 
   @impl GenServer
   def handle_call(:request, _from, state) do
-    # TODO: Send request and update info
+    send_heartbeat(state.shard, state.seq)
+    state = Map.update!(state, :info, &HeartbeatInfo.sending/1)
     {:reply, :ok, state}
   end
 
+  def handle_call(:shutdown, _from, state) do
+    {:stop, :normal, :ok, state}
+  end
+
   def handle_call(:ack, _from, state) do
-    # TODO: Update info
+    state = Map.update!(state, :info, &HeartbeatInfo.received_ack/1)
     {:reply, :ok, state}
   end
 
@@ -59,5 +93,31 @@ defmodule Mobius.Services.Heartbeat do
     {:reply, state.info.ping, state}
   end
 
+  def handle_call({:update_seq, seq}, _from, state) do
+    state = %{state | seq: seq}
+    {:reply, :ok, state}
+  end
+
+  @impl GenServer
+  def handle_info(:heartbeat, state) do
+    HeartbeatInfo.can_send?(state.info)
+    |> maybe_send_heartbeat(state)
+  end
+
+  defp maybe_send_heartbeat(true, state) do
+    send_heartbeat(state.shard, state.seq)
+    schedule_heartbeat(state.interval_ms)
+    state = Map.update!(state, :info, &HeartbeatInfo.sending/1)
+    {:noreply, state}
+  end
+
+  defp maybe_send_heartbeat(false, state) do
+    Logger.warn("Didn't receive a heartbeat ack in time")
+    Socket.close(state.shard)
+    {:stop, :heartbeat_timeout, state}
+  end
+
+  defp schedule_heartbeat(interval_ms), do: Process.send_after(self(), :heartbeat, interval_ms)
+  defp send_heartbeat(shard, seq), do: Socket.send_message(shard, Opcode.heartbeat(seq))
   defp via(%ShardInfo{} = shard), do: {:via, Registry, {Mobius.Registry.Heartbeat, shard}}
 end
