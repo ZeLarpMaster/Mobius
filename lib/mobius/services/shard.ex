@@ -5,6 +5,7 @@ defmodule Mobius.Services.Shard do
 
   require Logger
 
+  alias Mobius.Core.SocketCodes
   alias Mobius.Core.Opcode
   alias Mobius.Core.ShardInfo
   alias Mobius.Services.Heartbeat
@@ -66,8 +67,7 @@ defmodule Mobius.Services.Shard do
   end
 
   def handle_call({:socket_closed, close_num, reason}, _from, state) do
-    # TODO: Figure out close_reason and what_can_do from close_num translation
-    {close_reason, what_can_do} = {"Unknown", :resume}
+    {close_reason, what_can_do} = SocketCodes.translate_close_code(close_num)
     Logger.warn("Socket closed (#{close_num}: #{close_reason}) #{reason}")
 
     case what_can_do do
