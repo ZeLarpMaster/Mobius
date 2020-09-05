@@ -17,4 +17,7 @@ defmodule Mobius.Core.ShardInfo do
       new(number: num, count: count)
     end
   end
+
+  @spec to_list(t()) :: [integer]
+  def to_list(info), do: [info.number, info.count]
 end

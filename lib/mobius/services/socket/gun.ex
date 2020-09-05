@@ -47,13 +47,22 @@ defmodule Mobius.Services.Socket.Gun do
     zlib_stream = :zlib.open()
     :zlib.inflateInit(zlib_stream)
 
+    query =
+      opts
+      |> Keyword.fetch!(:query)
+      |> add_impl_queries()
+      |> encode_query()
+
     state = %{
       url: Keyword.fetch!(opts, :url),
-      query: Keyword.fetch!(opts, :query),
+      query: query,
       zlib_stream: zlib_stream,
       shard: Keyword.fetch!(opts, :shard),
       gun_pid: nil
     }
+
+    # TODO: Trap exit so we can run Socket.notify_down/2 on shutdown?
+    # TODO: Figure out what happens during this process' downtime
 
     {:ok, state, {:continue, :ok}}
   end
@@ -110,6 +119,14 @@ defmodule Mobius.Services.Socket.Gun do
     :ok = :zlib.inflateReset(state.zlib_stream)
     {:noreply, state}
   end
+
+  defp add_impl_queries(query) do
+    query
+    |> Map.put("encoding", "etf")
+    |> Map.put("compress", "zlib-stream")
+  end
+
+  defp encode_query(query), do: "/?" <> URI.encode_query(query)
 
   # Byte size limit specified here: https://discord.com/developers/docs/topics/gateway#sending-payloads
   defp send_msg(msg, pid) when byte_size(msg) < 4096, do: :gun.ws_send(pid, {:binary, msg})

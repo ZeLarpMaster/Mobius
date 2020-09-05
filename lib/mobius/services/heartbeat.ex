@@ -12,16 +12,10 @@ defmodule Mobius.Services.Heartbeat do
   alias Mobius.Services.Socket
 
   @typep state :: %{
-           seq: integer,
            shard: ShardInfo.t(),
            interval_ms: integer,
            info: HeartbeatInfo.t()
          }
-
-  @spec start_link({ShardInfo.t(), keyword}) :: GenServer.on_start()
-  def start_link({shard, opts}) do
-    GenServer.start_link(__MODULE__, opts, name: via(shard))
-  end
 
   @spec start_heartbeat(ShardInfo.t(), integer) :: DynamicSupervisor.on_start_child()
   def start_heartbeat(shard, interval_ms) do
@@ -31,19 +25,19 @@ defmodule Mobius.Services.Heartbeat do
     )
   end
 
+  @spec start_link({ShardInfo.t(), keyword}) :: GenServer.on_start()
+  def start_link({shard, opts}) do
+    GenServer.start_link(__MODULE__, opts, name: via(shard))
+  end
+
   @spec get_ping(ShardInfo.t()) :: integer
   def get_ping(shard) do
     GenServer.call(via(shard), :get_ping)
   end
 
-  @spec update_seq(ShardInfo.t(), integer) :: :ok
-  def update_seq(shard, seq) do
-    GenServer.call(via(shard), {:update_seq, seq})
-  end
-
-  @spec request_heartbeat(ShardInfo.t()) :: :ok
-  def request_heartbeat(shard) do
-    GenServer.call(via(shard), :request)
+  @spec request_heartbeat(ShardInfo.t(), integer) :: :ok
+  def request_heartbeat(shard, seq) do
+    GenServer.call(via(shard), {:request, seq})
   end
 
   @spec request_shutdown(ShardInfo.t()) :: :ok
@@ -68,14 +62,14 @@ defmodule Mobius.Services.Heartbeat do
       info: HeartbeatInfo.new()
     }
 
-    schedule_heartbeat(state.interval_ms)
+    {:noreply, state} = maybe_send_heartbeat(true, state)
 
     {:ok, state}
   end
 
   @impl GenServer
-  def handle_call(:request, _from, state) do
-    send_heartbeat(state.shard, state.seq)
+  def handle_call({:request, seq}, _from, state) do
+    send_heartbeat(state.shard, seq)
     state = Map.update!(state, :info, &HeartbeatInfo.sending/1)
     {:reply, :ok, state}
   end
@@ -93,11 +87,6 @@ defmodule Mobius.Services.Heartbeat do
     {:reply, state.info.ping, state}
   end
 
-  def handle_call({:update_seq, seq}, _from, state) do
-    state = %{state | seq: seq}
-    {:reply, :ok, state}
-  end
-
   @impl GenServer
   def handle_info(:heartbeat, state) do
     HeartbeatInfo.can_send?(state.info)
@@ -105,7 +94,7 @@ defmodule Mobius.Services.Heartbeat do
   end
 
   defp maybe_send_heartbeat(true, state) do
-    send_heartbeat(state.shard, state.seq)
+    send_heartbeat(state.shard, Shard.get_sequence_number(state.shard))
     schedule_heartbeat(state.interval_ms)
     state = Map.update!(state, :info, &HeartbeatInfo.sending/1)
     {:noreply, state}

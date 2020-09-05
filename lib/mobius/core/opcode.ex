@@ -1,14 +1,16 @@
 defmodule Mobius.Core.Opcode do
   @moduledoc false
 
+  alias Mobius.Core.ShardInfo
+
   @spec heartbeat(integer) :: map
   def heartbeat(sequence_number) do
     sequence_number
     |> serialize(:heartbeat)
   end
 
-  @spec identify(integer, integer, String.t()) :: map
-  def identify(shard, shard_count, token) do
+  @spec identify(ShardInfo.t(), String.t()) :: map
+  def identify(shard, token) do
     {family, name} = :os.type()
 
     %{
@@ -20,7 +22,7 @@ defmodule Mobius.Core.Opcode do
       },
       # Compression here can't be enabled because we're using ETF
       "compress" => false,
-      "shard" => [shard, shard_count]
+      "shard" => ShardInfo.to_list(shard)
       # "intents" => 0, TODO
     }
     |> serialize(:identify)

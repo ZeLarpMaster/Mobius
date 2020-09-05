@@ -11,6 +11,8 @@ defmodule Mobius.Services.Shard do
   alias Mobius.Services.Heartbeat
   alias Mobius.Services.Socket
 
+  @gateway_version "6"
+
   @typep state :: %{
            seq: integer,
            session_id: String.t() | nil,
@@ -52,8 +54,8 @@ defmodule Mobius.Services.Shard do
       info: shard_info
     }
 
-    # TODO: Link process to the other services
-    # TODO: Figure out what to do when the other services die
+    url = Keyword.fetch!(opts, :url)
+    {:ok, _} = Socket.start_socket(shard_info, url, %{"v" => @gateway_version})
 
     {:ok, state}
   end
@@ -84,12 +86,12 @@ defmodule Mobius.Services.Shard do
   # Update the state and execute side effects depending on opcode
   defp process_payload(:dispatch, payload, state) do
     Logger.debug("Dispatching #{inspect(payload.t)}")
-    # TODO: Side effects
-    state
+    # TODO: Broadcast event
+    update_state_by_event(payload, state)
   end
 
   defp process_payload(:heartbeat, _payload, state) do
-    Heartbeat.request_heartbeat(state.info)
+    Heartbeat.request_heartbeat(state.info, state.seq)
     state
   end
 
@@ -99,14 +101,16 @@ defmodule Mobius.Services.Shard do
   end
 
   defp process_payload(:hello, payload, state) do
-    # TODO: Start the heartbeat service
+    interval = payload.d.heartbeat_interval
+    {:ok, _} = Heartbeat.start_heartbeat(state.info, interval)
+
     if state.session_id == nil do
       # TODO: Make sure we can identify (only 1 identify per 5 seconds)
-      # TODO: Send identify opcode
+      Socket.send_message(state.info, Opcode.identify(state.info, state.token))
     else
       Logger.debug("Attempting to resume the session")
-      # TODO: Send resume opcode
-      # TODO: Set resuming flag?
+      Socket.send_message(state.info, Opcode.resume(state.session_id, state.seq, state.token))
+      # TODO: Set resuming flag? See :invalid_session for why
     end
 
     state
@@ -138,6 +142,9 @@ defmodule Mobius.Services.Shard do
     Logger.warn("Unknown gateway event: #{inspect(type)} with payload: #{inspect(payload)}")
     state
   end
+
+  defp update_state_by_event(%{t: :READY, d: d}, state), do: %{state | session_id: d.session_id}
+  defp update_state_by_event(_payload, state), do: state
 
   defp via(%ShardInfo{} = shard), do: {:via, Registry, {Mobius.Registry.Shard, shard}}
   defp reply(state), do: {:reply, :ok, state}
