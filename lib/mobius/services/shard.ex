@@ -31,7 +31,7 @@ defmodule Mobius.Services.Shard do
   def start_shard(shard, url, token) do
     DynamicSupervisor.start_child(
       Mobius.Supervisor.Shard,
-      {__MODULE__, {shard, shard_info: shard, url: url, token: token}}
+      {__MODULE__, {shard, shard: shard, url: url, token: token}}
     )
   end
 
