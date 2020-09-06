@@ -61,10 +61,14 @@ defmodule Mobius.Services.Socket.Gun do
       gun_pid: nil
     }
 
-    # TODO: Trap exit so we can run Socket.notify_down/2 on shutdown?
-    # TODO: Figure out what happens during this process' downtime
-
     {:ok, state, {:continue, :ok}}
+  end
+
+  @impl GenServer
+  @spec terminate(term, state()) :: term
+  def terminate(reason, state) do
+    # When possible, attempt to notify about going down as it goes down
+    Socket.notify_down(state.shard, inspect(reason))
   end
 
   @impl GenServer
