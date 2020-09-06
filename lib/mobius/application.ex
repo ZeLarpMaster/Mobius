@@ -5,11 +5,20 @@ defmodule Mobius.Application do
 
   use Application
 
+  @spec start(any, list) :: {:ok, pid}
   def start(_type, _args) do
     children = [
-      {DynamicSupervisor, name: Mobius.Supervisor.Heartbeat, strategy: :one_for_one}
+      registry(Mobius.Registry.Heartbeat),
+      registry(Mobius.Registry.Shard),
+      registry(Mobius.Registry.Socket),
+      dynamic_supervisor(Mobius.Supervisor.Heartbeat),
+      dynamic_supervisor(Mobius.Supervisor.Shard),
+      dynamic_supervisor(Mobius.Supervisor.Socket)
     ]
 
     Supervisor.start_link(children, strategy: :one_for_one, name: Mobius.Supervisor)
   end
+
+  defp dynamic_supervisor(name), do: {DynamicSupervisor, name: name, strategy: :one_for_one}
+  defp registry(name), do: {Registry, name: name, keys: :unique}
 end

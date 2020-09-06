@@ -17,7 +17,7 @@ defmodule Mobius.Services.Shard do
            seq: integer,
            session_id: String.t() | nil,
            token: String.t(),
-           info: ShardInfo.t()
+           shard: ShardInfo.t()
          }
 
   @typep payload :: %{
@@ -26,6 +26,19 @@ defmodule Mobius.Services.Shard do
            t: atom | nil,
            s: integer | nil
          }
+
+  @spec start_shard(ShardInfo.t(), String.t(), String.t()) :: DynamicSupervisor.on_start_child()
+  def start_shard(shard, url, token) do
+    DynamicSupervisor.start_child(
+      Mobius.Supervisor.Shard,
+      {__MODULE__, {shard, shard_info: shard, url: url, token: token}}
+    )
+  end
+
+  @spec start_link({ShardInfo.t(), keyword}) :: GenServer.on_start()
+  def start_link({shard, opts}) do
+    GenServer.start_link(__MODULE__, opts, name: via(shard))
+  end
 
   @spec get_sequence_number(ShardInfo.t()) :: integer
   def get_sequence_number(shard) do
@@ -45,17 +58,17 @@ defmodule Mobius.Services.Shard do
   @impl GenServer
   @spec init(keyword) :: {:ok, state()}
   def init(opts) do
-    %ShardInfo{} = shard_info = Keyword.fetch!(opts, :shard_info)
+    %ShardInfo{} = shard = Keyword.fetch!(opts, :shard)
 
     state = %{
       seq: 0,
       session_id: nil,
       token: Keyword.fetch!(opts, :token),
-      info: shard_info
+      shard: shard
     }
 
     url = Keyword.fetch!(opts, :url)
-    {:ok, _} = Socket.start_socket(shard_info, url, %{"v" => @gateway_version})
+    {:ok, _} = Socket.start_socket(shard, url, %{"v" => @gateway_version})
 
     {:ok, state}
   end
@@ -91,25 +104,25 @@ defmodule Mobius.Services.Shard do
   end
 
   defp process_payload(:heartbeat, _payload, state) do
-    Heartbeat.request_heartbeat(state.info, state.seq)
+    Heartbeat.request_heartbeat(state.shard, state.seq)
     state
   end
 
   defp process_payload(:heartbeat_ack, _payload, state) do
-    Heartbeat.received_ack(state.info)
+    Heartbeat.received_ack(state.shard)
     state
   end
 
   defp process_payload(:hello, payload, state) do
     interval = payload.d.heartbeat_interval
-    {:ok, _} = Heartbeat.start_heartbeat(state.info, interval)
+    {:ok, _} = Heartbeat.start_heartbeat(state.shard, interval)
 
     if state.session_id == nil do
       # TODO: Make sure we can identify (only 1 identify per 5 seconds)
-      Socket.send_message(state.info, Opcode.identify(state.info, state.token))
+      Socket.send_message(state.shard, Opcode.identify(state.shard, state.token))
     else
       Logger.debug("Attempting to resume the session")
-      Socket.send_message(state.info, Opcode.resume(state.session_id, state.seq, state.token))
+      Socket.send_message(state.shard, Opcode.resume(state.session_id, state.seq, state.token))
       # TODO: Set resuming flag? See :invalid_session for why
     end
 
@@ -120,7 +133,7 @@ defmodule Mobius.Services.Shard do
     # d: false -> don't resume
     Logger.debug("Invalid session. Server says don't resume")
     # TODO: If we were previously resuming, sleep randomly between 1 and 5 seconds
-    Socket.close(state.info)
+    Socket.close(state.shard)
     %{state | session_id: nil}
   end
 
@@ -128,13 +141,13 @@ defmodule Mobius.Services.Shard do
     # d: true -> Attempt to resume
     Logger.debug("Invalid session. Server says try to resume")
     # Close socket, when it comes back up we'll receive :hello and attempt to resume
-    Socket.close(state.info)
+    Socket.close(state.shard)
     state
   end
 
   defp process_payload(:reconnect, _payload, state) do
     Logger.debug("Server asked for a reconnection")
-    Socket.close(state.info)
+    Socket.close(state.shard)
     state
   end
 

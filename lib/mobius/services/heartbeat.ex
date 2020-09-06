@@ -21,7 +21,7 @@ defmodule Mobius.Services.Heartbeat do
   def start_heartbeat(shard, interval_ms) do
     DynamicSupervisor.start_child(
       Mobius.Supervisor.Heartbeat,
-      {__MODULE__, {shard, interval_ms: interval_ms}}
+      {__MODULE__, {shard, shard: shard, interval_ms: interval_ms}}
     )
   end
 

@@ -11,13 +11,13 @@ defmodule Mobius.Services.Socket do
   def start_socket(shard, url, query) do
     DynamicSupervisor.start_child(
       Mobius.Supervisor.Socket,
-      {__MODULE__, shard: shard, url: url, query: query}
+      {__MODULE__, {shard, shard: shard, url: url, query: query}}
     )
   end
 
   @callback start_link(opts :: keyword) :: GenServer.on_start()
-  @spec start_link(keyword) :: GenServer.on_start()
-  def start_link(args), do: impl().start_link(add_name_from_shard(args))
+  @spec start_link({ShardInfo.t(), keyword}) :: GenServer.on_start()
+  def start_link({shard, opts}), do: impl().start_link(opts ++ [name: via(shard)])
 
   @callback send_message(server :: GenServer.server(), message :: term) :: :ok
   @spec send_message(ShardInfo.t(), term) :: :ok
@@ -44,7 +44,6 @@ defmodule Mobius.Services.Socket do
     Logger.warn("Socket reconnected")
   end
 
-  defp add_name_from_shard(opts), do: Keyword.put(opts, :name, via(Keyword.fetch!(opts, :shard)))
   defp via(shard), do: {:via, Registry, {Mobius.Registry.Socket, shard}}
   defp impl, do: Application.get_env(:mobius, :socket_impl, __MODULE__.Gun)
 end
