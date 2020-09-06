@@ -19,6 +19,8 @@ defmodule Mobius.Application do
     Supervisor.start_link(children, strategy: :one_for_one, name: Mobius.Supervisor)
   end
 
-  defp dynamic_supervisor(name), do: {DynamicSupervisor, name: name, strategy: :one_for_one}
+  defp dynamic_supervisor(name),
+    do: {DynamicSupervisor, name: name, strategy: :one_for_one, max_restarts: 1}
+
   defp registry(name), do: {Registry, name: name, keys: :unique}
 end

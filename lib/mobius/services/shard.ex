@@ -65,9 +65,10 @@ defmodule Mobius.Services.Shard do
   end
 
   @impl GenServer
-  @spec init(keyword) :: {:ok, state()}
+  @spec init(keyword) :: {:ok, state(), {:continue, any}}
   def init(opts) do
     %ShardInfo{} = shard = Keyword.fetch!(opts, :shard)
+    Logger.debug("Started shard on pid #{inspect(self())}")
 
     state = %{
       seq: 0,
@@ -76,10 +77,15 @@ defmodule Mobius.Services.Shard do
       shard: shard
     }
 
-    url = Keyword.fetch!(opts, :url)
-    {:ok, _} = Socket.start_socket(shard, url, %{"v" => @gateway_version})
+    {:ok, state, {:continue, {:start_socket, Keyword.fetch!(opts, :url)}}}
+  end
 
-    {:ok, state}
+  @impl GenServer
+  @spec handle_continue({:start_socket, String.t()}, state()) :: {:noreply, state()}
+  def handle_continue({:start_socket, url}, state) do
+    {:ok, pid} = Socket.start_socket(state.shard, url, %{"v" => @gateway_version})
+    Logger.debug("Started socket on pid #{inspect(pid)}")
+    {:noreply, state}
   end
 
   @impl GenServer
@@ -124,7 +130,8 @@ defmodule Mobius.Services.Shard do
 
   defp process_payload(:hello, payload, state) do
     interval = payload.d.heartbeat_interval
-    {:ok, _} = Heartbeat.start_heartbeat(state.shard, interval)
+    {:ok, pid} = Heartbeat.start_heartbeat(state.shard, interval)
+    Logger.debug("Started heartbeat on pid #{inspect(pid)}")
 
     if state.session_id == nil do
       # TODO: Make sure we can identify (only 1 identify per 5 seconds)

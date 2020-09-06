@@ -65,7 +65,6 @@ defmodule Mobius.Services.Heartbeat do
     shard = Keyword.fetch!(opts, :shard)
 
     state = %{
-      seq: Shard.get_sequence_number(shard),
       shard: shard,
       interval_ms: Keyword.fetch!(opts, :interval_ms),
       info: HeartbeatInfo.new()
