@@ -60,7 +60,7 @@ defmodule Mobius.Services.Heartbeat do
   end
 
   @impl GenServer
-  @spec init(keyword) :: {:ok, state()}
+  @spec init(keyword) :: {:ok, state(), {:continue, any}}
   def init(opts) do
     shard = Keyword.fetch!(opts, :shard)
 
@@ -70,9 +70,13 @@ defmodule Mobius.Services.Heartbeat do
       info: HeartbeatInfo.new()
     }
 
-    {:noreply, state} = maybe_send_heartbeat(true, state)
+    {:ok, state, {:continue, :init_periodic_heartbeat}}
+  end
 
-    {:ok, state}
+  @impl GenServer
+  @spec handle_continue(:init_periodic_heartbeat, state()) :: {:noreply, state()}
+  def handle_continue(:init_periodic_heartbeat, state) do
+    maybe_send_heartbeat(true, state)
   end
 
   @impl GenServer

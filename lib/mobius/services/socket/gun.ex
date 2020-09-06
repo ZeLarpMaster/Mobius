@@ -31,7 +31,7 @@ defmodule Mobius.Services.Socket.Gun do
   @impl Socket
   @spec send_message(GenServer.server(), term) :: :ok
   def send_message(socket, message) do
-    GenServer.call(socket, {:send, message})
+    GenServer.cast(socket, {:send, message})
   end
 
   @impl Socket
@@ -82,14 +82,15 @@ defmodule Mobius.Services.Socket.Gun do
   end
 
   @impl GenServer
-  def handle_call({:send, payload}, _from, state) do
+  def handle_cast({:send, payload}, state) do
     payload
     |> :erlang.term_to_binary()
     |> send_msg(state.gun_pid)
 
-    {:reply, :ok, state}
+    {:noreply, state}
   end
 
+  @impl GenServer
   def handle_call(:close, _from, state) do
     :ok = :gun.ws_send(state.gun_pid, :close)
     {:reply, :ok, state}
