@@ -31,13 +31,22 @@ defmodule Mobius.Services.Shard do
   def start_shard(shard, url, token) do
     DynamicSupervisor.start_child(
       Mobius.Supervisor.Shard,
-      {__MODULE__, {shard, shard: shard, url: url, token: token}}
+      {__MODULE__, {shard, url: url, token: token}}
     )
   end
 
-  @spec start_link({ShardInfo.t(), keyword}) :: GenServer.on_start()
-  def start_link({shard, opts}) do
-    GenServer.start_link(__MODULE__, opts, name: via(shard))
+  @spec child_spec({ShardInfo.t(), keyword}) :: Supervisor.child_spec()
+  def child_spec({shard, opts}) do
+    %{
+      id: shard,
+      start: {__MODULE__, :start_link, [shard, opts]},
+      restart: :permanent
+    }
+  end
+
+  @spec start_link(ShardInfo.t(), keyword) :: GenServer.on_start()
+  def start_link(shard, opts) do
+    GenServer.start_link(__MODULE__, opts ++ [shard: shard], name: via(shard))
   end
 
   @spec get_sequence_number(ShardInfo.t()) :: integer

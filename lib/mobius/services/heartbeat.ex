@@ -21,13 +21,22 @@ defmodule Mobius.Services.Heartbeat do
   def start_heartbeat(shard, interval_ms) do
     DynamicSupervisor.start_child(
       Mobius.Supervisor.Heartbeat,
-      {__MODULE__, {shard, shard: shard, interval_ms: interval_ms}}
+      {__MODULE__, {shard, interval_ms: interval_ms}}
     )
   end
 
-  @spec start_link({ShardInfo.t(), keyword}) :: GenServer.on_start()
-  def start_link({shard, opts}) do
-    GenServer.start_link(__MODULE__, opts, name: via(shard))
+  @spec child_spec({ShardInfo.t(), keyword}) :: Supervisor.child_spec()
+  def child_spec({shard, opts}) do
+    %{
+      id: shard,
+      start: {__MODULE__, :start_link, [shard, opts]},
+      restart: :permanent
+    }
+  end
+
+  @spec start_link(ShardInfo.t(), keyword) :: GenServer.on_start()
+  def start_link(shard, opts) do
+    GenServer.start_link(__MODULE__, opts ++ [shard: shard], name: via(shard))
   end
 
   @spec get_ping(ShardInfo.t()) :: integer
