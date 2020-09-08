@@ -29,13 +29,15 @@ defmodule Mobius.Core.HeartbeatInfo do
   @spec can_send?(t()) :: boolean
   def can_send?(%__MODULE__{ack_stamp: ack}), do: ack != nil
 
+  @spec get_ping(t()) :: non_neg_integer
+  def get_ping(%__MODULE__{ping: ping}), do: ping
+
   defp set_ack(info), do: %__MODULE__{info | ack_stamp: time()}
   defp reset_ack(info), do: %__MODULE__{info | ack_stamp: nil}
 
   defp set_send(info), do: %__MODULE__{info | send_stamp: time()}
   defp reset_send(info), do: %__MODULE__{info | send_stamp: nil}
 
-  defp update_ping(%__MODULE__{send_stamp: nil} = info), do: info
   defp update_ping(info), do: %__MODULE__{info | ping: info.ack_stamp - info.send_stamp}
 
   defp time, do: System.monotonic_time(:millisecond)
