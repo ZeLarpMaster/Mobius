@@ -1,3 +1,4 @@
 import Config
 
-config :logger, level: :debug
+config :mobius,
+  tesla_adapter: Tesla.Mock
