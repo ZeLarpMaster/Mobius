@@ -96,7 +96,7 @@ defmodule Mobius.Services.Heartbeat do
   end
 
   def handle_call(:get_ping, _from, state) do
-    {:reply, HeartbeatInfo.get_ping(state.info), state}
+    {:reply, state.info.ping, state}
   end
 
   @impl GenServer

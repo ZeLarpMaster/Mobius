@@ -6,13 +6,13 @@ defmodule Mobius.Core.HeartbeatInfoTest do
   test "ping updates when ack'd after sending" do
     sending_info = new() |> sending()
     acked_info = sending_info |> received_ack()
-    assert get_ping(acked_info) == acked_info.ack_stamp - sending_info.send_stamp
+    assert acked_info.ping == acked_info.ack_stamp - sending_info.send_stamp
   end
 
   test "ping doesn't change if received ack without sending" do
     info = new() |> sending() |> received_ack()
     info2 = info |> received_ack()
-    assert get_ping(info) == get_ping(info2)
+    assert info.ping == info2.ping
   end
 
   describe "can_send?/1" do

@@ -29,9 +29,6 @@ defmodule Mobius.Core.HeartbeatInfo do
   @spec can_send?(t()) :: boolean
   def can_send?(%__MODULE__{ack_stamp: ack}), do: ack != nil
 
-  @spec get_ping(t()) :: non_neg_integer
-  def get_ping(%__MODULE__{ping: ping}), do: ping
-
   defp set_ack(info), do: %__MODULE__{info | ack_stamp: time()}
   defp reset_ack(info), do: %__MODULE__{info | ack_stamp: nil}
 
