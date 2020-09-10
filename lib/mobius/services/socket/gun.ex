@@ -29,8 +29,8 @@ defmodule Mobius.Services.Socket.Gun do
   end
 
   @impl Socket
-  @spec send_message(GenServer.server(), term) :: :ok
-  def send_message(socket, message) do
+  @spec send_message(term, GenServer.server()) :: :ok
+  def send_message(message, socket) do
     GenServer.cast(socket, {:send, message})
   end
 
@@ -98,13 +98,12 @@ defmodule Mobius.Services.Socket.Gun do
 
   @impl GenServer
   def handle_info({:gun_ws, _worker, _stream, {:binary, frame}}, state) do
-    message =
-      state.zlib_stream
-      |> :zlib.inflate(frame)
-      |> :erlang.iolist_to_binary()
-      |> :erlang.binary_to_term()
+    state.zlib_stream
+    |> :zlib.inflate(frame)
+    |> :erlang.iolist_to_binary()
+    |> :erlang.binary_to_term()
+    |> Socket.notify_payload(state.shard)
 
-    Socket.notify_payload(state.shard, message)
     {:noreply, state}
   end
 

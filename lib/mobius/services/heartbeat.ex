@@ -119,6 +119,6 @@ defmodule Mobius.Services.Heartbeat do
   end
 
   defp schedule_heartbeat(interval_ms), do: Process.send_after(self(), :heartbeat, interval_ms)
-  defp send_heartbeat(shard, seq), do: Socket.send_message(shard, Opcode.heartbeat(seq))
+  defp send_heartbeat(shard, seq), do: Opcode.heartbeat(seq) |> Socket.send_message(shard)
   defp via(%ShardInfo{} = shard), do: {:via, Registry, {Mobius.Registry.Heartbeat, shard}}
 end

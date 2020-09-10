@@ -28,16 +28,16 @@ defmodule Mobius.Services.Socket do
   @spec start_link(ShardInfo.t(), keyword) :: GenServer.on_start()
   def start_link(shard, opts), do: impl().start_link(opts ++ [shard: shard, name: via(shard)])
 
-  @callback send_message(server :: GenServer.server(), message :: term) :: :ok
-  @spec send_message(ShardInfo.t(), term) :: :ok
-  def send_message(shard, message), do: impl().send_message(via(shard), message)
+  @callback send_message(message :: term, server :: GenServer.server()) :: :ok
+  @spec send_message(term, ShardInfo.t()) :: :ok
+  def send_message(message, shard), do: impl().send_message(message, via(shard))
 
   @callback close(socket :: GenServer.server()) :: :ok
   @spec close(ShardInfo.t()) :: :ok
   def close(shard), do: impl().close(via(shard))
 
-  @spec notify_payload(ShardInfo.t(), any) :: :ok
-  defdelegate notify_payload(shard, payload), to: Shard
+  @spec notify_payload(any, ShardInfo.t()) :: :ok
+  defdelegate notify_payload(payload, shard), to: Shard
 
   @spec notify_closed(ShardInfo.t(), integer, String.t()) :: :ok
   defdelegate notify_closed(shard, close_num, reason), to: Shard

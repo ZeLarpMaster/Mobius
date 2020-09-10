@@ -53,8 +53,8 @@ defmodule Mobius.Services.Shard do
     GenServer.call(via(shard), :get_seq)
   end
 
-  @spec notify_payload(ShardInfo.t(), payload()) :: :ok
-  def notify_payload(shard, payload) do
+  @spec notify_payload(payload(), ShardInfo.t()) :: :ok
+  def notify_payload(payload, shard) do
     GenServer.call(via(shard), {:payload, payload})
   end
 
@@ -132,10 +132,14 @@ defmodule Mobius.Services.Shard do
 
     if not Gateway.has_session?(state.gateway) do
       # TODO: Make sure we can identify (only 1 identify per 5 seconds)
-      Socket.send_message(state.shard, Opcode.identify(state.shard, state.gateway.token))
+      Opcode.identify(state.shard, state.gateway.token)
+      |> Socket.send_message(state.shard)
     else
       Logger.debug("Attempting to resume the session")
-      Socket.send_message(state.shard, Opcode.resume(state.gateway))
+
+      Opcode.resume(state.gateway)
+      |> Socket.send_message(state.shard)
+
       # TODO: Set resuming flag? See :invalid_session for why
     end
 
