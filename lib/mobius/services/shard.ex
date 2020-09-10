@@ -5,6 +5,7 @@ defmodule Mobius.Services.Shard do
 
   require Logger
 
+  alias Mobius.Core.Gateway
   alias Mobius.Core.SocketCodes
   alias Mobius.Core.Opcode
   alias Mobius.Core.ShardInfo
@@ -14,9 +15,7 @@ defmodule Mobius.Services.Shard do
   @gateway_version "6"
 
   @typep state :: %{
-           seq: integer,
-           session_id: String.t() | nil,
-           token: String.t(),
+           gateway: Gateway.t(),
            shard: ShardInfo.t()
          }
 
@@ -71,9 +70,7 @@ defmodule Mobius.Services.Shard do
     Logger.debug("Started shard on pid #{inspect(self())}")
 
     state = %{
-      seq: 0,
-      session_id: nil,
-      token: Keyword.fetch!(opts, :token),
+      gateway: Gateway.new(Keyword.fetch!(opts, :token)),
       shard: shard
     }
 
@@ -102,13 +99,13 @@ defmodule Mobius.Services.Shard do
 
     case what_can_do do
       :resume -> {:reply, :ok, state}
-      :dont_resume -> {:reply, :ok, %{state | session_id: nil}}
+      :dont_resume -> {:reply, :ok, reset_session(state)}
       :dont_reconnect -> {:stop, :gateway_error, :ok, state}
     end
   end
 
   def handle_call(:get_seq, _from, state) do
-    {:reply, state.seq, state}
+    {:reply, state.gateway.seq, state}
   end
 
   # Update the state and execute side effects depending on opcode
@@ -119,7 +116,7 @@ defmodule Mobius.Services.Shard do
   end
 
   defp process_payload(:heartbeat, _payload, state) do
-    Heartbeat.request_heartbeat(state.shard, state.seq)
+    Heartbeat.request_heartbeat(state.shard, state.gateway.seq)
     state
   end
 
@@ -133,12 +130,12 @@ defmodule Mobius.Services.Shard do
     {:ok, pid} = Heartbeat.start_heartbeat(state.shard, interval)
     Logger.debug("Started heartbeat on pid #{inspect(pid)}")
 
-    if state.session_id == nil do
+    if not Gateway.has_session?(state.gateway) do
       # TODO: Make sure we can identify (only 1 identify per 5 seconds)
-      Socket.send_message(state.shard, Opcode.identify(state.shard, state.token))
+      Socket.send_message(state.shard, Opcode.identify(state.shard, state.gateway.token))
     else
       Logger.debug("Attempting to resume the session")
-      Socket.send_message(state.shard, Opcode.resume(state.session_id, state.seq, state.token))
+      Socket.send_message(state.shard, Opcode.resume(state.gateway))
       # TODO: Set resuming flag? See :invalid_session for why
     end
 
@@ -150,7 +147,7 @@ defmodule Mobius.Services.Shard do
     Logger.debug("Invalid session. Server says don't resume")
     # TODO: If we were previously resuming, sleep randomly between 1 and 5 seconds
     Socket.close(state.shard)
-    %{state | session_id: nil}
+    reset_session(state)
   end
 
   defp process_payload(:invalid_session, %{d: true}, state) do
@@ -172,8 +169,11 @@ defmodule Mobius.Services.Shard do
     state
   end
 
-  defp update_state_by_event(%{t: :READY, d: d}, state), do: %{state | session_id: d.session_id}
+  defp update_state_by_event(%{t: :READY, d: d}, state), do: set_session(state, d.session_id)
   defp update_state_by_event(_payload, state), do: state
+
+  defp set_session(state, id), do: Map.update!(state, :gateway, &Gateway.set_session_id(&1, id))
+  defp reset_session(state), do: Map.update!(state, :gateway, &Gateway.reset_session_id/1)
 
   defp via(%ShardInfo{} = shard), do: {:via, Registry, {Mobius.Registry.Shard, shard}}
   defp reply(state), do: {:reply, :ok, state}

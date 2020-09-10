@@ -1,6 +1,7 @@
 defmodule Mobius.Core.Opcode do
   @moduledoc false
 
+  alias Mobius.Core.Gateway
   alias Mobius.Core.ShardInfo
 
   @doc """
@@ -59,17 +60,18 @@ defmodule Mobius.Core.Opcode do
   @doc """
   Creates a resume payload
 
-      iex> resume("Session", 42, "Token")["op"] == name_to_opcode(:resume)
+      iex> gateway = %Mobius.Core.Gateway{session_id: "Session", seq: 42, token: "Token"}
+      iex> resume(gateway)["op"] == name_to_opcode(:resume)
       true
-      iex> resume("Session", 42, "Token")["d"]
+      iex> resume(gateway)["d"]
       %{"token" => "Token", "session_id" => "Session", "seq" => 42}
   """
-  @spec resume(String.t(), integer, String.t()) :: map
-  def resume(session_id, sequence_number, token) do
+  @spec resume(Gateway.t()) :: map
+  def resume(gateway) do
     %{
-      "token" => token,
-      "session_id" => session_id,
-      "seq" => sequence_number
+      "token" => gateway.token,
+      "session_id" => gateway.session_id,
+      "seq" => gateway.seq
     }
     |> serialize(:resume)
   end
