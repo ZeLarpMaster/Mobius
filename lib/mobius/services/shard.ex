@@ -9,6 +9,7 @@ defmodule Mobius.Services.Shard do
   alias Mobius.Core.SocketCodes
   alias Mobius.Core.Opcode
   alias Mobius.Core.ShardInfo
+  alias Mobius.Services.Bot
   alias Mobius.Services.Heartbeat
   alias Mobius.Services.Socket
 
@@ -81,7 +82,7 @@ defmodule Mobius.Services.Shard do
   @spec handle_continue({:start_socket, String.t()}, state()) :: {:noreply, state()}
   def handle_continue({:start_socket, url}, state) do
     {:ok, pid} = Socket.start_socket(state.shard, url, %{"v" => @gateway_version})
-    Logger.debug("Started socket on pid #{inspect(pid)}")
+    Logger.debug("Started socket on #{inspect(pid)}")
     {:noreply, state}
   end
 
@@ -128,7 +129,7 @@ defmodule Mobius.Services.Shard do
   defp process_payload(:hello, payload, state) do
     interval = payload.d.heartbeat_interval
     {:ok, pid} = Heartbeat.start_heartbeat(state.shard, interval)
-    Logger.debug("Started heartbeat on pid #{inspect(pid)}")
+    Logger.debug("Started heartbeat on #{inspect(pid)}")
 
     if not Gateway.has_session?(state.gateway) do
       # TODO: Make sure we can identify (only 1 identify per 5 seconds)
@@ -173,7 +174,12 @@ defmodule Mobius.Services.Shard do
     state
   end
 
-  defp update_state_by_event(%{t: :READY, d: d}, state), do: set_session(state, d.session_id)
+  defp update_state_by_event(%{t: :READY, d: d}, state) do
+    # TODO: Use a PubSub instead of this
+    Bot.notify_ready(state.shard)
+    set_session(state, d.session_id)
+  end
+
   defp update_state_by_event(_payload, state), do: state
 
   defp set_session(state, id), do: Map.update!(state, :gateway, &Gateway.set_session_id(&1, id))
