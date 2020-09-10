@@ -1,6 +1,6 @@
 # Mobius
 
-**TODO: Add description**
+An Elixir framework for creating Discord bots in a modular way
 
 ## Installation
 
