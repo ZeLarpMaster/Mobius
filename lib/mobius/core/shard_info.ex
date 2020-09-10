@@ -36,4 +36,13 @@ defmodule Mobius.Core.ShardInfo do
   """
   @spec to_list(t()) :: [integer]
   def to_list(%__MODULE__{} = info), do: [info.number, info.count]
+
+  defimpl Inspect do
+    import Inspect.Algebra
+
+    @spec inspect(ShardInfo.t(), Inspect.Opts.t()) :: Inspect.Algebra.t()
+    def inspect(value, opts) do
+      concat(["#ShardInfo<", to_doc(value.number, opts), "/", to_doc(value.count, opts), ">"])
+    end
+  end
 end
