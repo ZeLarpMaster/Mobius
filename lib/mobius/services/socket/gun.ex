@@ -42,7 +42,7 @@ defmodule Mobius.Services.Socket.Gun do
 
   # GenServer and :gun stuff
   @impl GenServer
-  @spec init(keyword) :: {:ok, state(), {:continue, :ok}}
+  @spec init(keyword) :: {:ok, state(), {:continue, :open_ws}}
   def init(opts) do
     zlib_stream = :zlib.open()
     :zlib.inflateInit(zlib_stream)
@@ -61,7 +61,7 @@ defmodule Mobius.Services.Socket.Gun do
       gun_pid: nil
     }
 
-    {:ok, state, {:continue, :ok}}
+    {:ok, state, {:continue, :open_ws}}
   end
 
   @impl GenServer
@@ -72,8 +72,8 @@ defmodule Mobius.Services.Socket.Gun do
   end
 
   @impl GenServer
-  @spec handle_continue(:ok, state()) :: {:noreply, state()}
-  def handle_continue(:ok, state) do
+  @spec handle_continue(:open_ws, state()) :: {:noreply, state()}
+  def handle_continue(:open_ws, state) do
     {:ok, worker} = :gun.open(String.to_charlist(state.url), 443, %{protocols: [:http]})
     {:ok, :http} = :gun.await_up(worker, @timeout_connect)
     await_gun_upgrade(worker, state.query)
