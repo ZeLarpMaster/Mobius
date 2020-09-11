@@ -53,6 +53,8 @@ defmodule Mobius.Services.Socket do
     Logger.warn("Socket reconnected")
   end
 
-  defp via(shard), do: {:via, Registry, {Mobius.Registry.Socket, shard}}
+  @spec via(ShardInfo.t()) :: GenServer.name()
+  def via(shard), do: {:via, Registry, {Mobius.Registry.Socket, shard}}
+
   defp impl, do: Application.get_env(:mobius, :socket_impl, __MODULE__.Gun)
 end
