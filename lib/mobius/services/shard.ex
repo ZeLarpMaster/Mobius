@@ -111,7 +111,7 @@ defmodule Mobius.Services.Shard do
 
   # Update the state and execute side effects depending on opcode
   defp process_payload(:dispatch, payload, state) do
-    Logger.debug("Dispatching #{inspect(payload.t)}")
+    # Logger.debug("Dispatching #{inspect(payload.t)}")
     # TODO: Broadcast event
     update_state_by_event(payload, state)
   end

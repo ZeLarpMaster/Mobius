@@ -53,6 +53,10 @@ defmodule Mobius.Services.Bot do
     {:noreply, state}
   end
 
+  def handle_call(:get_client, _from, state) do
+    {:reply, state.client, state}
+  end
+
   def handle_info({:start_shard, [shard | shards], url}, state) do
     {:ok, pid} = Shard.start_shard(shard, url, state.token)
     Logger.debug("Started shard #{inspect(shard)} on #{inspect(pid)}")
