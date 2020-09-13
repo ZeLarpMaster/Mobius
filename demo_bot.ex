@@ -55,6 +55,8 @@ defmodule DemoBot do
 
     Bot.update_status(state.bot, %Mobius.Models.Status{game: %{"type" => 0, "name" => "Ready!"}})
 
+    # Task.start_link(fn -> DemoBot.MessageFetcher.start(state) end)
+
     {:noreply, state}
   end
 
@@ -95,6 +97,72 @@ defmodule DemoBot do
         # Task failed
         {:reply, content: "Command failed with reason: #{inspect(reason)}"}
     end
+  end
+end
+
+defmodule DemoBot.MessageFetcher do
+  @moduledoc false
+
+  alias Mobius.Api
+
+  @guild_id "355384548671881216" |> String.to_integer()
+
+  def start(state) do
+    client = state.bot.client
+
+    Api.Channel.list_guild_channels(client, @guild_id)
+    |> filter_channels()
+    |> Enum.map(&{&1, start_task(client, &1)})
+    |> Enum.map(fn {c_id, task} -> {c_id, Task.await(task, :infinity)} end)
+    |> Map.new()
+    |> Jason.encode!(pretty: false)
+    |> write_to_file("./consensus_not_pretty.json")
+  end
+
+  defp write_to_file(content, path) do
+    File.write!(path, content, [:binary])
+  end
+
+  defp filter_channels({:ok, channels}) do
+    channels
+    |> Enum.filter(fn channel -> channel.type == :guild_text end)
+    |> Enum.map(fn channel -> channel.id end)
+  end
+
+  defp start_task(client, channel_id) do
+    Task.async(fn ->
+      list_messages(client, channel_id)
+      |> Stream.map(fn msg -> msg.content end)
+      |> Stream.flat_map(&String.split/1)
+      |> Enum.frequencies()
+      |> IO.inspect(label: "Completed task for #{inspect(channel_id)}", limit: 1)
+    end)
+  end
+
+  defp list_messages(client, channel_id) do
+    Stream.resource(
+      fn ->
+        {:ok, messages} = Api.Message.list_messages(client, channel_id, limit: 100)
+        messages
+      end,
+      fn
+        [] ->
+          {:halt, []}
+
+        [msg] ->
+          {:ok, msgs} = Api.Message.list_messages(client, channel_id, limit: 100, before: msg.id)
+
+          if length(msgs) == 100 do
+            {[msg], msgs}
+          else
+            {msgs, []}
+          end
+
+        [msg | msgs] ->
+          {[msg], msgs}
+      end,
+      fn _ -> nil end
+    )
   end
 end
 
