@@ -182,8 +182,8 @@ defmodule Mobius.Services.Shard do
 
   defp update_state_by_event(_payload, state), do: state
 
-  defp set_session(state, id), do: Map.update!(state, :gateway, &Gateway.set_session_id(&1, id))
-  defp reset_session(state), do: Map.update!(state, :gateway, &Gateway.reset_session_id/1)
+  defp set_session(state, id), do: update_in(state.gateway, &Gateway.set_session_id(&1, id))
+  defp reset_session(state), do: update_in(state.gateway, &Gateway.reset_session_id/1)
 
   defp via(%ShardInfo{} = shard), do: {:via, Registry, {Mobius.Registry.Shard, shard}}
   defp reply(state), do: {:reply, :ok, state}

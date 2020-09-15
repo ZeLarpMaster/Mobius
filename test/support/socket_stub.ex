@@ -72,12 +72,12 @@ defmodule Mobius.Stubs.Socket do
 
   @impl GenServer
   def handle_cast({:send, payload}, state) do
-    {:noreply, Map.update!(state, :messages, &(&1 ++ [{:msg, payload}]))}
+    {:noreply, update_in(state.messages, &(&1 ++ [{:msg, payload}]))}
   end
 
   @impl GenServer
   def handle_call(:close, _from, state) do
-    {:reply, :ok, Map.update!(state, :messages, &(&1 ++ [:close]))}
+    {:reply, :ok, update_in(state.messages, &(&1 ++ [:close]))}
   end
 
   # Stub-only callbacks

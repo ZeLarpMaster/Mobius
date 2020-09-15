@@ -82,7 +82,7 @@ defmodule Mobius.Services.Heartbeat do
   @impl GenServer
   def handle_call({:request, seq}, _from, state) do
     send_heartbeat(state.shard, seq)
-    state = Map.update!(state, :info, &HeartbeatInfo.sending/1)
+    state = update_in(state.info, &HeartbeatInfo.sending/1)
     {:reply, :ok, state}
   end
 
@@ -91,7 +91,7 @@ defmodule Mobius.Services.Heartbeat do
   end
 
   def handle_call(:ack, _from, state) do
-    state = Map.update!(state, :info, &HeartbeatInfo.received_ack/1)
+    state = update_in(state.info, &HeartbeatInfo.received_ack/1)
     {:reply, :ok, state}
   end
 
@@ -108,7 +108,7 @@ defmodule Mobius.Services.Heartbeat do
   defp maybe_send_heartbeat(true, state) do
     send_heartbeat(state.shard, Shard.get_sequence_number(state.shard))
     schedule_heartbeat(state.interval_ms)
-    state = Map.update!(state, :info, &HeartbeatInfo.sending/1)
+    state = update_in(state.info, &HeartbeatInfo.sending/1)
     {:noreply, state}
   end
 
