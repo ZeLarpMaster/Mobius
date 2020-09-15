@@ -6,7 +6,7 @@ defmodule Mobius.Services.Bot do
   require Logger
 
   alias Mobius.Core.ShardInfo
-  alias Mobius.Core.Rest
+  alias Mobius.Rest
   alias Mobius.Services.Shard
 
   @shard_ready_timeout 10_000

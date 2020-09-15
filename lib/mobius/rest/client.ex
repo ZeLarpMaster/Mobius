@@ -1,4 +1,4 @@
-defmodule Mobius.Core.Rest.Client do
+defmodule Mobius.Rest.Client do
   @moduledoc false
 
   require Logger

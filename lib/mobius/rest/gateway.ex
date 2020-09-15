@@ -1,7 +1,7 @@
-defmodule Mobius.Core.Rest.Gateway do
+defmodule Mobius.Rest.Gateway do
   @moduledoc false
 
-  alias Mobius.Core.Rest.Client
+  alias Mobius.Rest.Client
 
   @spec get_bot(Client.client()) :: Client.result(map)
   def get_bot(client) do
