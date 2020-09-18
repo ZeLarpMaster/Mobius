@@ -1,6 +1,7 @@
 defmodule Mobius.Core.Opcode do
   @moduledoc false
 
+  alias Mobius.Core.BotStatus
   alias Mobius.Core.Gateway
   alias Mobius.Core.ShardInfo
 
@@ -100,30 +101,16 @@ defmodule Mobius.Core.Opcode do
   @doc """
   Creates a status update payload
 
-      iex> update_status(%{})["op"] == name_to_opcode(:presence_update)
+      iex> import Mobius.Core.BotStatus
+      iex> status = new() |> set_status(:idle) |> set_afk(12345) |> set_playing("Game")
+      iex> update_status(status)["op"] == name_to_opcode(:presence_update)
       true
-      iex> update_status(%{})["d"]
-      %{"status" => "online", "afk" => false, "game" => nil, "since" => nil}
-      iex> update_status(%{"status" => "idle"})["d"]
-      %{"status" => "idle", "afk" => false, "game" => nil, "since" => nil}
-      iex> update_status(%{"afk" => true})["d"]
-      %{"status" => "online", "afk" => true, "game" => nil, "since" => nil}
-      iex> update_status(%{"game" => %{}})["d"]
-      %{"status" => "online", "afk" => false, "game" => %{}, "since" => nil}
-      iex> update_status(%{"since" => 12345})["d"]
-      %{"status" => "online", "afk" => false, "game" => nil, "since" => 12345}
-      iex> update_status(%{"status" => "idle", "afk" => true, "game" => %{}, "since" => 12345})["d"]
-      %{"status" => "idle", "afk" => true, "game" => %{}, "since" => 12345}
+      iex> update_status(status)["d"] == to_map(status)
+      true
   """
-  @spec update_status(map) :: map
-  def update_status(status) do
-    %{
-      "status" => "online",
-      "afk" => false,
-      "game" => nil,
-      "since" => nil
-    }
-    |> Map.merge(status)
+  @spec update_status(BotStatus.t()) :: map
+  def update_status(%BotStatus{} = status) do
+    BotStatus.to_map(status)
     |> serialize(:presence_update)
   end
 

@@ -35,4 +35,29 @@ defmodule Mobius.Core.BotStatus do
   @spec set_afk(t(), integer() | nil) :: t()
   def set_afk(status, nil), do: struct!(status, afk: false, since: nil)
   def set_afk(status, since), do: struct!(status, afk: true, since: since)
+
+  @spec to_map(t()) :: map
+  def to_map(%__MODULE__{} = status) do
+    %{
+      "status" => Atom.to_string(status.type),
+      "afk" => status.afk,
+      "game" => game_to_map(status.game),
+      "since" => status.since
+    }
+  end
+
+  defp game_to_map(%{type: :playing, name: name}) do
+    %{
+      "type" => 0,
+      "name" => name
+    }
+  end
+
+  defp game_to_map(%{type: :streaming, name: name, url: url}) do
+    %{
+      "type" => 1,
+      "name" => name,
+      "url" => url
+    }
+  end
 end
