@@ -1,7 +1,7 @@
 defmodule Mobius.Fixtures do
   @moduledoc false
 
-  alias Mobius.Core.Rest.Client
+  alias Mobius.Rest.Client
 
   def create_token(_context) do
     [token: random_hex(8)]

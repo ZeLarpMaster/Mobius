@@ -1,10 +1,10 @@
-defmodule Mobius.Core.Rest.ClientTest do
+defmodule Mobius.Rest.ClientTest do
   use ExUnit.Case, async: true
 
   import Tesla.Mock, only: [mock: 1]
   import Mobius.Fixtures
 
-  alias Mobius.Core.Rest.Client
+  alias Mobius.Rest.Client
 
   setup :create_token
   setup :create_rest_client

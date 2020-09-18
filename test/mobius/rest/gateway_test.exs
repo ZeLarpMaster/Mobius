@@ -1,11 +1,11 @@
-defmodule Mobius.Core.Rest.GatewayTest do
+defmodule Mobius.Rest.GatewayTest do
   use ExUnit.Case, async: true
 
   import Tesla.Mock, only: [mock: 1]
   import Mobius.Fixtures
 
-  alias Mobius.Core.Rest
-  alias Mobius.Core.Rest.Client
+  alias Mobius.Rest
+  alias Mobius.Rest.Client
 
   setup :create_token
   setup :create_rest_client
