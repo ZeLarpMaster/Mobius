@@ -8,6 +8,7 @@ defmodule Mobius.MixProject do
       elixir: "~> 1.10",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
+      aliases: aliases(),
       deps: deps()
     ]
   end
@@ -34,6 +35,12 @@ defmodule Mobius.MixProject do
       {:tesla, "~> 1.3.0"},
       {:excoveralls, "~> 0.13", only: :test},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false}
+    ]
+  end
+
+  defp aliases do
+    [
+      test: "test --no-start"
     ]
   end
 end
