@@ -13,12 +13,18 @@ defmodule Mobius.Services.Bot do
 
   @typep state :: %{
            client: Rest.Client.client(),
+           shards: [ShardInfo.t()],
            token: String.t()
          }
 
   @spec start_link(keyword) :: GenServer.on_start()
   def start_link(opts) do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
+  end
+
+  @spec list_shards() :: [ShardInfo.t()]
+  def list_shards do
+    GenServer.call(__MODULE__, :list_shards)
   end
 
   @spec notify_ready(ShardInfo.t()) :: :ok
@@ -33,6 +39,7 @@ defmodule Mobius.Services.Bot do
 
     state = %{
       client: Rest.Client.new(token: token),
+      shards: [],
       token: token
     }
 
@@ -58,7 +65,11 @@ defmodule Mobius.Services.Bot do
     Logger.debug("Started shard #{inspect(shard)} on #{inspect(pid)}")
     await_shard_ready(shard)
     schedule_next_shards(shards, url)
-    {:noreply, state}
+    {:noreply, update_in(state.shards, &(&1 ++ [shard]))}
+  end
+
+  def handle_call(:list_shards, _from, state) do
+    {:reply, state.shards, state}
   end
 
   defp await_shard_ready(shard) do
