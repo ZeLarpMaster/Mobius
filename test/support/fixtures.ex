@@ -1,7 +1,40 @@
 defmodule Mobius.Fixtures do
   @moduledoc false
 
+  alias Mobius.Stubs
+  alias Mobius.Core.Opcode
+  alias Mobius.Core.ShardInfo
   alias Mobius.Rest.Client
+  alias Mobius.Services.Bot
+  alias Mobius.Services.Socket
+
+  @shard ShardInfo.new(number: 0, count: 1)
+
+  def stub_socket(_context) do
+    @shard
+    |> Socket.via()
+    |> Stubs.Socket.set_owner()
+
+    [socket: Socket.via(hd(Bot.list_shards()))]
+  end
+
+  def handshake_shard(_context) do
+    %{d: %{heartbeat_interval: 45000}, op: Opcode.name_to_opcode(:hello), t: nil, s: nil}
+    |> Socket.notify_payload(@shard)
+
+    @shard
+    |> Socket.via()
+    |> Stubs.Socket.has_message?(fn msg ->
+      msg == Opcode.identify(@shard, System.fetch_env!("MOBIUS_BOT_TOKEN"))
+    end)
+
+    session_id = random_hex(16)
+
+    %{d: %{session_id: session_id}, t: :READY, s: 0, op: Opcode.name_to_opcode(:dispatch)}
+    |> Socket.notify_payload(@shard)
+
+    [session_id: session_id]
+  end
 
   def create_token(_context) do
     [token: random_hex(8)]
