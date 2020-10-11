@@ -9,7 +9,7 @@ defmodule Mobius.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       test_coverage: [tool: ExCoveralls],
-      preferred_cli_env: [coveralls: :test, "coveralls.html": :test],
+      preferred_cli_env: [coveralls: :test, "coveralls.html": :test, "test.ci": :test],
       aliases: aliases(),
       deps: deps()
     ]
@@ -42,7 +42,8 @@ defmodule Mobius.MixProject do
 
   defp aliases do
     [
-      test: "test --no-start"
+      test: "test --no-start",
+      "test.ci": ["test --color"]
     ]
   end
 end

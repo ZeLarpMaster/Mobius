@@ -1,0 +1,43 @@
+name: Mobius CI
+
+on:
+  push:
+    branches:
+      - rewrite
+      - master
+  pull_request:
+
+env:
+  MIX_ENV: test
+
+jobs:
+  run_tests:
+    runs_on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Elixir
+        uses: actions/setup-elixir@v1
+        with:
+          elixir-version: 1.10.4
+          otp-version: 23.1
+      - name: Retrieve mix dependencies cache
+        uses: actions/cache@v1
+        id: mix-cache # id to use in retrieve action
+        with:
+          path: deps
+          key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+      - name: Install mix dependencies
+        if: steps.mix-cache.outputs.cache-hit != 'true'
+        run: |
+          mix local.rebar --force
+          mix local.hex --force
+          mix deps.get
+      - name: Compile dependencies
+        run: mix deps.compile --force
+      - name: Compile application
+        run: mix compile --force --warnings-as-errors
+      - name: Check Formatting
+        run: mix format --check-formatted
+      - name: Run tests
+        run: mix test.ci
