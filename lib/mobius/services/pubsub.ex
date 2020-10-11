@@ -55,10 +55,15 @@ defmodule Mobius.Services.PubSub do
   """
   @spec publish(String.t(), atom, any) :: :ok
   def publish(topic, event, value) do
-    Registry.dispatch(__MODULE__, topic, fn entries ->
-      for {pid, events} <- entries, Enum.empty?(events) or Enum.member?(events, event) do
-        send(pid, {event, value})
-      end
-    end, parallel: true)
+    Registry.dispatch(
+      __MODULE__,
+      topic,
+      fn entries ->
+        for {pid, events} <- entries, Enum.empty?(events) or Enum.member?(events, event) do
+          send(pid, {event, value})
+        end
+      end,
+      parallel: true
+    )
   end
 end
