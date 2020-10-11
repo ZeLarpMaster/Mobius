@@ -9,6 +9,7 @@ on:
 
 env:
   MIX_ENV: test
+  MOBIUS_BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
 
 jobs:
   run_tests:
