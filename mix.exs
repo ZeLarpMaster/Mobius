@@ -36,6 +36,7 @@ defmodule Mobius.MixProject do
       {:hackney, "~> 1.13"},
       {:tesla, "~> 1.3.0"},
       {:excoveralls, "~> 0.13", only: :test},
+      {:credo, "~> 1.1", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false}
     ]
   end
