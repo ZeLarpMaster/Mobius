@@ -1,11 +1,11 @@
 defmodule Mobius.Services.Socket do
   @moduledoc false
 
-  require Logger
-
   alias Mobius.Core.ShardInfo
-  alias Mobius.Services.Shard
   alias Mobius.Services.Heartbeat
+  alias Mobius.Services.Shard
+
+  require Logger
 
   @spec start_socket(ShardInfo.t(), String.t(), map) :: DynamicSupervisor.on_start_child()
   def start_socket(shard, url, query) do

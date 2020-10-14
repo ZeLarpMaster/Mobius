@@ -3,10 +3,10 @@ defmodule Mobius.Services.Socket.Gun do
 
   use GenServer
 
-  require Logger
-
   alias Mobius.Core.ShardInfo
   alias Mobius.Services.Socket
+
+  require Logger
 
   @behaviour Socket
 

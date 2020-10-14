@@ -4,14 +4,14 @@ defmodule Mobius.Core.HeartbeatInfoTest do
   import Mobius.Core.HeartbeatInfo
 
   test "ping updates when ack'd after sending" do
-    sending_info = new() |> sending()
-    acked_info = sending_info |> received_ack()
+    sending_info = sending(new())
+    acked_info = received_ack(sending_info)
     assert acked_info.ping == acked_info.ack_stamp - sending_info.send_stamp
   end
 
   test "ping doesn't change if received ack without sending" do
     info = new() |> sending() |> received_ack()
-    info2 = info |> received_ack()
+    info2 = received_ack(info)
     assert info.ping == info2.ping
   end
 

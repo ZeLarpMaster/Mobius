@@ -3,10 +3,10 @@ defmodule Mobius.Actions.StatusTest do
 
   import Mobius.Fixtures
 
-  alias Mobius.Stubs
-  alias Mobius.Core.Opcode
-  alias Mobius.Core.BotStatus
   alias Mobius.Actions.Status
+  alias Mobius.Core.BotStatus
+  alias Mobius.Core.Opcode
+  alias Mobius.Stubs
 
   setup :handshake_shard
   setup :stub_socket
@@ -19,7 +19,8 @@ defmodule Mobius.Actions.StatusTest do
 
     Status.change_status(status)
 
-    Stubs.Socket.has_message?(ctx.socket, fn msg ->
+    ctx.socket
+    |> Stubs.Socket.has_message?(fn msg ->
       status
       |> Opcode.update_status()
       |> Kernel.==(msg)

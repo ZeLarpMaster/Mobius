@@ -15,7 +15,8 @@ defmodule Mobius.Rest.ClientTest do
       mock(fn %{method: :get, url: ^url} -> {401, [], ""} end)
 
       response =
-        Tesla.get(ctx.client, url)
+        ctx.client
+        |> Tesla.get(url)
         |> Client.parse_response(&stub_parser/1)
 
       assert {:error, :unauthorized_token} == response
@@ -26,7 +27,8 @@ defmodule Mobius.Rest.ClientTest do
       mock(fn %{method: :get, url: ^url} -> {403, [], ""} end)
 
       response =
-        Tesla.get(ctx.client, url)
+        ctx.client
+        |> Tesla.get(url)
         |> Client.parse_response(&stub_parser/1)
 
       assert {:error, :forbidden} == response
@@ -37,7 +39,8 @@ defmodule Mobius.Rest.ClientTest do
       mock(fn %{method: :get, url: ^url} -> {404, [], ""} end)
 
       response =
-        Tesla.get(ctx.client, url)
+        ctx.client
+        |> Tesla.get(url)
         |> Client.parse_response(&stub_parser/1)
 
       assert {:error, :not_found} == response
@@ -48,7 +51,8 @@ defmodule Mobius.Rest.ClientTest do
       mock(fn %{method: :get, url: ^url} -> {429, [], ""} end)
 
       response =
-        Tesla.get(ctx.client, url)
+        ctx.client
+        |> Tesla.get(url)
         |> Client.parse_response(&stub_parser/1)
 
       assert {:error, :ratelimited} == response
@@ -59,7 +63,8 @@ defmodule Mobius.Rest.ClientTest do
       mock(fn %{method: :get, url: ^url} -> {:error, :timeout} end)
 
       response =
-        Tesla.get(ctx.client, url)
+        ctx.client
+        |> Tesla.get(url)
         |> Client.parse_response(&stub_parser/1)
 
       assert {:error, :timeout} == response
@@ -71,7 +76,8 @@ defmodule Mobius.Rest.ClientTest do
       mock(fn %{method: :get, url: ^url} -> json(%{"key" => value}, 201) end)
 
       response =
-        Tesla.get(ctx.client, url)
+        ctx.client
+        |> Tesla.get(url)
         |> Client.parse_response(&stub_parser/1)
 
       assert {:ok, %{key: value}} == response
@@ -83,7 +89,8 @@ defmodule Mobius.Rest.ClientTest do
       mock(fn %{method: :get, url: ^url} -> json(%{"key" => value}) end)
 
       response =
-        Tesla.get(ctx.client, url)
+        ctx.client
+        |> Tesla.get(url)
         |> Client.parse_response(&stub_parser/1)
 
       assert {:ok, %{key: value}} == response

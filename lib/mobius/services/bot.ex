@@ -3,11 +3,11 @@ defmodule Mobius.Services.Bot do
 
   use GenServer
 
-  require Logger
-
   alias Mobius.Core.ShardInfo
   alias Mobius.Rest
   alias Mobius.Services.Shard
+
+  require Logger
 
   @shard_ready_timeout 10_000
 
@@ -54,7 +54,8 @@ defmodule Mobius.Services.Bot do
 
     # TODO: Take into account bot_info["session_start_limit"]
 
-    ShardInfo.from_count(bot_info["shards"])
+    bot_info["shards"]
+    |> ShardInfo.from_count()
     |> schedule_next_shards(parse_url(bot_info["url"]))
 
     {:noreply, state}

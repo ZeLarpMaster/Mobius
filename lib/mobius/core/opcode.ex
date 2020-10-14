@@ -15,8 +15,7 @@ defmodule Mobius.Core.Opcode do
   """
   @spec heartbeat(integer) :: map
   def heartbeat(sequence_number) do
-    sequence_number
-    |> serialize(:heartbeat)
+    serialize(sequence_number, :heartbeat)
   end
 
   @doc """
@@ -43,7 +42,7 @@ defmodule Mobius.Core.Opcode do
   def identify(shard, token) do
     {family, name} = :os.type()
 
-    %{
+    data = %{
       "token" => token,
       "properties" => %{
         "$os" => Atom.to_string(family) <> " " <> Atom.to_string(name),
@@ -55,7 +54,8 @@ defmodule Mobius.Core.Opcode do
       "shard" => ShardInfo.to_list(shard)
       # "intents" => 0, TODO
     }
-    |> serialize(:identify)
+
+    serialize(data, :identify)
   end
 
   @doc """
@@ -69,12 +69,13 @@ defmodule Mobius.Core.Opcode do
   """
   @spec resume(Gateway.t()) :: map
   def resume(gateway) do
-    %{
+    data = %{
       "token" => gateway.token,
       "session_id" => gateway.session_id,
       "seq" => gateway.seq
     }
-    |> serialize(:resume)
+
+    serialize(data, :resume)
   end
 
   @doc """
@@ -94,8 +95,7 @@ defmodule Mobius.Core.Opcode do
   """
   @spec request_guild_members(%{required(String.t()) => any}) :: map
   def request_guild_members(%{"nonce" => nonce} = payload) when byte_size(nonce) <= 32 do
-    payload
-    |> serialize(:request_guild_members)
+    serialize(payload, :request_guild_members)
   end
 
   @doc """
@@ -110,7 +110,8 @@ defmodule Mobius.Core.Opcode do
   """
   @spec update_status(BotStatus.t()) :: map
   def update_status(%BotStatus{} = status) do
-    BotStatus.to_map(status)
+    status
+    |> BotStatus.to_map()
     |> serialize(:presence_update)
   end
 

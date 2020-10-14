@@ -3,13 +3,13 @@ defmodule Mobius.Services.Heartbeat do
 
   use GenServer
 
-  require Logger
-
   alias Mobius.Core.HeartbeatInfo
   alias Mobius.Core.Opcode
   alias Mobius.Core.ShardInfo
   alias Mobius.Services.Shard
   alias Mobius.Services.Socket
+
+  require Logger
 
   @typep state :: %{
            shard: ShardInfo.t(),
@@ -101,7 +101,8 @@ defmodule Mobius.Services.Heartbeat do
 
   @impl GenServer
   def handle_info(:heartbeat, state) do
-    HeartbeatInfo.can_send?(state.info)
+    state.info
+    |> HeartbeatInfo.can_send?()
     |> maybe_send_heartbeat(state)
   end
 
@@ -119,6 +120,6 @@ defmodule Mobius.Services.Heartbeat do
   end
 
   defp schedule_heartbeat(interval_ms), do: Process.send_after(self(), :heartbeat, interval_ms)
-  defp send_heartbeat(shard, seq), do: Opcode.heartbeat(seq) |> Socket.send_message(shard)
+  defp send_heartbeat(shard, seq), do: seq |> Opcode.heartbeat() |> Socket.send_message(shard)
   defp via(%ShardInfo{} = shard), do: {:via, Registry, {Mobius.Registry.Heartbeat, shard}}
 end
