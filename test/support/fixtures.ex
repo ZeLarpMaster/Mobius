@@ -1,12 +1,12 @@
 defmodule Mobius.Fixtures do
   @moduledoc false
 
-  alias Mobius.Stubs
   alias Mobius.Core.Opcode
   alias Mobius.Core.ShardInfo
   alias Mobius.Rest.Client
   alias Mobius.Services.Bot
   alias Mobius.Services.Socket
+  alias Mobius.Stubs
 
   @shard ShardInfo.new(number: 0, count: 1)
 
@@ -19,8 +19,8 @@ defmodule Mobius.Fixtures do
   end
 
   def handshake_shard(_context) do
-    %{d: %{heartbeat_interval: 45000}, op: Opcode.name_to_opcode(:hello), t: nil, s: nil}
-    |> Socket.notify_payload(@shard)
+    data = %{d: %{heartbeat_interval: 45_000}, op: Opcode.name_to_opcode(:hello), t: nil, s: nil}
+    Socket.notify_payload(data, @shard)
 
     @shard
     |> Socket.via()
@@ -30,8 +30,8 @@ defmodule Mobius.Fixtures do
 
     session_id = random_hex(16)
 
-    %{d: %{session_id: session_id}, t: :READY, s: 0, op: Opcode.name_to_opcode(:dispatch)}
-    |> Socket.notify_payload(@shard)
+    data = %{d: %{session_id: session_id}, t: :READY, s: 0, op: Opcode.name_to_opcode(:dispatch)}
+    Socket.notify_payload(data, @shard)
 
     [session_id: session_id]
   end
@@ -44,7 +44,7 @@ defmodule Mobius.Fixtures do
     [client: Client.new(token: context.token)]
   end
 
-  @chars "0123456789abcdef" |> String.codepoints()
+  @chars String.codepoints("0123456789abcdef")
   def random_hex(len) do
     1..len
     |> Enum.map(fn _ -> Enum.random(@chars) end)

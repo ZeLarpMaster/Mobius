@@ -7,7 +7,8 @@ defmodule Mobius.Validations.Validator do
 
   @spec required(out(), map, atom, (any -> out())) :: out()
   def required(errors, fields, field_name, validator) do
-    Map.has_key?(fields, field_name)
+    fields
+    |> Map.has_key?(field_name)
     |> check_required_field(fields, errors, field_name, validator)
   end
 

@@ -3,15 +3,15 @@ defmodule Mobius.Services.Shard do
 
   use GenServer
 
-  require Logger
-
   alias Mobius.Core.Gateway
-  alias Mobius.Core.SocketCodes
   alias Mobius.Core.Opcode
   alias Mobius.Core.ShardInfo
+  alias Mobius.Core.SocketCodes
   alias Mobius.Services.Bot
   alias Mobius.Services.Heartbeat
   alias Mobius.Services.Socket
+
+  require Logger
 
   @gateway_version "6"
 
@@ -131,17 +131,19 @@ defmodule Mobius.Services.Shard do
     {:ok, pid} = Heartbeat.start_heartbeat(state.shard, interval)
     Logger.debug("Started heartbeat on #{inspect(pid)}")
 
-    if not Gateway.has_session?(state.gateway) do
-      # TODO: Make sure we can identify (only 1 identify per 5 seconds)
-      Opcode.identify(state.shard, state.gateway.token)
-      |> Socket.send_message(state.shard)
-    else
+    if Gateway.has_session?(state.gateway) do
       Logger.debug("Attempting to resume the session")
 
-      Opcode.resume(state.gateway)
+      state.gateway
+      |> Opcode.resume()
       |> Socket.send_message(state.shard)
 
       # TODO: Set resuming flag? See :invalid_session for why
+    else
+      # TODO: Make sure we can identify (only 1 identify per 5 seconds)
+      state.shard
+      |> Opcode.identify(state.gateway.token)
+      |> Socket.send_message(state.shard)
     end
 
     state
