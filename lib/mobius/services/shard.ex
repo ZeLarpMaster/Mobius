@@ -75,7 +75,9 @@ defmodule Mobius.Services.Shard do
       shard: shard
     }
 
-    {:ok, pid} = Socket.start_socket(state.shard, Keyword.fetch!(opts, :url), %{"v" => @gateway_version})
+    url = Keyword.fetch!(opts, :url)
+    {:ok, pid} = Socket.start_socket(state.shard, url, %{"v" => @gateway_version})
+
     Logger.debug("Started socket on #{inspect(pid)}")
 
     {:ok, state}
