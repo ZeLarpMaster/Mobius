@@ -8,6 +8,7 @@ defmodule Mobius.Actions.StatusTest do
   alias Mobius.Core.Opcode
   alias Mobius.Stubs
 
+  setup :reset_services
   setup :handshake_shard
   setup :stub_socket
 

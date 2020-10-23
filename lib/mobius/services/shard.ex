@@ -65,7 +65,7 @@ defmodule Mobius.Services.Shard do
   end
 
   @impl GenServer
-  @spec init(keyword) :: {:ok, state(), {:continue, any}}
+  @spec init(keyword) :: {:ok, state()}
   def init(opts) do
     %ShardInfo{} = shard = Keyword.fetch!(opts, :shard)
     Logger.debug("Started shard on pid #{inspect(self())}")
@@ -75,15 +75,10 @@ defmodule Mobius.Services.Shard do
       shard: shard
     }
 
-    {:ok, state, {:continue, {:start_socket, Keyword.fetch!(opts, :url)}}}
-  end
-
-  @impl GenServer
-  @spec handle_continue({:start_socket, String.t()}, state()) :: {:noreply, state()}
-  def handle_continue({:start_socket, url}, state) do
-    {:ok, pid} = Socket.start_socket(state.shard, url, %{"v" => @gateway_version})
+    {:ok, pid} = Socket.start_socket(state.shard, Keyword.fetch!(opts, :url), %{"v" => @gateway_version})
     Logger.debug("Started socket on #{inspect(pid)}")
-    {:noreply, state}
+
+    {:ok, state}
   end
 
   @impl GenServer

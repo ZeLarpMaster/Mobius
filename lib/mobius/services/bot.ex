@@ -9,11 +9,10 @@ defmodule Mobius.Services.Bot do
 
   require Logger
 
-  @shard_ready_timeout 10_000
-
   @typep state :: %{
            client: Rest.Client.client(),
            shards: [ShardInfo.t()],
+           ready_shards: MapSet.t(ShardInfo.t()),
            token: String.t()
          }
 
@@ -33,57 +32,46 @@ defmodule Mobius.Services.Bot do
     :ok
   end
 
-  @spec init(keyword) :: {:ok, state(), {:continue, :start_shards}}
+  @spec init(keyword) :: {:ok, state()}
   def init(opts) do
     token = Keyword.fetch!(opts, :token)
+    client = Rest.Client.new(token: token)
 
     state = %{
-      client: Rest.Client.new(token: token),
-      shards: [],
+      client: client,
+      shards: start_shards(client, token),
+      ready_shards: MapSet.new(),
       token: token
     }
 
-    {:ok, state, {:continue, :start_shards}}
-  end
-
-  @spec handle_continue(:start_shards, state()) :: {:noreply, state()}
-  def handle_continue(:start_shards, state) do
-    {:ok, bot_info} = Rest.Gateway.get_bot(state.client)
-
-    Logger.debug("Starting shards with #{inspect(bot_info)}")
-
-    # TODO: Take into account bot_info["session_start_limit"]
-
-    bot_info["shards"]
-    |> ShardInfo.from_count()
-    |> schedule_next_shards(parse_url(bot_info["url"]))
-
-    {:noreply, state}
-  end
-
-  def handle_info({:start_shard, [shard | shards], url}, state) do
-    {:ok, pid} = Shard.start_shard(shard, url, state.token)
-    Logger.debug("Started shard #{inspect(shard)} on #{inspect(pid)}")
-    await_shard_ready(shard)
-    schedule_next_shards(shards, url)
-    {:noreply, update_in(state.shards, &(&1 ++ [shard]))}
+    {:ok, state}
   end
 
   def handle_call(:list_shards, _from, state) do
     {:reply, state.shards, state}
   end
 
-  defp await_shard_ready(shard) do
-    receive do
-      {:shard_ready, ^shard} -> Logger.debug("Shard #{inspect(shard)} is ready!")
-    after
-      @shard_ready_timeout -> Logger.warn("Shard #{inspect(shard)} was not ready in time!")
-    end
+  def handle_info({:shard_ready, shard}, state) do
+    Logger.debug("Shard #{inspect(shard)} is ready!")
+    {:noreply, update_in(state.ready_shards, &MapSet.put(&1, shard))}
   end
 
   # TODO: Notify about all shards being ready?
-  defp schedule_next_shards([], _url), do: nil
-  defp schedule_next_shards(shards, url), do: send(self(), {:start_shard, shards, url})
+
+  defp start_shards(client, token) do
+    {:ok, bot_info} = Rest.Gateway.get_bot(client)
+    url = parse_url(bot_info["url"])
+
+    Logger.debug("Starting shards with #{inspect(bot_info)}")
+
+    # TODO: Take into account bot_info["session_start_limit"]
+
+    for shard <- ShardInfo.from_count(bot_info["shards"]) do
+      {:ok, pid} = Shard.start_shard(shard, url, token)
+      Logger.debug("Started shard #{inspect(shard)} on #{inspect(pid)}")
+      shard
+    end
+  end
 
   defp parse_url("wss://" <> url), do: url
 end

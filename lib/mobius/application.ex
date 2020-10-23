@@ -21,6 +21,11 @@ defmodule Mobius.Application do
     Supervisor.start_link(children, strategy: :one_for_one, name: Mobius.Supervisor)
   end
 
+  def reset_services do
+    :ok = Application.stop(:mobius)
+    :ok = Application.start(:mobius)
+  end
+
   defp dynamic_supervisor(name),
     do: {DynamicSupervisor, name: name, strategy: :one_for_one, max_restarts: 1}
 

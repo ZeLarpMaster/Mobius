@@ -10,6 +10,10 @@ defmodule Mobius.Fixtures do
 
   @shard ShardInfo.new(number: 0, count: 1)
 
+  def reset_services(_context) do
+    Mobius.Application.reset_services()
+  end
+
   def stub_socket(_context) do
     @shard
     |> Socket.via()
