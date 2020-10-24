@@ -5,6 +5,7 @@ defmodule Mobius.Services.HeartbeatTest do
 
   alias Mobius.Core.Opcode
   alias Mobius.Core.ShardInfo
+  alias Mobius.Services.Heartbeat
   alias Mobius.Services.Socket
 
   setup :reset_services
@@ -22,9 +23,33 @@ defmodule Mobius.Services.HeartbeatTest do
     send_ack()
   end
 
-  test "sends heartbeat immediately if requested"
-  test "closes the socket if no ack since last heartbeat"
-  test "updates ping when receives an ack"
+  test "sends heartbeat immediately if requested" do
+    send_hello()
+
+    assert_received_heartbeat(0)
+    request_heartbeat()
+
+    assert_received_heartbeat(0)
+  end
+
+  test "closes the socket if no ack since last heartbeat" do
+    send_hello(500)
+
+    assert_received_heartbeat(0)
+    Process.sleep(500)
+    assert_receive :socket_close, 100
+  end
+
+  test "updates ping when receives an ack" do
+    send_hello()
+
+    assert_received_heartbeat(0)
+    Process.sleep(50)
+    send_ack()
+    ping = Heartbeat.get_ping(@shard)
+
+    assert ping >= 50
+  end
 
   defp assert_received_heartbeat(seq) do
     payload = Opcode.heartbeat(seq)
@@ -33,6 +58,11 @@ defmodule Mobius.Services.HeartbeatTest do
 
   defp send_ack do
     data = %{d: nil, t: nil, s: nil, op: Opcode.name_to_opcode(:heartbeat_ack)}
+    Socket.notify_payload(data, @shard)
+  end
+
+  defp request_heartbeat do
+    data = %{d: nil, t: nil, s: nil, op: Opcode.name_to_opcode(:heartbeat)}
     Socket.notify_payload(data, @shard)
   end
 end
