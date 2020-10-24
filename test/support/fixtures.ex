@@ -23,8 +23,7 @@ defmodule Mobius.Fixtures do
   end
 
   def handshake_shard(_context) do
-    data = %{d: %{heartbeat_interval: 45_000}, op: Opcode.name_to_opcode(:hello), t: nil, s: nil}
-    Socket.notify_payload(data, @shard)
+    send_hello()
 
     @shard
     |> Socket.via()
@@ -46,6 +45,18 @@ defmodule Mobius.Fixtures do
 
   def create_rest_client(context) do
     [client: Client.new(token: context.token)]
+  end
+
+  # Utility functions
+  def send_hello(interval \\ 45_000) do
+    data = %{
+      d: %{heartbeat_interval: interval},
+      op: Opcode.name_to_opcode(:hello),
+      t: nil,
+      s: nil
+    }
+
+    Socket.notify_payload(data, @shard)
   end
 
   @chars String.codepoints("0123456789abcdef")

@@ -14,20 +14,29 @@ defmodule Mobius.Services.HeartbeatTest do
   @shard ShardInfo.new(number: 0, count: 1)
 
   test "sends heartbeat regularly", ctx do
-    data = %{d: %{heartbeat_interval: 2_000}, op: Opcode.name_to_opcode(:hello), t: nil, s: nil}
-    Socket.notify_payload(data, @shard)
+    send_hello(500)
+    assert_received_heartbeat(ctx.socket, 0)
+    send_ack()
 
-    ctx.socket
-    |> Stubs.Socket.has_message?(fn msg ->
-      msg == Opcode.heartbeat(0)
-    end)
-    |> assert
-
-    data = %{d: nil, t: nil, s: nil, op: Opcode.name_to_opcode(:heartbeat_ack)}
-    Socket.notify_payload(data, @shard)
+    Process.sleep(500)
+    assert_received_heartbeat(ctx.socket, 0)
+    send_ack()
   end
 
   test "sends heartbeat immediately if requested"
   test "closes the socket if no ack since last heartbeat"
   test "updates ping when receives an ack"
+
+  defp assert_received_heartbeat(socket, seq) do
+    socket
+    |> Stubs.Socket.has_message?(fn msg ->
+      msg == Opcode.heartbeat(seq)
+    end)
+    |> assert
+  end
+
+  defp send_ack do
+    data = %{d: nil, t: nil, s: nil, op: Opcode.name_to_opcode(:heartbeat_ack)}
+    Socket.notify_payload(data, @shard)
+  end
 end
