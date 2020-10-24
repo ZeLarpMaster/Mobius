@@ -1,10 +1,11 @@
 defmodule Mobius.Fixtures do
   @moduledoc false
 
+  import ExUnit.Assertions
+
   alias Mobius.Core.Opcode
   alias Mobius.Core.ShardInfo
   alias Mobius.Rest.Client
-  alias Mobius.Services.Bot
   alias Mobius.Services.Socket
   alias Mobius.Stubs
 
@@ -15,24 +16,16 @@ defmodule Mobius.Fixtures do
   end
 
   def stub_socket(_context) do
-    @shard
-    |> Socket.via()
-    |> Stubs.Socket.set_owner()
-
-    [socket: Socket.via(hd(Bot.list_shards()))]
+    Stubs.Socket.set_owner(@shard)
   end
 
   def handshake_shard(_context) do
     send_hello()
 
-    @shard
-    |> Socket.via()
-    |> Stubs.Socket.has_message?(fn msg ->
-      msg == Opcode.identify(@shard, System.fetch_env!("MOBIUS_BOT_TOKEN"))
-    end)
+    msg = Opcode.identify(@shard, System.fetch_env!("MOBIUS_BOT_TOKEN"))
+    assert_receive {:socket_msg, ^msg}, 100
 
     session_id = random_hex(16)
-
     data = %{d: %{session_id: session_id}, t: :READY, s: 0, op: Opcode.name_to_opcode(:dispatch)}
     Socket.notify_payload(data, @shard)
 

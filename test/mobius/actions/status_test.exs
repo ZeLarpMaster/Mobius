@@ -6,13 +6,12 @@ defmodule Mobius.Actions.StatusTest do
   alias Mobius.Actions.Status
   alias Mobius.Core.BotStatus
   alias Mobius.Core.Opcode
-  alias Mobius.Stubs
 
   setup :reset_services
-  setup :handshake_shard
   setup :stub_socket
+  setup :handshake_shard
 
-  test "change_status/1 sends the expected payload on the socket", ctx do
+  test "change_status/1 sends the expected payload on the socket" do
     status =
       BotStatus.new()
       |> BotStatus.set_status(:idle)
@@ -20,12 +19,7 @@ defmodule Mobius.Actions.StatusTest do
 
     Status.change_status(status)
 
-    ctx.socket
-    |> Stubs.Socket.has_message?(fn msg ->
-      status
-      |> Opcode.update_status()
-      |> Kernel.==(msg)
-    end)
-    |> assert
+    payload = Opcode.update_status(status)
+    assert_receive {:socket_msg, ^payload}
   end
 end
