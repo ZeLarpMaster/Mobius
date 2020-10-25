@@ -14,7 +14,7 @@ defmodule Mobius.Services.ShardTest do
   test "attempts to resume if socket closes with resumable code", ctx do
     send_payload(op: :dispatch, type: :TYPING_START, seq: 2)
 
-    socket_closed_by_server(1001, "Going away")
+    close_socket_from_server(1001, "Going away")
     send_hello()
 
     resume = make_resume_payload(ctx, 2)
@@ -22,7 +22,7 @@ defmodule Mobius.Services.ShardTest do
   end
 
   test "identifies if socket closes with unresumable code", ctx do
-    socket_closed_by_server(4009, "Session timed out")
+    close_socket_from_server(4009, "Session timed out")
     send_hello()
 
     msg = Opcode.identify(ctx.shard, ctx.token)
@@ -30,7 +30,7 @@ defmodule Mobius.Services.ShardTest do
   end
 
   test "exits the shard if socket closes with unrecoverable code", ctx do
-    socket_closed_by_server(4013, "Invalid intent(s)")
+    close_socket_from_server(4013, "Invalid intent(s)")
 
     # TODO: Make via/1 public?
     pid = GenServer.whereis({:via, Registry, {Mobius.Registry.Shard, ctx.shard}})

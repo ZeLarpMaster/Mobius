@@ -64,7 +64,7 @@ defmodule Mobius.Fixtures do
     Socket.notify_payload(data, @shard)
   end
 
-  def socket_closed_by_server(close_num, reason) do
+  def close_socket_from_server(close_num, reason) do
     # Closed is notified only when the server closes the connection
     Socket.notify_closed(@shard, close_num, reason)
     # Down is notified regardless of whether it was closed by the server or the client
