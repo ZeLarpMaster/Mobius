@@ -16,8 +16,7 @@ defmodule Mobius.Stubs.Socket do
           url: String.t(),
           query: String.t(),
           shard: ShardInfo.t(),
-          test_pid: pid | nil,
-          messages: [msg()]
+          test_pid: pid | nil
         }
 
   # Socket callbacks
@@ -40,19 +39,9 @@ defmodule Mobius.Stubs.Socket do
   end
 
   # Stub API
-  @spec set_owner(GenServer.server()) :: :ok
-  def set_owner(socket) do
-    GenServer.call(socket, {:set_test, self()})
-  end
-
-  @spec has_closed?(GenServer.server()) :: boolean
-  def has_closed?(socket) do
-    GenServer.call(socket, :has_closed?)
-  end
-
-  @spec has_message?(GenServer.server(), (any -> boolean)) :: boolean
-  def has_message?(socket, func) when is_function(func, 1) do
-    GenServer.call(socket, {:has_message?, func})
+  @spec set_owner(ShardInfo.t()) :: :ok
+  def set_owner(shard) do
+    GenServer.call(Socket.via(shard), {:set_test, self()})
   end
 
   # GenServer and :gun stuff
@@ -63,8 +52,7 @@ defmodule Mobius.Stubs.Socket do
       url: Keyword.fetch!(opts, :url),
       query: Keyword.fetch!(opts, :query),
       shard: Keyword.fetch!(opts, :shard),
-      test_pid: nil,
-      messages: []
+      test_pid: nil
     }
 
     {:ok, state}
@@ -72,47 +60,38 @@ defmodule Mobius.Stubs.Socket do
 
   @impl GenServer
   def handle_cast({:send, payload}, state) do
-    {:noreply, update_in(state.messages, &(&1 ++ [{:msg, payload}]))}
+    if state.test_pid != nil do
+      send(state.test_pid, {:socket_msg, payload})
+    end
+
+    {:noreply, state}
   end
 
   @impl GenServer
   def handle_call(:close, _from, state) do
-    {:reply, :ok, update_in(state.messages, &(&1 ++ [:close]))}
+    if state.test_pid != nil do
+      send(state.test_pid, :socket_close)
+    end
+
+    # A real Socket impl would notify down when it closes and then get back up by itself
+    Socket.notify_down(state.shard, "Requested")
+    Socket.notify_up(state.shard)
+    {:reply, :ok, state}
   end
 
   # Stub-only callbacks
   def handle_call({:set_test, pid}, _from, %{test_pid: nil} = state) do
     Process.monitor(pid)
-    {:reply, :ok, state |> Map.put(:test_pid, pid) |> Map.put(:messages, [])}
+    {:reply, :ok, put_in(state.test_pid, pid)}
   end
 
   def handle_call({:set_test, _pid}, _from, state) do
     {:reply, {:error, :already_assigned}, state}
   end
 
-  def handle_call(:has_closed?, _from, state) do
-    pop_by(state, &(&1 == :close))
-  end
-
-  def handle_call({:has_message?, func}, _from, state) do
-    pop_by(state, fn
-      {:msg, msg} -> func.(msg)
-      _ -> false
-    end)
-  end
-
   @impl GenServer
   def handle_info({:DOWN, _ref, :process, pid, _reason}, %{test_pid: t_pid} = state)
       when pid == t_pid do
-    {:noreply, Map.put(state, :test_pid, nil)}
-  end
-
-  defp pop_by(state, func) do
-    state.messages
-    |> Enum.find_index(func)
-    |> case do
-      nil -> {:reply, false, state}
-      index -> {:reply, true, update_in(state.messages, &List.delete_at(&1, index))}
-    end
+    {:noreply, put_in(state.test_pid, nil)}
   end
 end
