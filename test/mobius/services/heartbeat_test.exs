@@ -4,13 +4,11 @@ defmodule Mobius.Services.HeartbeatTest do
   import Mobius.Fixtures
 
   alias Mobius.Core.Opcode
-  alias Mobius.Core.ShardInfo
   alias Mobius.Services.Heartbeat
 
+  setup :get_shard
   setup :reset_services
   setup :stub_socket
-
-  @shard ShardInfo.new(number: 0, count: 1)
 
   test "sends heartbeat regularly" do
     send_hello(500)
@@ -39,13 +37,13 @@ defmodule Mobius.Services.HeartbeatTest do
     assert_receive :socket_close, 100
   end
 
-  test "updates ping when receives an ack" do
+  test "updates ping when receives an ack", ctx do
     send_hello()
 
     assert_received_heartbeat(0)
     Process.sleep(50)
     send_payload(op: :heartbeat_ack)
-    ping = Heartbeat.get_ping(@shard)
+    ping = Heartbeat.get_ping(ctx.shard)
 
     assert ping >= 50
   end

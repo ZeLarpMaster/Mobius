@@ -15,6 +15,10 @@ defmodule Mobius.Fixtures do
     Mobius.Application.reset_services()
   end
 
+  def get_shard(_context) do
+    [shard: @shard]
+  end
+
   def stub_socket(_context) do
     Stubs.Socket.set_owner(@shard)
   end
