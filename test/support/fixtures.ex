@@ -64,6 +64,7 @@ defmodule Mobius.Fixtures do
     Socket.notify_payload(data, @shard)
   end
 
+  @doc "Simulate the server closing the socket with an arbitrary code"
   def close_socket_from_server(close_num, reason) do
     # Closed is notified only when the server closes the connection
     Socket.notify_closed(@shard, close_num, reason)
