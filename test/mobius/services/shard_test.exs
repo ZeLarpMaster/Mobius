@@ -14,6 +14,8 @@ defmodule Mobius.Services.ShardTest do
   test "attempts to resume if socket closes with resumable code", ctx do
     send_payload(op: :dispatch, type: :TYPING_START, seq: 2)
 
+    # Shard will attempt to resume when closed with code 1001 (Going away)
+    # See Mobius.Core.SocketCodes for the list of codes
     close_socket_from_server(1001, "Going away")
     send_hello()
 
@@ -22,6 +24,8 @@ defmodule Mobius.Services.ShardTest do
   end
 
   test "identifies if socket closes with unresumable code", ctx do
+    # Shard won't attempt to resume, but will reconnect when closed with code 4009 (Session timed out)
+    # See Mobius.Core.SocketCodes for the list of codes
     close_socket_from_server(4009, "Session timed out")
     send_hello()
 
@@ -30,6 +34,8 @@ defmodule Mobius.Services.ShardTest do
   end
 
   test "exits the shard if socket closes with unrecoverable code", ctx do
+    # Shard will completely disconnect when closed with code 4013 (Invalid intent(s))
+    # See Mobius.Core.SocketCodes for the list of codes
     close_socket_from_server(4013, "Invalid intent(s)")
 
     # TODO: Make via/1 public?
