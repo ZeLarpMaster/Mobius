@@ -6,7 +6,6 @@ defmodule Mobius.Services.HeartbeatTest do
   alias Mobius.Core.Opcode
   alias Mobius.Core.ShardInfo
   alias Mobius.Services.Heartbeat
-  alias Mobius.Services.Socket
 
   setup :reset_services
   setup :stub_socket
@@ -16,18 +15,18 @@ defmodule Mobius.Services.HeartbeatTest do
   test "sends heartbeat regularly" do
     send_hello(500)
     assert_received_heartbeat(0)
-    send_ack()
+    send_payload(op: :heartbeat_ack)
 
     Process.sleep(500)
     assert_received_heartbeat(0)
-    send_ack()
+    send_payload(op: :heartbeat_ack)
   end
 
   test "sends heartbeat immediately if requested" do
     send_hello()
 
     assert_received_heartbeat(0)
-    request_heartbeat()
+    send_payload(op: :heartbeat)
 
     assert_received_heartbeat(0)
   end
@@ -45,7 +44,7 @@ defmodule Mobius.Services.HeartbeatTest do
 
     assert_received_heartbeat(0)
     Process.sleep(50)
-    send_ack()
+    send_payload(op: :heartbeat_ack)
     ping = Heartbeat.get_ping(@shard)
 
     assert ping >= 50
@@ -54,15 +53,5 @@ defmodule Mobius.Services.HeartbeatTest do
   defp assert_received_heartbeat(seq) do
     payload = Opcode.heartbeat(seq)
     assert_receive {:socket_msg, ^payload}
-  end
-
-  defp send_ack do
-    data = %{d: nil, t: nil, s: nil, op: Opcode.name_to_opcode(:heartbeat_ack)}
-    Socket.notify_payload(data, @shard)
-  end
-
-  defp request_heartbeat do
-    data = %{d: nil, t: nil, s: nil, op: Opcode.name_to_opcode(:heartbeat)}
-    Socket.notify_payload(data, @shard)
   end
 end

@@ -22,14 +22,18 @@ defmodule Mobius.Fixtures do
   def handshake_shard(_context) do
     send_hello()
 
-    msg = Opcode.identify(@shard, System.fetch_env!("MOBIUS_BOT_TOKEN"))
+    msg = Opcode.heartbeat(0)
+    assert_receive {:socket_msg, ^msg}, 100
+
+    token = System.fetch_env!("MOBIUS_BOT_TOKEN")
+    msg = Opcode.identify(@shard, token)
     assert_receive {:socket_msg, ^msg}, 100
 
     session_id = random_hex(16)
-    data = %{d: %{session_id: session_id}, t: :READY, s: 0, op: Opcode.name_to_opcode(:dispatch)}
+    data = %{d: %{session_id: session_id}, t: :READY, s: 1, op: Opcode.name_to_opcode(:dispatch)}
     Socket.notify_payload(data, @shard)
 
-    [session_id: session_id]
+    [session_id: session_id, token: token]
   end
 
   def create_token(_context) do
@@ -42,14 +46,27 @@ defmodule Mobius.Fixtures do
 
   # Utility functions
   def send_hello(interval \\ 45_000) do
+    send_payload(op: :hello, data: %{heartbeat_interval: interval})
+  end
+
+  def send_payload(opts) do
     data = %{
-      d: %{heartbeat_interval: interval},
-      op: Opcode.name_to_opcode(:hello),
-      t: nil,
-      s: nil
+      op: Opcode.name_to_opcode(Keyword.fetch!(opts, :op)),
+      d: Keyword.get(opts, :data),
+      t: Keyword.get(opts, :type),
+      s: Keyword.get(opts, :seq)
     }
 
     Socket.notify_payload(data, @shard)
+  end
+
+  def socket_closed_by_server(close_num, reason) do
+    # Closed is notified only when the server closes the connection
+    Socket.notify_closed(@shard, close_num, reason)
+    # Down is notified regardless of whether it was closed by the server or the client
+    Socket.notify_down(@shard, reason)
+    # Up is notified once it has reconnected by itself
+    Socket.notify_up(@shard)
   end
 
   @chars String.codepoints("0123456789abcdef")

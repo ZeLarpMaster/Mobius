@@ -40,7 +40,7 @@ defmodule Mobius.Services.Shard do
     %{
       id: shard,
       start: {__MODULE__, :start_link, [shard, opts]},
-      restart: :permanent
+      restart: :transient
     }
   end
 
@@ -98,7 +98,7 @@ defmodule Mobius.Services.Shard do
     case what_can_do do
       :resume -> {:reply, :ok, state}
       :dont_resume -> {:reply, :ok, reset_session(state)}
-      :dont_reconnect -> {:stop, :gateway_error, :ok, state}
+      :dont_reconnect -> {:stop, {:shutdown, :gateway_error}, :ok, state}
     end
   end
 
@@ -110,7 +110,9 @@ defmodule Mobius.Services.Shard do
   defp process_payload(:dispatch, payload, state) do
     Logger.debug("Dispatching #{inspect(payload.t)}")
     # TODO: Broadcast event
-    update_state_by_event(payload, state)
+    state
+    |> update_seq(payload.s)
+    |> update_state_by_event(payload)
   end
 
   defp process_payload(:heartbeat, _payload, state) do
@@ -173,14 +175,15 @@ defmodule Mobius.Services.Shard do
     state
   end
 
-  defp update_state_by_event(%{t: :READY, d: d}, state) do
+  defp update_state_by_event(state, %{t: :READY, d: d}) do
     # TODO: Use a PubSub instead of this
     Bot.notify_ready(state.shard)
     set_session(state, d.session_id)
   end
 
-  defp update_state_by_event(_payload, state), do: state
+  defp update_state_by_event(state, _payload), do: state
 
+  defp update_seq(state, seq), do: update_in(state.gateway, &Gateway.update_seq(&1, seq))
   defp set_session(state, id), do: update_in(state.gateway, &Gateway.set_session_id(&1, id))
   defp reset_session(state), do: update_in(state.gateway, &Gateway.reset_session_id/1)
 

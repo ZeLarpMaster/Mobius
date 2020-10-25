@@ -73,6 +73,9 @@ defmodule Mobius.Stubs.Socket do
       send(state.test_pid, :socket_close)
     end
 
+    # A real Socket impl would notify down when it closes and then get back up by itself
+    Socket.notify_down(state.shard, "Requested")
+    Socket.notify_up(state.shard)
     {:reply, :ok, state}
   end
 

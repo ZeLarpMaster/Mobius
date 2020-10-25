@@ -30,7 +30,7 @@ defmodule Mobius.Services.Heartbeat do
     %{
       id: shard,
       start: {__MODULE__, :start_link, [shard, opts]},
-      restart: :permanent
+      restart: :transient
     }
   end
 
@@ -116,7 +116,7 @@ defmodule Mobius.Services.Heartbeat do
   defp maybe_send_heartbeat(false, state) do
     Logger.warn("Didn't receive a heartbeat ack in time")
     Socket.close(state.shard)
-    {:stop, :heartbeat_timeout, state}
+    {:stop, {:shutdown, :heartbeat_timeout}, state}
   end
 
   defp schedule_heartbeat(interval_ms), do: Process.send_after(self(), :heartbeat, interval_ms)
