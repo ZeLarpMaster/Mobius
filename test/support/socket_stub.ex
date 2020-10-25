@@ -60,7 +60,7 @@ defmodule Mobius.Stubs.Socket do
 
   @impl GenServer
   def handle_cast({:send, payload}, state) do
-    unless state.test_pid == nil do
+    if state.test_pid != nil do
       send(state.test_pid, {:socket_msg, payload})
     end
 
@@ -69,7 +69,7 @@ defmodule Mobius.Stubs.Socket do
 
   @impl GenServer
   def handle_call(:close, _from, state) do
-    unless state.test_pid == nil do
+    if state.test_pid != nil do
       send(state.test_pid, :socket_close)
     end
 
