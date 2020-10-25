@@ -17,13 +17,7 @@ defmodule Mobius.Services.ShardTest do
     socket_closed_by_server(1001, "Going away")
     send_hello()
 
-    resume =
-      ctx.token
-      |> Gateway.new()
-      |> Gateway.update_seq(2)
-      |> Gateway.set_session_id(ctx.session_id)
-      |> Opcode.resume()
-
+    resume = make_resume_payload(ctx, 2)
     assert_receive {:socket_msg, ^resume}
   end
 
@@ -48,13 +42,7 @@ defmodule Mobius.Services.ShardTest do
 
     send_hello()
 
-    resume =
-      ctx.token
-      |> Gateway.new()
-      |> Gateway.update_seq(1)
-      |> Gateway.set_session_id(ctx.session_id)
-      |> Opcode.resume()
-
+    resume = make_resume_payload(ctx, 1)
     assert_receive {:socket_msg, ^resume}
   end
 
@@ -72,5 +60,13 @@ defmodule Mobius.Services.ShardTest do
     send_payload(op: :reconnect)
 
     assert_receive :socket_close
+  end
+
+  defp make_resume_payload(ctx, seq) do
+    ctx.token
+    |> Gateway.new()
+    |> Gateway.update_seq(seq)
+    |> Gateway.set_session_id(ctx.session_id)
+    |> Opcode.resume()
   end
 end
