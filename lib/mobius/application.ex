@@ -8,6 +8,7 @@ defmodule Mobius.Application do
   @spec start(any, list) :: {:ok, pid}
   def start(_type, _args) do
     children = [
+      {Mobius.Services.ETSShelf, []},
       registry(Mobius.Registry.Heartbeat),
       registry(Mobius.Registry.Shard),
       registry(Mobius.Registry.Socket),

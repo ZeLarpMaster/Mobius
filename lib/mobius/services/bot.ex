@@ -5,9 +5,12 @@ defmodule Mobius.Services.Bot do
 
   alias Mobius.Core.ShardInfo
   alias Mobius.Rest
+  alias Mobius.Services.ETSShelf
   alias Mobius.Services.Shard
 
   require Logger
+
+  @ets_table :mobius_bot
 
   @typep state :: %{
            client: Rest.Client.client(),
@@ -43,6 +46,8 @@ defmodule Mobius.Services.Bot do
       ready_shards: MapSet.new(),
       token: token
     }
+
+    :ok = ETSShelf.create_table(@ets_table, [:set, :protected])
 
     {:ok, state}
   end
