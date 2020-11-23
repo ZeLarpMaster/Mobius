@@ -3,5 +3,12 @@
     "config:base",
     "schedule:weekly"
   ],
-  "bumpVersion": "patch"
+  "bumpVersion": "patch",
+  "packageRules": [
+    {
+      "depTypeList": ["dependencies"],
+      "updateTypes": ["patch", "minor"],
+      "groupName": "non-major dependencies"
+    }
+  ]
 }
