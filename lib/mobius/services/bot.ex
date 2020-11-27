@@ -10,12 +10,10 @@ defmodule Mobius.Services.Bot do
 
   require Logger
 
-  @ets_table :mobius_bot
+  @shards_table :mobius_shards
 
   @typep state :: %{
            client: Rest.Client.client(),
-           shards: [ShardInfo.t()],
-           ready_shards: MapSet.t(ShardInfo.t()),
            token: String.t()
          }
 
@@ -24,9 +22,10 @@ defmodule Mobius.Services.Bot do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
-  @spec list_shards() :: [ShardInfo.t()]
+  @spec list_shards :: [ShardInfo.t()]
   def list_shards do
-    GenServer.call(__MODULE__, :list_shards)
+    [results] = :ets.match(@shards_table, {:"$1", :_})
+    results
   end
 
   @spec notify_ready(ShardInfo.t()) :: :ok
@@ -42,23 +41,22 @@ defmodule Mobius.Services.Bot do
 
     state = %{
       client: client,
-      shards: start_shards(client, token),
-      ready_shards: MapSet.new(),
       token: token
     }
 
-    :ok = ETSShelf.create_table(@ets_table, [:set, :protected])
+    :ok = ETSShelf.create_table(@shards_table, [:ordered_set, :protected])
+
+    client
+    |> start_shards(token)
+    |> Enum.each(&store_shard/1)
 
     {:ok, state}
   end
 
-  def handle_call(:list_shards, _from, state) do
-    {:reply, state.shards, state}
-  end
-
   def handle_info({:shard_ready, shard}, state) do
     Logger.debug("Shard #{inspect(shard)} is ready!")
-    {:noreply, update_in(state.ready_shards, &MapSet.put(&1, shard))}
+    update_shard_ready(shard)
+    {:noreply, state}
   end
 
   # TODO: Notify about all shards being ready?
@@ -76,6 +74,14 @@ defmodule Mobius.Services.Bot do
       Logger.debug("Started shard #{inspect(shard)} on #{inspect(pid)}")
       shard
     end
+  end
+
+  defp update_shard_ready(%ShardInfo{} = shard) do
+    :ets.insert(@shards_table, {shard, :ready})
+  end
+
+  defp store_shard(%ShardInfo{} = shard) do
+    :ets.insert(@shards_table, {shard, :starting})
   end
 
   defp parse_url("wss://" <> url), do: url
