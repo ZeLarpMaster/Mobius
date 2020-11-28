@@ -4,6 +4,7 @@ defmodule Mobius.Services.Bot do
   use GenServer
 
   alias Mobius.Core.ShardInfo
+  alias Mobius.Core.ShardList
   alias Mobius.Rest
   alias Mobius.Services.ETSShelf
   alias Mobius.Services.Shard
@@ -24,8 +25,7 @@ defmodule Mobius.Services.Bot do
 
   @spec list_shards :: [ShardInfo.t()]
   def list_shards do
-    [results] = :ets.match(@shards_table, {:"$1", :_})
-    results
+    ShardList.list_shards(@shards_table)
   end
 
   @spec notify_ready(ShardInfo.t()) :: :ok
@@ -44,18 +44,18 @@ defmodule Mobius.Services.Bot do
       token: token
     }
 
-    :ok = ETSShelf.create_table(@shards_table, [:ordered_set, :protected])
+    :ok = ETSShelf.create_table(@shards_table, ShardList.table_options())
 
     client
     |> start_shards(token)
-    |> Enum.each(&store_shard/1)
+    |> Enum.each(&ShardList.add_shard(@shards_table, &1))
 
     {:ok, state}
   end
 
   def handle_info({:shard_ready, shard}, state) do
     Logger.debug("Shard #{inspect(shard)} is ready!")
-    update_shard_ready(shard)
+    ShardList.update_shard_ready(@shards_table, shard)
     {:noreply, state}
   end
 
@@ -74,14 +74,6 @@ defmodule Mobius.Services.Bot do
       Logger.debug("Started shard #{inspect(shard)} on #{inspect(pid)}")
       shard
     end
-  end
-
-  defp update_shard_ready(%ShardInfo{} = shard) do
-    :ets.insert(@shards_table, {shard, :ready})
-  end
-
-  defp store_shard(%ShardInfo{} = shard) do
-    :ets.insert(@shards_table, {shard, :starting})
   end
 
   defp parse_url("wss://" <> url), do: url
