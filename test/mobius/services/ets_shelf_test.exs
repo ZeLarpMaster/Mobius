@@ -14,7 +14,7 @@ defmodule Mobius.Services.ETSShelfTest do
     assert {:error, :ets_error} == Shelf.create_table(table, [])
   end
 
-  test "create_table/2", ctx do
+  test "create_table/2 gives the table after original owner dies", ctx do
     pid = self()
 
     task =

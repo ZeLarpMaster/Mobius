@@ -12,7 +12,7 @@ defmodule Mobius.Services.ETSShelf do
 
   @spec create_table(atom, [atom | tuple]) :: :ok | {:error, :ets_error}
   def create_table(name, opts) when is_atom(name) do
-    # Creates the table or gives it back if the server already owns it
+    # Creates the table or gives it back if the shelf already owns it
     with :ok <- GenServer.call(__MODULE__, {:create, name, self(), opts}) do
       receive do
         {:"ETS-TRANSFER", ^name, _pid, _data} -> :ok
@@ -30,7 +30,7 @@ defmodule Mobius.Services.ETSShelf do
 
   @impl GenServer
   def handle_call({:create, name, pid, opts}, _from, state) do
-    # Set the server as the heir
+    # Set the shelf as the heir
     opts = opts ++ [{:heir, self(), nil}]
 
     # This process can't afford to die, so we capture unexpected ets errors
