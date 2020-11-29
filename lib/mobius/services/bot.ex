@@ -4,15 +4,17 @@ defmodule Mobius.Services.Bot do
   use GenServer
 
   alias Mobius.Core.ShardInfo
+  alias Mobius.Core.ShardList
   alias Mobius.Rest
+  alias Mobius.Services.ETSShelf
   alias Mobius.Services.Shard
 
   require Logger
 
+  @shards_table :mobius_shards
+
   @typep state :: %{
            client: Rest.Client.client(),
-           shards: [ShardInfo.t()],
-           ready_shards: MapSet.t(ShardInfo.t()),
            token: String.t()
          }
 
@@ -21,9 +23,9 @@ defmodule Mobius.Services.Bot do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
-  @spec list_shards() :: [ShardInfo.t()]
+  @spec list_shards :: [ShardInfo.t()]
   def list_shards do
-    GenServer.call(__MODULE__, :list_shards)
+    ShardList.list_shards(@shards_table)
   end
 
   @spec notify_ready(ShardInfo.t()) :: :ok
@@ -39,21 +41,22 @@ defmodule Mobius.Services.Bot do
 
     state = %{
       client: client,
-      shards: start_shards(client, token),
-      ready_shards: MapSet.new(),
       token: token
     }
+
+    :ok = ETSShelf.create_table(@shards_table, ShardList.table_options())
+
+    client
+    |> start_shards(token)
+    |> Enum.each(&ShardList.add_shard(@shards_table, &1))
 
     {:ok, state}
   end
 
-  def handle_call(:list_shards, _from, state) do
-    {:reply, state.shards, state}
-  end
-
   def handle_info({:shard_ready, shard}, state) do
     Logger.debug("Shard #{inspect(shard)} is ready!")
-    {:noreply, update_in(state.ready_shards, &MapSet.put(&1, shard))}
+    ShardList.update_shard_ready(@shards_table, shard)
+    {:noreply, state}
   end
 
   # TODO: Notify about all shards being ready?
