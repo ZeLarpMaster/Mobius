@@ -19,6 +19,7 @@ defmodule Mobius.Core.ShardList do
   @doc "True if all shards have state `:ready`"
   @spec are_all_shards_ready?(:ets.tab()) :: boolean
   def are_all_shards_ready?(table) do
+    # The match spec was generated with the following line in iex:
     # :ets.fun2ms(fn {_, state} when state != :ready -> state end)
     spec = [{{:_, :"$1"}, [{:"/=", :"$1", :ready}], [:"$1"]}]
     :ets.select(table, spec) == []
