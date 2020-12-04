@@ -43,6 +43,7 @@ defmodule Mobius.MixProject do
 
   defp aliases do
     [
+      lint: "credo --strict",
       test: "test --no-start",
       "test.ci": ["test --color"]
     ]
