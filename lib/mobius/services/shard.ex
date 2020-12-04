@@ -8,6 +8,7 @@ defmodule Mobius.Services.Shard do
   alias Mobius.Core.ShardInfo
   alias Mobius.Core.SocketCodes
   alias Mobius.Services.Bot
+  alias Mobius.Services.EventPipeline
   alias Mobius.Services.Heartbeat
   alias Mobius.Services.Socket
 
@@ -109,10 +110,11 @@ defmodule Mobius.Services.Shard do
   # Update the state and execute side effects depending on opcode
   defp process_payload(:dispatch, payload, state) do
     Logger.debug("Dispatching #{inspect(payload.t)}")
-    # TODO: Broadcast event
+
     state
     |> update_seq(payload.s)
     |> update_state_by_event(payload)
+    |> broadcast_event(payload)
   end
 
   defp process_payload(:heartbeat, _payload, state) do
@@ -176,12 +178,18 @@ defmodule Mobius.Services.Shard do
   end
 
   defp update_state_by_event(state, %{t: :READY, d: d}) do
-    # TODO: Use a PubSub instead of this
     Bot.notify_ready(state.shard)
     set_session(state, d.session_id)
   end
 
   defp update_state_by_event(state, _payload), do: state
+
+  defp broadcast_event(state, %{t: type}) when type in [:READY], do: state
+
+  defp broadcast_event(state, payload) do
+    EventPipeline.notify_event(payload.t, payload.d)
+    state
+  end
 
   defp update_seq(state, seq), do: update_in(state.gateway, &Gateway.update_seq(&1, seq))
   defp set_session(state, id), do: update_in(state.gateway, &Gateway.set_session_id(&1, id))
