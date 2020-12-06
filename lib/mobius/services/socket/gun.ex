@@ -84,7 +84,7 @@ defmodule Mobius.Services.Socket.Gun do
   @impl GenServer
   def handle_cast({:send, payload}, state) do
     payload
-    |> :erlang.term_to_binary()
+    |> Jason.encode!()
     |> send_msg(state.gun_pid)
 
     {:noreply, state}
@@ -101,7 +101,8 @@ defmodule Mobius.Services.Socket.Gun do
     state.zlib_stream
     |> :zlib.inflate(frame)
     |> :erlang.iolist_to_binary()
-    |> :erlang.binary_to_term()
+    |> Jason.decode!()
+    |> decode_payload()
     |> Socket.notify_payload(state.shard)
 
     {:noreply, state}
@@ -126,8 +127,17 @@ defmodule Mobius.Services.Socket.Gun do
 
   defp add_impl_queries(query) do
     query
-    |> Map.put("encoding", "etf")
+    |> Map.put("encoding", "json")
     |> Map.put("compress", "zlib-stream")
+  end
+
+  defp decode_payload(payload) do
+    %{
+      op: Map.fetch!(payload, "op"),
+      d: payload["d"],
+      s: payload["s"],
+      t: payload["t"]
+    }
   end
 
   defp encode_query(query), do: "/?" <> URI.encode_query(query)

@@ -23,7 +23,7 @@ defmodule Mobius.Services.Shard do
   @typep payload :: %{
            op: integer,
            d: any,
-           t: atom | nil,
+           t: String.t() | nil,
            s: integer | nil
          }
 
@@ -126,7 +126,7 @@ defmodule Mobius.Services.Shard do
   end
 
   defp process_payload(:hello, payload, state) do
-    interval = payload.d.heartbeat_interval
+    interval = Map.fetch!(payload.d, "heartbeat_interval")
     {:ok, pid} = Heartbeat.start_heartbeat(state.shard, interval)
     Logger.debug("Started heartbeat on #{inspect(pid)}")
 
@@ -175,10 +175,10 @@ defmodule Mobius.Services.Shard do
     state
   end
 
-  defp update_state_by_event(state, %{t: :READY, d: d}) do
+  defp update_state_by_event(state, %{t: "READY", d: d}) do
     # TODO: Use a PubSub instead of this
     Bot.notify_ready(state.shard)
-    set_session(state, d.session_id)
+    set_session(state, Map.fetch!(d, "session_id"))
   end
 
   defp update_state_by_event(state, _payload), do: state
