@@ -1,6 +1,7 @@
 defmodule Mobius.Services.EventPipeline do
   @moduledoc false
 
+  alias Mobius.Core.Event
   alias Mobius.Services.PubSub
 
   @pubsub_topic "events"
@@ -11,15 +12,19 @@ defmodule Mobius.Services.EventPipeline do
   end
 
   @doc "Sends an event to all subscribed processes"
-  @spec notify_event(atom, any) :: :ok
+  @spec notify_event(String.t(), any) :: :ok
   def notify_event(name, data) do
     # Starting in an unlinked task for 3 reasons:
     # 1. We don't want the source of the events to spend time mapping events
     # 2. We want this work to be parallelized
     # 3. We don't want errors in here to crash the source of events
     Task.Supervisor.start_child(__MODULE__, fn ->
-      # TODO: Map data depending on name
-      PubSub.publish(@pubsub_topic, name, data)
+      parsed_name = Event.parse_name(name)
+
+      if parsed_name != nil do
+        parsed_data = Event.parse_data(parsed_name, data)
+        PubSub.publish(@pubsub_topic, parsed_name, parsed_data)
+      end
     end)
 
     :ok
