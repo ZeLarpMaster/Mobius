@@ -21,6 +21,7 @@ defmodule Mobius.Services.EventPipeline do
     Task.Supervisor.start_child(__MODULE__, fn ->
       parsed_name = Event.parse_name(name)
 
+      # Ignore unrecognized events
       if parsed_name != nil do
         parsed_data = Event.parse_data(parsed_name, data)
         PubSub.publish(@pubsub_topic, parsed_name, parsed_data)
