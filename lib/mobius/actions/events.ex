@@ -3,6 +3,7 @@ defmodule Mobius.Actions.Events do
   Functions related to events
   """
 
+  alias Mobius.Core.Event
   alias Mobius.Services.EventPipeline
 
   @doc """
@@ -18,7 +19,7 @@ defmodule Mobius.Actions.Events do
   The caller process is then sent events whose name is in the set
   as messages in the format `{event_name, event_data}`
   where `event_name` is the name of the event as an UPPER_CASE atom
-  such as `:CHANNEL_CREATE` and where `event_data` is a struct
+  such as `:CHANNEL_CREATE` and `event_data` is a struct
   containing all the information given by the event
 
   If the set is not empty,
@@ -27,11 +28,11 @@ defmodule Mobius.Actions.Events do
   See https://discord.com/developers/docs/topics/gateway#commands-and-events-gateway-events
   for a list of events and their associated data
   """
-  @spec subscribe([atom]) :: :ok
+  @spec subscribe([Event.names()]) :: :ok
   def subscribe(events \\ []) do
     # TODO: Validate event names
     # TODO: Validate intents
-    EventPipeline.subscribe_event_categories(events)
+    EventPipeline.subscribe(events)
   end
 
   @doc """

@@ -32,8 +32,8 @@ defmodule Mobius.Services.EventPipeline do
   end
 
   @doc "Subscribes the calling process to an arbitrary set of events"
-  @spec subscribe_event_categories([atom]) :: :ok
-  def subscribe_event_categories(events) do
+  @spec subscribe([Event.names()]) :: :ok
+  def subscribe(events) do
     PubSub.subscribe(@pubsub_topic, events)
   end
 
