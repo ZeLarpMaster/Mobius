@@ -34,7 +34,14 @@ defmodule Mobius.Fixtures do
     assert_receive {:socket_msg, ^msg}, 100
 
     session_id = random_hex(16)
-    data = %{d: %{session_id: session_id}, t: :READY, s: 1, op: Opcode.name_to_opcode(:dispatch)}
+
+    data = %{
+      d: %{"session_id" => session_id},
+      t: "READY",
+      s: 1,
+      op: Opcode.name_to_opcode(:dispatch)
+    }
+
     Socket.notify_payload(data, @shard)
 
     [session_id: session_id, token: token]
@@ -50,7 +57,7 @@ defmodule Mobius.Fixtures do
 
   # Utility functions
   def send_hello(interval \\ 45_000) do
-    send_payload(op: :hello, data: %{heartbeat_interval: interval})
+    send_payload(op: :hello, data: %{"heartbeat_interval" => interval})
   end
 
   def send_payload(opts) do
