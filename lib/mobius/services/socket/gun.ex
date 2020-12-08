@@ -37,7 +37,7 @@ defmodule Mobius.Services.Socket.Gun do
   @impl Socket
   @spec close(GenServer.server()) :: :ok
   def close(socket) do
-    GenServer.call(socket, :close)
+    GenServer.cast(socket, :close)
   end
 
   # GenServer and :gun stuff
@@ -91,9 +91,9 @@ defmodule Mobius.Services.Socket.Gun do
   end
 
   @impl GenServer
-  def handle_call(:close, _from, state) do
+  def handle_cast(:close, state) do
     :ok = :gun.ws_send(state.gun_pid, :close)
-    {:reply, :ok, state}
+    {:noreply, state}
   end
 
   @impl GenServer
