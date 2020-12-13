@@ -79,8 +79,8 @@ defmodule Mobius.Core.Event do
   def parse_name(_name), do: nil
 
   @doc "Returns true if the given name is a valid event name"
-  @spec is_valid_name?(atom) :: boolean
-  def is_valid_name?(name), do: name in @valid_names
+  @spec is_event_name?(atom) :: boolean
+  def is_event_name?(name), do: name in @valid_names
 
   @spec parse_data(names(), any) :: any
   def parse_data(_name, data), do: data

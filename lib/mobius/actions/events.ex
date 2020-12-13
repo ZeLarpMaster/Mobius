@@ -5,6 +5,8 @@ defmodule Mobius.Actions.Events do
 
   alias Mobius.Core.Event
   alias Mobius.Services.EventPipeline
+  alias Mobius.Validations.EventValidator
+  alias Mobius.Validations.Utils
 
   @doc """
   Subscribes the calling process to a set of (or all) events
@@ -28,11 +30,12 @@ defmodule Mobius.Actions.Events do
   See https://discord.com/developers/docs/topics/gateway#commands-and-events-gateway-events
   for a list of events and their associated data
   """
-  @spec subscribe([Event.names()]) :: :ok
+  @spec subscribe([Event.names()]) :: Utils.output()
   def subscribe(events \\ []) do
-    # TODO: Validate event names
-    # TODO: Validate intents
-    EventPipeline.subscribe(events)
+    with :ok <- EventValidator.validate_names(events) do
+      # TODO: Validate intents
+      EventPipeline.subscribe(events)
+    end
   end
 
   @doc """
