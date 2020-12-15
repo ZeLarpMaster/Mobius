@@ -184,7 +184,7 @@ defmodule Mobius.Services.Shard do
 
   defp update_state_by_event(state, _payload), do: state
 
-  defp broadcast_event(state, %{t: type}) when type in [:READY], do: state
+  defp broadcast_event(state, %{t: type}) when type in ["READY"], do: state
 
   defp broadcast_event(state, payload) do
     EventPipeline.notify_event(payload.t, payload.d)
