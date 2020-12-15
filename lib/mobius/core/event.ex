@@ -2,6 +2,7 @@ defmodule Mobius.Core.Event do
   @moduledoc false
 
   @valid_names [
+    :READY,
     :CHANNEL_CREATE,
     :CHANNEL_UPDATE,
     :CHANNEL_DELETE,
@@ -39,7 +40,8 @@ defmodule Mobius.Core.Event do
   @valid_string_names Enum.map(@valid_names, &Atom.to_string/1)
 
   @type names ::
-          :CHANNEL_CREATE
+          :READY
+          | :CHANNEL_CREATE
           | :CHANNEL_UPDATE
           | :CHANNEL_DELETE
           | :CHANNEL_PINS_UPDATE
@@ -83,5 +85,5 @@ defmodule Mobius.Core.Event do
   def is_event_name?(name), do: name in @valid_names
 
   @spec parse_data(names(), any) :: any
-  def parse_data(_name, data), do: data
+  def parse_data(name, data) when name in @valid_names, do: data
 end
