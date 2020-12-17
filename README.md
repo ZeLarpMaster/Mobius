@@ -2,20 +2,20 @@
 
 An Elixir framework for creating Discord bots in a modular way
 
-## Installation
+## Usage
+The package can be installed by adding `mobius` to your list of dependencies in `mix.exs`:
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `mobius` to your list of dependencies in `mix.exs`:
+`{:mobius, git: "https://github.com/ZeLarpMaster/Mobius.git"}`
 
-```elixir
-def deps do
-  [
-    {:mobius, "~> 0.1.0"}
-  ]
-end
-```
+## Contributing
+You need [Elixir 1.10 or above](https://elixir-lang.org/install.html) installed.
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/mobius](https://hexdocs.pm/mobius).
+You will also need a [bot account and its token](https://discordpy.readthedocs.io/en/latest/discord.html).
+The token will need to be in an environment variable named `MOBIUS_BOT_TOKEN`.
 
+Commands to execute after cloning to install all the requirements:
+* `mix deps.get` and say yes to install hex if it prompts you
+* `mix compile` and say yes to install rebar if it prompts you
+* `mix test` to ensure everything works as expected
+
+`iex -S mix` runs the bot in debug mode where you can write code in an interactive shell while it runs
