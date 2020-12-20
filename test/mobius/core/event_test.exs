@@ -10,16 +10,17 @@ defmodule Mobius.Core.EventTest do
       assert :guild_create == Event.parse_name("GUILD_CREATE")
     end
 
-    test "returns nil for event name atoms" do
-      assert nil == Event.parse_name(:channel_create)
-    end
-
     test "returns nil for non-event string" do
       assert nil == Event.parse_name("THIS IS NOT AN EVENT")
     end
 
-    test "returns nil for number" do
+    test "returns nil for non-strings" do
+      assert nil == Event.parse_name(true)
       assert nil == Event.parse_name(42)
+      assert nil == Event.parse_name(:channel_create)
+      assert nil == Event.parse_name(%{})
+      assert nil == Event.parse_name(["stuff"])
+      assert nil == Event.parse_name({:ok, "hello"})
     end
   end
 
@@ -28,12 +29,13 @@ defmodule Mobius.Core.EventTest do
       assert Event.is_event_name?(:message_create)
     end
 
-    test "returns false for the string of an event name" do
-      assert not Event.is_event_name?("MESSAGE_CREATE")
-    end
-
     test "returns false for non-atoms" do
+      assert not Event.is_event_name?(true)
       assert not Event.is_event_name?(32)
+      assert not Event.is_event_name?("MESSAGE_CREATE")
+      assert not Event.is_event_name?(%{})
+      assert not Event.is_event_name?(["stuff"])
+      assert not Event.is_event_name?({:ok, "hello"})
     end
 
     test "returns false for invalid event name atom" do
