@@ -3,13 +3,14 @@ defmodule Mobius.Actions.Events do
   Functions related to events
   """
 
-  alias Mobius.Core.Event
   alias Mobius.Services.EventPipeline
   alias Mobius.Validations.EventValidator
   alias Mobius.Validations.Utils
 
   @doc """
   Subscribes the calling process to a set of (or all) events
+
+  Passing invalid event names will cause this function to return `{:errors, [String.t()]}`
 
   Subscribing multiple times with overlapping events will result
   in duplicate events. As such, it is discouraged to subscribe
@@ -30,7 +31,7 @@ defmodule Mobius.Actions.Events do
   See https://discord.com/developers/docs/topics/gateway#commands-and-events-gateway-events
   for a list of events and their associated data
   """
-  @spec subscribe([Event.name()]) :: Utils.output()
+  @spec subscribe([any]) :: Utils.output()
   def subscribe(events \\ []) do
     with :ok <- EventValidator.validate_names(events) do
       # TODO: Validate intents
