@@ -2,82 +2,85 @@ defmodule Mobius.Core.Event do
   @moduledoc false
 
   @valid_names [
-    :READY,
-    :CHANNEL_CREATE,
-    :CHANNEL_UPDATE,
-    :CHANNEL_DELETE,
-    :CHANNEL_PINS_UPDATE,
-    :GUILD_CREATE,
-    :GUILD_UPDATE,
-    :GUILD_DELETE,
-    :GUILD_BAN_ADD,
-    :GUILD_BAN_REMOVE,
-    :GUILD_EMOJIS_UPDATE,
-    :GUILD_INTEGRATIONS_UPDATE,
-    :GUILD_MEMBER_ADD,
-    :GUILD_MEMBER_REMOVE,
-    :GUILD_MEMBER_UPDATE,
-    :GUILD_ROLE_CREATE,
-    :GUILD_ROLE_UPDATE,
-    :GUILD_ROLE_DELETE,
-    :INVITE_CREATE,
-    :INVITE_DELETE,
-    :MESSAGE_CREATE,
-    :MESSAGE_UPDATE,
-    :MESSAGE_DELETE,
-    :MESSAGE_DELETE_BULK,
-    :MESSAGE_REACTION_ADD,
-    :MESSAGE_REACTION_REMOVE,
-    :MESSAGE_REACTION_REMOVE_ALL,
-    :MESSAGE_REACTION_REMOVE_EMOJI,
-    :PRESENCE_UPDATE,
-    :TYPING_START,
-    :USER_UPDATE,
-    :VOICE_STATE_UPDATE,
-    :VOICE_SERVER_UPDATE,
-    :WEBHOOKS_UPDATE
+    :ready,
+    :channel_create,
+    :channel_update,
+    :channel_delete,
+    :channel_pins_update,
+    :guild_create,
+    :guild_update,
+    :guild_delete,
+    :guild_ban_add,
+    :guild_ban_remove,
+    :guild_emojis_update,
+    :guild_integrations_update,
+    :guild_member_add,
+    :guild_member_remove,
+    :guild_member_update,
+    :guild_role_create,
+    :guild_role_update,
+    :guild_role_delete,
+    :invite_create,
+    :invite_delete,
+    :message_create,
+    :message_update,
+    :message_delete,
+    :message_delete_bulk,
+    :message_reaction_add,
+    :message_reaction_remove,
+    :message_reaction_remove_all,
+    :message_reaction_remove_emoji,
+    :presence_update,
+    :typing_start,
+    :user_update,
+    :voice_state_update,
+    :voice_server_update,
+    :webhooks_update
   ]
-  @valid_string_names Enum.map(@valid_names, &Atom.to_string/1)
+  @valid_string_names Enum.map(@valid_names, &String.upcase(Atom.to_string(&1)))
 
   @type name ::
-          :READY
-          | :CHANNEL_CREATE
-          | :CHANNEL_UPDATE
-          | :CHANNEL_DELETE
-          | :CHANNEL_PINS_UPDATE
-          | :GUILD_CREATE
-          | :GUILD_UPDATE
-          | :GUILD_DELETE
-          | :GUILD_BAN_ADD
-          | :GUILD_BAN_REMOVE
-          | :GUILD_EMOJIS_UPDATE
-          | :GUILD_INTEGRATIONS_UPDATE
-          | :GUILD_MEMBER_ADD
-          | :GUILD_MEMBER_REMOVE
-          | :GUILD_MEMBER_UPDATE
-          | :GUILD_ROLE_CREATE
-          | :GUILD_ROLE_UPDATE
-          | :GUILD_ROLE_DELETE
-          | :INVITE_CREATE
-          | :INVITE_DELETE
-          | :MESSAGE_CREATE
-          | :MESSAGE_UPDATE
-          | :MESSAGE_DELETE
-          | :MESSAGE_DELETE_BULK
-          | :MESSAGE_REACTION_ADD
-          | :MESSAGE_REACTION_REMOVE
-          | :MESSAGE_REACTION_REMOVE_ALL
-          | :MESSAGE_REACTION_REMOVE_EMOJI
-          | :PRESENCE_UPDATE
-          | :TYPING_START
-          | :USER_UPDATE
-          | :VOICE_STATE_UPDATE
-          | :VOICE_SERVER_UPDATE
-          | :WEBHOOKS_UPDATE
+          :ready
+          | :channel_create
+          | :channel_update
+          | :channel_delete
+          | :channel_pins_update
+          | :guild_create
+          | :guild_update
+          | :guild_delete
+          | :guild_ban_add
+          | :guild_ban_remove
+          | :guild_emojis_update
+          | :guild_integrations_update
+          | :guild_member_add
+          | :guild_member_remove
+          | :guild_member_update
+          | :guild_role_create
+          | :guild_role_update
+          | :guild_role_delete
+          | :invite_create
+          | :invite_delete
+          | :message_create
+          | :message_update
+          | :message_delete
+          | :message_delete_bulk
+          | :message_reaction_add
+          | :message_reaction_remove
+          | :message_reaction_remove_all
+          | :message_reaction_remove_emoji
+          | :presence_update
+          | :typing_start
+          | :user_update
+          | :voice_state_update
+          | :voice_server_update
+          | :webhooks_update
 
   @doc "Converts string event names to atoms if it's valid. Returns `nil` otherwise."
   @spec parse_name(String.t()) :: name() | nil
-  def parse_name(name) when name in @valid_string_names, do: String.to_existing_atom(name)
+  def parse_name(name) when name in @valid_string_names do
+    String.to_existing_atom(String.downcase(name))
+  end
+
   def parse_name(_name), do: nil
 
   @doc "Returns true if the given name is a valid event name"

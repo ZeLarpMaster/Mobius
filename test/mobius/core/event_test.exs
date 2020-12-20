@@ -7,11 +7,11 @@ defmodule Mobius.Core.EventTest do
 
   describe "parse_name/1" do
     test "returns atom event name for string event name" do
-      assert :GUILD_CREATE == Event.parse_name("GUILD_CREATE")
+      assert :guild_create == Event.parse_name("GUILD_CREATE")
     end
 
     test "returns nil for event name atoms" do
-      assert nil == Event.parse_name(:CHANNEL_CREATE)
+      assert nil == Event.parse_name(:channel_create)
     end
 
     test "returns nil for non-event string" do
@@ -25,7 +25,7 @@ defmodule Mobius.Core.EventTest do
 
   describe "is_event_name?/1" do
     test "returns true for a valid event name" do
-      assert Event.is_event_name?(:MESSAGE_CREATE)
+      assert Event.is_event_name?(:message_create)
     end
 
     test "returns false for the string of an event name" do
@@ -37,18 +37,18 @@ defmodule Mobius.Core.EventTest do
     end
 
     test "returns false for invalid event name atom" do
-      assert not Event.is_event_name?(:THIS_IS_NOT_AN_EVENT)
+      assert not Event.is_event_name?(:this_isnt_an_event)
     end
   end
 
   describe "parse_data/2" do
     test "raises a FunctionClauseError if the event name is invalid" do
-      assert_raise FunctionClauseError, fn -> Event.parse_data(:THIS_IS_NOT_AN_EVENT, nil) end
+      assert_raise FunctionClauseError, fn -> Event.parse_data(:this_isnt_an_event, nil) end
     end
 
     test "returns data unchanged" do
       random = random_hex(16)
-      assert random == Event.parse_data(:READY, random)
+      assert random == Event.parse_data(:ready, random)
     end
   end
 end
