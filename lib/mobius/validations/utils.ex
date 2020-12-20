@@ -1,18 +1,23 @@
-defmodule Mobius.Validations.Validator do
+defmodule Mobius.Validations.Utils do
   @moduledoc false
 
   @type error :: {:error, String.t()}
-  @type errors :: list(error())
-  @type out :: :ok | errors()
+  @type errors :: {:errors, [String.t()]}
+  @type input :: :ok | error() | errors()
+  @type output :: :ok | errors()
 
-  @spec required(out(), map, atom, (any -> out())) :: out()
+  @spec errors_to_output(list) :: output()
+  def errors_to_output([]), do: :ok
+  def errors_to_output(errors), do: {:errors, errors}
+
+  @spec required(list, map, atom, (any -> input())) :: list
   def required(errors, fields, field_name, validator) do
     fields
     |> Map.has_key?(field_name)
     |> check_required_field(fields, errors, field_name, validator)
   end
 
-  @spec optional(out(), map, atom, (any -> out())) :: out()
+  @spec optional(list, map, atom, (any -> input())) :: list
   def optional(errors, fields, field_name, validator) do
     if Map.has_key?(fields, field_name) do
       required(errors, fields, field_name, validator)
@@ -21,7 +26,18 @@ defmodule Mobius.Validations.Validator do
     end
   end
 
-  @spec check(boolean, error()) :: :ok | error()
+  @spec check_list([val], (val -> input())) :: list when val: any
+  def check_list(list, validator) do
+    list
+    |> Stream.map(validator)
+    |> Stream.filter(&(&1 != :ok))
+    |> Enum.flat_map(fn
+      {:error, error} -> [error]
+      {:errors, errors} -> errors
+    end)
+  end
+
+  @spec check(boolean, error()) :: input()
   def check(true, _message), do: :ok
   def check(false, message), do: message
 
@@ -33,11 +49,11 @@ defmodule Mobius.Validations.Validator do
   end
 
   defp check_required_field(_present, _fields, errors, field_name, _f) do
-    errors ++ [{field_name, "is required"}]
+    [{field_name, "is required"} | errors]
   end
 
   defp check_field(:ok, _errors, _field_name), do: :ok
-  defp check_field({:error, message}, errors, field_name), do: errors ++ [{field_name, message}]
+  defp check_field({:error, message}, errors, field_name), do: [{field_name, message} | errors]
 
   defp check_field({:errors, messages}, errors, field_name),
     do: errors ++ Enum.map(messages, &{field_name, &1})
