@@ -42,6 +42,10 @@ defmodule Mobius.Core.EventTest do
   end
 
   describe "parse_data/2" do
+    test "raises a FunctionClauseError if the event name is invalid" do
+      assert_raise FunctionClauseError, fn -> Event.parse_data(:THIS_IS_NOT_AN_EVENT, nil) end
+    end
+
     test "returns data unchanged" do
       random = random_hex(16)
       assert random == Event.parse_data(:READY, random)

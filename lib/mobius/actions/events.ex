@@ -30,7 +30,7 @@ defmodule Mobius.Actions.Events do
   See https://discord.com/developers/docs/topics/gateway#commands-and-events-gateway-events
   for a list of events and their associated data
   """
-  @spec subscribe([Event.names()]) :: Utils.output()
+  @spec subscribe([Event.name()]) :: Utils.output()
   def subscribe(events \\ []) do
     with :ok <- EventValidator.validate_names(events) do
       # TODO: Validate intents
@@ -41,7 +41,7 @@ defmodule Mobius.Actions.Events do
   @doc """
   Unsubscribes the calling process from all events it was subscribed to
 
-  If the calling process had `subscribe/1`d multiple times,
+  If the calling process had called `subscribe/1` multiple times,
   this unsubscribes from all of them
   """
   @spec unsubscribe() :: :ok

@@ -39,7 +39,7 @@ defmodule Mobius.Core.Event do
   ]
   @valid_string_names Enum.map(@valid_names, &Atom.to_string/1)
 
-  @type names ::
+  @type name ::
           :READY
           | :CHANNEL_CREATE
           | :CHANNEL_UPDATE
@@ -75,8 +75,8 @@ defmodule Mobius.Core.Event do
           | :VOICE_SERVER_UPDATE
           | :WEBHOOKS_UPDATE
 
-  @doc "Converts string event names to atoms if it's valid otherwise returns nil"
-  @spec parse_name(String.t()) :: names() | nil
+  @doc "Converts string event names to atoms if it's valid. Returns `nil` otherwise."
+  @spec parse_name(String.t()) :: name() | nil
   def parse_name(name) when name in @valid_string_names, do: String.to_existing_atom(name)
   def parse_name(_name), do: nil
 
@@ -84,6 +84,15 @@ defmodule Mobius.Core.Event do
   @spec is_event_name?(atom) :: boolean
   def is_event_name?(name), do: name in @valid_names
 
-  @spec parse_data(names(), any) :: any
+  @doc """
+  Parses the given data based on the event name
+
+  This function is only implemented for valid event names (see `t:name/0` and `is_event_name?/1`)
+  such that passing an invalid event name will raise an error to the caller
+
+  If you are calling this function with potentially invalid event names,
+  use `is_event_name?/1` to first make sure the event name is valid
+  """
+  @spec parse_data(name(), any) :: any
   def parse_data(name, data) when name in @valid_names, do: data
 end
