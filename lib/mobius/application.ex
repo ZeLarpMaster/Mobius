@@ -15,6 +15,7 @@ defmodule Mobius.Application do
       dynamic_supervisor(Mobius.Supervisor.Heartbeat),
       dynamic_supervisor(Mobius.Supervisor.Shard),
       dynamic_supervisor(Mobius.Supervisor.Socket),
+      {Mobius.Services.RestRatelimiter, []},
       {Mobius.Services.PubSub, []},
       {Mobius.Services.EventPipeline, []},
       {Mobius.Services.Bot, token: System.get_env("MOBIUS_BOT_TOKEN")}
