@@ -12,12 +12,14 @@ defmodule Mobius.Services.RestRatelimiter do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
+  @doc "Updates a bucket's remaining ratelimit and tracks the route's bucket for later usage"
   @spec update_ratelimit(any, String.t(), integer, integer) :: :ok
   def update_ratelimit(route, bucket, remaining, reset_after) do
     reset = System.monotonic_time(:millisecond) + reset_after
     GenServer.call(__MODULE__, {:update, route, bucket, remaining, reset})
   end
 
+  @doc "Checks if the route's bucket is known and waits for it to be available if ratelimited"
   @spec wait_ratelimit(any) :: :ok
   def wait_ratelimit(route) do
     case GenServer.call(__MODULE__, {:request, route}) do
