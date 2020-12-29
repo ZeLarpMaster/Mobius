@@ -24,14 +24,6 @@ defmodule Mobius.Rest.Middleware.RatelimitTest do
     assert_get_time(ctx.client, url, 50)
   end
 
-  test "waits until reset-after if ratelimit was exceeded", ctx do
-    url = "https://discord.com/api/v6/something"
-    mock(fn %{url: ^url} -> response(-1, 50, 0) end)
-    Tesla.get(ctx.client, url)
-
-    assert_get_time(ctx.client, url, 50)
-  end
-
   test "waits until reset-after if global ratelimit was exceeded", ctx do
     url = "https://discord.com/api/v6/something"
     mock(fn %{url: ^url} -> response(0, 100, 50) end)
