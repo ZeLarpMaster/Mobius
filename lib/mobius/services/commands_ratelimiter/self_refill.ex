@@ -1,21 +1,21 @@
-defmodule Mobius.Services.ShardRatelimiter.SelfRefill do
+defmodule Mobius.Services.CommandsRatelimiter.SelfRefill do
   @moduledoc false
 
   use GenServer
 
   alias Mobius.Core.ShardBuckets
-  alias Mobius.Services.ShardRatelimiter
+  alias Mobius.Services.CommandsRatelimiter
 
-  @behaviour ShardRatelimiter
+  @behaviour CommandsRatelimiter
 
-  @impl ShardRatelimiter
+  @impl CommandsRatelimiter
   @spec start_link(keyword) :: GenServer.on_start()
   def start_link(opts) do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
-  @impl ShardRatelimiter
-  @spec request_access(ShardRatelimiter.bucket()) :: :ok | :ratelimited
+  @impl CommandsRatelimiter
+  @spec request_access(CommandsRatelimiter.bucket()) :: :ok | :ratelimited
   def request_access({bucket, delay, max_tokens}) do
     GenServer.call(__MODULE__, {:acquire, bucket, delay, max_tokens})
   end

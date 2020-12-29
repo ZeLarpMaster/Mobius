@@ -1,4 +1,4 @@
-defmodule Mobius.Services.ShardRatelimiter do
+defmodule Mobius.Services.CommandsRatelimiter do
   @moduledoc false
 
   alias Mobius.Core.ShardInfo

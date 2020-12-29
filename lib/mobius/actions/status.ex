@@ -6,7 +6,7 @@ defmodule Mobius.Actions.Status do
   alias Mobius.Core.BotStatus
   alias Mobius.Core.Opcode
   alias Mobius.Services.Bot
-  alias Mobius.Services.ShardRatelimiter
+  alias Mobius.Services.CommandsRatelimiter
   alias Mobius.Services.Socket
 
   @doc """
@@ -21,8 +21,8 @@ defmodule Mobius.Actions.Status do
       # The "update_status" ratelimit of 5 per minute was found by testing a lot
       # because this limit is undocumented in the official documentation of the Discord API
       # This limit was also "confirmed" by another user on the unofficial Discord API server
-      with :ok <- ShardRatelimiter.request_access(shard, "update_status", 60_000, 5),
-           :ok <- ShardRatelimiter.request_access(shard) do
+      with :ok <- CommandsRatelimiter.request_access(shard, "update_status", 60_000, 5),
+           :ok <- CommandsRatelimiter.request_access(shard) do
         new_status
         |> Opcode.update_status()
         |> Socket.send_message(shard)
