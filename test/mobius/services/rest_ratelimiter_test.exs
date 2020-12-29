@@ -1,7 +1,7 @@
 defmodule Mobius.Services.RestRatelimiterTest do
   use ExUnit.Case
 
-  import Mobius.Assertions
+  import Mobius.TestUtils
 
   alias Mobius.Services.RestRatelimiter
 

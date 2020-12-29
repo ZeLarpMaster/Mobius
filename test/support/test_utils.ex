@@ -1,4 +1,4 @@
-defmodule Mobius.Assertions do
+defmodule Mobius.TestUtils do
   @moduledoc false
 
   @doc """

@@ -2,7 +2,7 @@ defmodule Mobius.Rest.Middleware.RatelimitTest do
   use ExUnit.Case
 
   import Tesla.Mock
-  import Mobius.Assertions
+  import Mobius.TestUtils
 
   alias Mobius.Rest.Middleware.Ratelimit
 
