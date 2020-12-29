@@ -35,7 +35,7 @@ defmodule Mobius.Rest.Middleware.Ratelimit do
   defp update_ratelimits({:ok, %Tesla.Env{status: 429} = env}) do
     case env.body do
       %{"global" => true, "retry_after" => retry_after} ->
-        RestRatelimiter.update_ratelimit("global", "global", 0, retry_after)
+        RestRatelimiter.update_global_ratelimit(retry_after)
         {:ok, env}
 
       _ ->
@@ -65,7 +65,7 @@ defmodule Mobius.Rest.Middleware.Ratelimit do
   defp update_route_ratelimit(route, bucket, remaining, reset_after) do
     remaining = String.to_integer(remaining)
     reset_after = parse_reset_after(reset_after)
-    RestRatelimiter.update_ratelimit(route, bucket, remaining, reset_after)
+    RestRatelimiter.update_route_ratelimit(route, bucket, remaining, reset_after)
   end
 
   defp parse_reset_after(reset_after) do

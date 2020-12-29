@@ -12,11 +12,18 @@ defmodule Mobius.Services.RestRatelimiter do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
-  @doc "Updates a bucket's remaining ratelimit and tracks the route's bucket for later usage"
-  @spec update_ratelimit(any, String.t(), integer, integer) :: :ok
-  def update_ratelimit(route, bucket, remaining, reset_after) do
+  @doc "Updates a route's remaining ratelimit and tracks the route's bucket"
+  @spec update_route_ratelimit(any, String.t(), integer, integer) :: :ok
+  def update_route_ratelimit(route, bucket, remaining, reset_after) do
     reset = System.monotonic_time(:millisecond) + reset_after
     GenServer.call(__MODULE__, {:update, route, bucket, remaining, reset})
+  end
+
+  @doc "Updates the global ratelimit when it's exceeded with how long to wait for the reset"
+  @spec update_global_ratelimit(integer) :: :ok
+  def update_global_ratelimit(reset_after) do
+    reset = System.monotonic_time(:millisecond) + reset_after
+    GenServer.call(__MODULE__, {:update_global, reset})
   end
 
   @doc "Checks if the route's bucket is known and waits for it to be available if ratelimited"
@@ -46,7 +53,7 @@ defmodule Mobius.Services.RestRatelimiter do
   end
 
   @impl GenServer
-  def handle_call({:update, "global", _, _, reset}, _from, state) do
+  def handle_call({:update_global, reset}, _from, state) do
     Process.send_after(self(), :reset_global, time_until(reset))
 
     {:reply, :ok, %{state | global_limit: reset}}
