@@ -11,6 +11,9 @@ defmodule Mobius.Services.ShardRatelimiter do
   @spec start_link(keyword) :: GenServer.on_start()
   def start_link(opts), do: impl().start_link(opts)
 
+  @spec child_spec(any) :: Supervisor.child_spec()
+  def child_spec(opts), do: impl().child_spec(opts)
+
   @doc """
   Requests access to shard commands and the service either grants the access with an `:ok` or
   rejects it with a `:ratelimited`
