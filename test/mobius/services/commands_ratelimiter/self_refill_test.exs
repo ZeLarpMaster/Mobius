@@ -5,9 +5,14 @@ defmodule Mobius.Services.CommandsRatelimiter.SelfRefillTest do
 
   alias Mobius.Services.CommandsRatelimiter.SelfRefill
 
-  describe "request_access/1" do
-    setup do: [bucket: random_hex(8)]
+  setup do
+    # Manually start the service because it won't be started during tests
+    start_supervised!({SelfRefill, []})
+    # Generate a random bucket name so they don't overlap during tests
+    [bucket: random_hex(8)]
+  end
 
+  describe "request_access/1" do
     test "returns :ok for the first `max_tokens` requests", ctx do
       assert :ok == SelfRefill.request_access({ctx.bucket, 500, 3})
       assert :ok == SelfRefill.request_access({ctx.bucket, 500, 3})

@@ -6,8 +6,6 @@ defmodule Mobius.Stubs.Socket do
   alias Mobius.Core.ShardInfo
   alias Mobius.Services.Socket
 
-  require Logger
-
   @behaviour Socket
 
   @type msg :: :close | {:msg, any}
