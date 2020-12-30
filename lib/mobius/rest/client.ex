@@ -28,6 +28,7 @@ defmodule Mobius.Rest.Client do
 
     middleware = [
       {Tesla.Middleware.Retry, should_retry: &client_should_retry?/1},
+      Mobius.Rest.Middleware.Ratelimit,
       {Tesla.Middleware.BaseUrl, base_url()},
       Tesla.Middleware.PathParams,
       Tesla.Middleware.JSON,
