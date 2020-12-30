@@ -18,6 +18,7 @@ defmodule Mobius.Application do
       {Mobius.Services.RestRatelimiter, []},
       {Mobius.Services.PubSub, []},
       {Mobius.Services.EventPipeline, []},
+      {Mobius.Services.CommandsRatelimiter, []},
       {Mobius.Services.Bot, token: System.get_env("MOBIUS_BOT_TOKEN")}
     ]
 

@@ -46,6 +46,8 @@ defmodule Mobius.Core.BotStatus do
     }
   end
 
+  defp game_to_map(nil), do: nil
+
   defp game_to_map(%{type: :playing, name: name}) do
     %{
       "type" => 0,

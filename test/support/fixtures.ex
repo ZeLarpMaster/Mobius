@@ -23,6 +23,10 @@ defmodule Mobius.Fixtures do
     Stubs.Socket.set_owner(@shard)
   end
 
+  def stub_ratelimiter(_context) do
+    Stubs.CommandsRatelimiter.set_owner()
+  end
+
   def handshake_shard(_context) do
     send_hello()
 
