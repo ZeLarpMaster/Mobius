@@ -8,12 +8,11 @@ defmodule Mobius.Services.Cog do
 
       :persistent_term.put(:event_handlers, %{})
 
-      import unquote(__MODULE__), only: [listen: 2]
+      import unquote(__MODULE__), only: [listen: 2, listen: 3]
 
       # TODO: replace &IO.inspect/1 with command handler
-      listen :message_create do
-        IO.inspect("message created")
-        # IO.inspect(data)
+      listen :message_create, %{"content" => content} do
+        IO.inspect(content)
       end
 
       @spec start_link(keyword) :: GenServer.on_start()
@@ -47,16 +46,26 @@ defmodule Mobius.Services.Cog do
     end
   end
 
-  defmacro listen(event_name, do: block) do
-    block =
-      quote do
-        unquote(block)
-        :ok
+  defmacro listen(event_name, var \\ quote(do: _), contents) do
+    contents =
+      case contents do
+        [do: block] ->
+          quote do
+            unquote(block)
+            :ok
+          end
+
+        _ ->
+          quote do
+            try(unquote(contents))
+            :ok
+          end
       end
 
-    block = Macro.escape(block, unqote: true)
+    var = Macro.escape(var)
+    contents = Macro.escape(contents, unquote: true)
 
-    quote bind_quoted: [event_name: event_name, block: block] do
+    quote bind_quoted: [event_name: event_name, var: var, contents: contents] do
       existing_handlers = :persistent_term.get(:event_handlers)
 
       handler_id =
@@ -74,7 +83,7 @@ defmodule Mobius.Services.Cog do
 
       :persistent_term.put(:event_handlers, updated_handlers)
 
-      def unquote(name)(data), do: unquote(block)
+      def unquote(name)(unquote(var)), do: unquote(contents)
     end
   end
 end
