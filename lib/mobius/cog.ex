@@ -5,7 +5,7 @@ defmodule Mobius.Cog do
 
       @before_compile unquote(__MODULE__)
 
-      Module.put_attribute(__MODULE__, :event_handlers, %{})
+      Module.register_attribute(__MODULE__, :event_handlers, accumulate: true)
 
       import unquote(__MODULE__), only: [listen: 2, listen: 3]
 
@@ -31,6 +31,7 @@ defmodule Mobius.Cog do
         event_names =
           @event_handlers
           |> Enum.map(&elem(&1, 0))
+          |> Enum.uniq()
 
         Events.subscribe(event_names)
 
@@ -44,8 +45,8 @@ defmodule Mobius.Cog do
         Logger.debug("Cog \"#{__MODULE__}\" received event #{inspect(event_name)}")
 
         @event_handlers
-        |> Map.get(event_name, [])
-        |> Enum.each(fn handler -> apply(__MODULE__, handler, [data]) end)
+        |> Enum.filter(&match?({^event_name, _handler}, &1))
+        |> Enum.each(fn {_event_name, handler} -> apply(__MODULE__, handler, [data]) end)
 
         {:noreply, state}
       end
@@ -59,20 +60,10 @@ defmodule Mobius.Cog do
     quote bind_quoted: [event_name: event_name, var: var, contents: contents] do
       existing_handlers = Module.get_attribute(__MODULE__, :event_handlers)
 
-      handler_id =
-        existing_handlers
-        |> Map.get(event_name, [])
-        |> length()
-
+      handler_id = length(existing_handlers)
       name = :"#{Atom.to_string(event_name)}#{Integer.to_string(handler_id)}"
 
-      updated_handlers =
-        existing_handlers
-        |> Map.update(event_name, [name], fn handlers ->
-          [name | handlers]
-        end)
-
-      Module.put_attribute(__MODULE__, :event_handlers, updated_handlers)
+      Module.put_attribute(__MODULE__, :event_handlers, {event_name, name})
 
       def unquote(name)(unquote(var)), do: unquote(contents)
     end
