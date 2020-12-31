@@ -11,6 +11,8 @@ defmodule Mobius.Services.ConnectionRatelimiter.Timed do
           queue: :queue.queue(pid),
           current: pid | nil,
           time_between_connections_ms: non_neg_integer,
+          ack_timeout_ms: non_neg_integer,
+          timeout_ref: reference | nil,
           timer_ref: reference | nil,
           monitor_ref: reference | nil
         }
@@ -23,6 +25,8 @@ defmodule Mobius.Services.ConnectionRatelimiter.Timed do
       queue: :queue.new(),
       current: nil,
       time_between_connections_ms: Keyword.fetch!(opts, :time_between_connections_ms),
+      ack_timeout_ms: Keyword.fetch!(opts, :ack_timeout_ms),
+      timeout_ref: nil,
       timer_ref: nil,
       monitor_ref: nil
     }
@@ -33,7 +37,8 @@ defmodule Mobius.Services.ConnectionRatelimiter.Timed do
   @impl GenServer
   def handle_call({:connect, pid}, _from, %{current: nil} = state) do
     ref = unblock_process(pid)
-    {:reply, :ok, %{state | current: pid, monitor_ref: ref}}
+    timeout_ref = send_ack_timeout(state.ack_timeout_ms)
+    {:reply, :ok, %{state | current: pid, monitor_ref: ref, timeout_ref: timeout_ref}}
   end
 
   def handle_call({:connect, pid}, _from, state) do
@@ -58,12 +63,19 @@ defmodule Mobius.Services.ConnectionRatelimiter.Timed do
   end
 
   @impl GenServer
+  def handle_info(:ack_timeout, state) do
+    Process.cancel_timer(state.timeout_ref)
+    GenServer.cast(__MODULE__, {:connect_ack, self()})
+    {:noreply, %{state | timeout_ref: nil}}
+  end
+
   def handle_info(:unblock_next, state) do
     state =
       case :queue.out(state.queue) do
         {{:value, pid}, queue} ->
           ref = unblock_process(pid)
-          %{state | current: pid, queue: queue, monitor_ref: ref}
+          timeout_ref = send_ack_timeout(state.ack_timeout_ms)
+          %{state | current: pid, queue: queue, monitor_ref: ref, timeout_ref: timeout_ref}
 
         {:empty, _q} ->
           %{state | current: nil}
@@ -82,8 +94,12 @@ defmodule Mobius.Services.ConnectionRatelimiter.Timed do
   end
 
   defp unblock_process(pid) do
-    ref = Process.monitor(pid)
+    monitor_ref = Process.monitor(pid)
     ConnectionRatelimiter.unblock_client(pid)
-    ref
+    monitor_ref
+  end
+
+  defp send_ack_timeout(delay) do
+    Process.send_after(self(), :ack_timeout, delay)
   end
 end
