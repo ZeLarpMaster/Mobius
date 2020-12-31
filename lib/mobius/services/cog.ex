@@ -1,12 +1,11 @@
 defmodule Mobius.Services.Cog do
   defmacro __using__(_call) do
     quote do
-      use GenServer
       require Logger
 
-      alias Mobius.Actions.Events
+      @before_compile unquote(__MODULE__)
 
-      :persistent_term.put(:event_handlers, %{})
+      Module.put_attribute(__MODULE__, :event_handlers, %{})
 
       import unquote(__MODULE__), only: [listen: 2, listen: 3]
 
@@ -19,11 +18,18 @@ defmodule Mobius.Services.Cog do
       def start_link(opts) do
         GenServer.start_link(__MODULE__, opts, name: __MODULE__)
       end
+    end
+  end
+
+  defmacro __before_compile__(_env) do
+    quote do
+      use GenServer
+      alias Mobius.Actions.Events
 
       @impl true
       def init(_opts) do
         event_names =
-          :persistent_term.get(:event_handlers)
+          @event_handlers
           |> Enum.map(&elem(&1, 0))
 
         Events.subscribe(event_names)
@@ -37,7 +43,7 @@ defmodule Mobius.Services.Cog do
       def handle_info({event_name, data}, state) do
         Logger.debug("Cog \"#{__MODULE__}\" received event #{inspect(event_name)}")
 
-        :persistent_term.get(:event_handlers)
+        @event_handlers
         |> Map.get(event_name, [])
         |> Enum.each(fn handler -> apply(__MODULE__, handler, [data]) end)
 
@@ -66,7 +72,7 @@ defmodule Mobius.Services.Cog do
     contents = Macro.escape(contents, unquote: true)
 
     quote bind_quoted: [event_name: event_name, var: var, contents: contents] do
-      existing_handlers = :persistent_term.get(:event_handlers)
+      existing_handlers = Module.get_attribute(__MODULE__, :event_handlers)
 
       handler_id =
         existing_handlers
@@ -76,12 +82,12 @@ defmodule Mobius.Services.Cog do
       name = :"#{Atom.to_string(event_name)}#{Integer.to_string(handler_id)}"
 
       updated_handlers =
-        :persistent_term.get(:event_handlers)
+        existing_handlers
         |> Map.update(event_name, [name], fn handlers ->
           [name | handlers]
         end)
 
-      :persistent_term.put(:event_handlers, updated_handlers)
+      Module.put_attribute(__MODULE__, :event_handlers, updated_handlers)
 
       def unquote(name)(unquote(var)), do: unquote(contents)
     end
