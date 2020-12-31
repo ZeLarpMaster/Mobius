@@ -57,16 +57,16 @@ defmodule Mobius.Services.ConnectionRatelimiter.Timed do
         {:noreply, state}
 
       true ->
+        Process.cancel_timer(state.timeout_ref)
         Process.demonitor(state.monitor_ref, [:flush])
-        {:noreply, unblock_later(%{state | monitor_ref: nil})}
+        {:noreply, unblock_later(%{state | monitor_ref: nil, timeout_ref: nil})}
     end
   end
 
   @impl GenServer
   def handle_info(:ack_timeout, state) do
-    Process.cancel_timer(state.timeout_ref)
     GenServer.cast(__MODULE__, {:connect_ack, self()})
-    {:noreply, %{state | timeout_ref: nil}}
+    {:noreply, state}
   end
 
   def handle_info(:unblock_next, state) do
