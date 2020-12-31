@@ -1,4 +1,4 @@
-defmodule Mobius.Services.Cog do
+defmodule Mobius.Cog do
   defmacro __using__(_call) do
     quote do
       require Logger
