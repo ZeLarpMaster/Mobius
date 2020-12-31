@@ -52,24 +52,9 @@ defmodule Mobius.Cog do
     end
   end
 
-  defmacro listen(event_name, var \\ quote(do: _), contents) do
-    contents =
-      case contents do
-        [do: block] ->
-          quote do
-            unquote(block)
-            :ok
-          end
-
-        _ ->
-          quote do
-            try(unquote(contents))
-            :ok
-          end
-      end
-
+  defmacro listen(event_name, var \\ quote(do: _), [do: block]) do
     var = Macro.escape(var)
-    contents = Macro.escape(contents, unquote: true)
+    contents = Macro.escape(block, unquote: true)
 
     quote bind_quoted: [event_name: event_name, var: var, contents: contents] do
       existing_handlers = Module.get_attribute(__MODULE__, :event_handlers)
