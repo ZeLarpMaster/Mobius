@@ -4,4 +4,8 @@ defmodule Mobius.Cogs.TestCog do
   listen :message_delete do
     IO.puts("message deleted")
   end
+
+  command "test" do
+    IO.puts("test command")
+  end
 end

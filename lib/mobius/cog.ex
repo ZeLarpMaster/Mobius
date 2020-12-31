@@ -6,13 +6,9 @@ defmodule Mobius.Cog do
       @before_compile unquote(__MODULE__)
 
       Module.register_attribute(__MODULE__, :event_handlers, accumulate: true)
+      Module.register_attribute(__MODULE__, :commands, accumulate: true)
 
-      import unquote(__MODULE__), only: [listen: 2, listen: 3]
-
-      # TODO: replace &IO.inspect/1 with command handler
-      listen :message_create, %{"content" => content} do
-        IO.inspect(content)
-      end
+      import unquote(__MODULE__), only: [listen: 2, listen: 3, command: 2]
 
       @spec start_link(keyword) :: GenServer.on_start()
       def start_link(opts) do
@@ -25,6 +21,13 @@ defmodule Mobius.Cog do
     quote do
       use GenServer
       alias Mobius.Actions.Events
+
+      listen :message_create, %{"content" => content} do
+        case Enum.find(@commands, fn {command_name, _handler} -> content == command_name end) do
+          {_, handler} -> apply(__MODULE__, handler, [])
+          _ -> :ok
+        end
+      end
 
       @impl true
       def init(_opts) do
@@ -66,6 +69,25 @@ defmodule Mobius.Cog do
       Module.put_attribute(__MODULE__, :event_handlers, {event_name, name})
 
       def unquote(name)(unquote(var)), do: unquote(contents)
+    end
+  end
+
+  defmacro command(command_name, [do: block]) do
+    contents = Macro.escape(block, unquote: true)
+    name = :"mobius_command_#{command_name}"
+
+    %{file: file} = __CALLER__
+    %{line: line} = __CALLER__
+
+    quote bind_quoted: [command_name: command_name, name: name, contents: contents, file: file, line: line] do
+      existing_commands = Module.get_attribute(__MODULE__, :commands)
+
+      if Module.defines?(__MODULE__, {name, 0}) do
+        IO.warn("Command \"#{command_name}\" already exists. Duplicated command will be ignored.", Macro.Env.stacktrace(__ENV__))
+      else
+        Module.put_attribute(__MODULE__, :commands, {command_name, name})
+        def unquote(name)(), do: unquote(contents)
+      end
     end
   end
 end
