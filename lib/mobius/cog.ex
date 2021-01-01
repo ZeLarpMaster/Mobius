@@ -8,7 +8,7 @@ defmodule Mobius.Cog do
       Module.register_attribute(__MODULE__, :event_handlers, accumulate: true)
       Module.register_attribute(__MODULE__, :commands, accumulate: true)
 
-      import unquote(__MODULE__), only: [listen: 2, listen: 3, command: 2]
+      import unquote(__MODULE__), only: [listen: 2, listen: 3, command: 2, command: 3]
 
       @spec start_link(keyword) :: GenServer.on_start()
       def start_link(opts) do
@@ -23,9 +23,22 @@ defmodule Mobius.Cog do
       alias Mobius.Actions.Events
 
       listen :message_create, %{"content" => content} do
-        case Enum.find(@commands, fn {command_name, _handler} -> content == command_name end) do
-          {_, handler} -> apply(__MODULE__, handler, [])
-          _ -> :ok
+        case Enum.find(@commands, fn {command_name, _handler, _arg_names} -> String.starts_with?(content, command_name) end) do
+          {_, handler, arg_names} ->
+            arg_values =
+              content
+              |> String.split()
+              |> tl()
+
+            args_map =
+              arg_names
+              |> Enum.zip(arg_values)
+              |> Map.new()
+
+            apply(__MODULE__, handler, [args_map])
+
+          _ ->
+            :ok
         end
       end
 
@@ -72,22 +85,29 @@ defmodule Mobius.Cog do
     end
   end
 
-  defmacro command(command_name, [do: block]) do
+  defmacro command(command_name, var \\ quote(do: _), [do: block]) do
+    arg_names = get_command_arg_names(var)
+    var = Macro.escape(var)
     contents = Macro.escape(block, unquote: true)
     name = :"mobius_command_#{command_name}"
 
     %{file: file} = __CALLER__
     %{line: line} = __CALLER__
 
-    quote bind_quoted: [command_name: command_name, name: name, contents: contents, file: file, line: line] do
+    quote bind_quoted: [command_name: command_name, name: name, contents: contents, file: file, line: line, var: var, arg_names: arg_names] do
       existing_commands = Module.get_attribute(__MODULE__, :commands)
 
       if Module.defines?(__MODULE__, {name, 0}) do
         IO.warn("Command \"#{command_name}\" already exists. Duplicated command will be ignored.", Macro.Env.stacktrace(__ENV__))
       else
-        Module.put_attribute(__MODULE__, :commands, {command_name, name})
-        def unquote(name)(), do: unquote(contents)
+        Module.put_attribute(__MODULE__, :commands, {command_name, name, arg_names})
+        def unquote(name)(unquote(var)), do: unquote(contents)
       end
     end
+  end
+
+  defp get_command_arg_names({_, _, args}) do
+    args
+    |> Enum.map(&elem(&1, 0))
   end
 end
