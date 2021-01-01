@@ -33,7 +33,7 @@ defmodule Mobius.Core.Command do
           |> tl()
 
         if length(arg_values) < length(arg_names) do
-          {:too_few_arguments, name, length(arg_names), length(arg_values)}
+          {:too_few_args, name, length(arg_names), length(arg_values)}
         else
           {:ok, {name, handler, arg_names, arg_values}}
         end
