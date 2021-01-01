@@ -1,4 +1,6 @@
 defmodule Mobius.Cogs.TestCog do
+  @moduledoc false
+
   use Mobius.Cog
 
   listen :message_delete do

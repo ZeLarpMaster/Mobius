@@ -1,4 +1,6 @@
 defmodule Mobius.Cog do
+  @moduledoc false
+
   alias Mobius.Core.Command
 
   defmacro __using__(_call) do

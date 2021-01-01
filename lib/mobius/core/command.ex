@@ -1,4 +1,6 @@
 defmodule Mobius.Core.Command do
+  @moduledoc false
+
   @type name :: String.t()
   @type handler :: atom()
   @type arg_names :: [String.t()]
