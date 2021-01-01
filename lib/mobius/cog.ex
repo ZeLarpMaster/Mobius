@@ -1,4 +1,6 @@
 defmodule Mobius.Cog do
+  alias Mobius.Core.Command
+
   defmacro __using__(_call) do
     quote do
       require Logger
@@ -23,26 +25,19 @@ defmodule Mobius.Cog do
       alias Mobius.Actions.Events
 
       listen :message_create, %{"content" => content} do
-        case Enum.find(@commands, fn {command_name, _handler, _arg_names} -> String.starts_with?(content, command_name) end) do
-          {command_name, handler, arg_names} ->
-            arg_values =
-              content
-              |> String.split()
-              |> tl()
+        case Command.validate_command(@commands, content) do
+          {:ok, command} ->
+            Command.execute(command, __MODULE__)
 
-              if length(arg_values) < length(arg_names) do
-                Logger.info("Too few arguments for command \"#{command_name}\". Expected #{length(arg_names)} arguments, got #{length(arg_values)}.")
-              else
-                args_map =
-                  arg_names
-                  |> Enum.zip(arg_values)
-                  |> Map.new()
-
-                apply(__MODULE__, handler, [args_map])
-              end
+          {:too_few_args, command_name, expected, received} ->
+            Logger.info(
+              "Too few arguments for command \"#{command_name}\". Expected #{expected} arguments, got #{
+                received
+              }."
+            )
 
           _ ->
-            :ok
+            nil
         end
       end
 
@@ -73,7 +68,7 @@ defmodule Mobius.Cog do
     end
   end
 
-  defmacro listen(event_name, var \\ quote(do: _), [do: block]) do
+  defmacro listen(event_name, var \\ quote(do: _), do: block) do
     var = Macro.escape(var)
     contents = Macro.escape(block, unquote: true)
 
@@ -89,29 +84,31 @@ defmodule Mobius.Cog do
     end
   end
 
-  defmacro command(command_name, var \\ quote(do: _), [do: block]) do
-    arg_names = get_command_arg_names(var)
+  @spec command(String.t(), Macro.input(), do: Macro.input()) :: Macro.output()
+  defmacro command(command_name, var \\ quote(do: _), do: block) do
+    arg_names = Command.get_command_arg_names(var)
     var = Macro.escape(var)
     contents = Macro.escape(block, unquote: true)
-    name = :"mobius_command_#{command_name}"
+    name = Command.command_handler_name(command_name)
 
-    %{file: file} = __CALLER__
-    %{line: line} = __CALLER__
-
-    quote bind_quoted: [command_name: command_name, name: name, contents: contents, file: file, line: line, var: var, arg_names: arg_names] do
+    quote bind_quoted: [
+            command_name: command_name,
+            name: name,
+            contents: contents,
+            var: var,
+            arg_names: arg_names
+          ] do
       existing_commands = Module.get_attribute(__MODULE__, :commands)
 
       if Module.defines?(__MODULE__, {name, 0}) do
-        IO.warn("Command \"#{command_name}\" already exists. Duplicated command will be ignored.", Macro.Env.stacktrace(__ENV__))
+        IO.warn(
+          "Command \"#{command_name}\" already exists. Duplicated command will be ignored.",
+          Macro.Env.stacktrace(__ENV__)
+        )
       else
         Module.put_attribute(__MODULE__, :commands, {command_name, name, arg_names})
         def unquote(name)(unquote(var)), do: unquote(contents)
       end
     end
-  end
-
-  defp get_command_arg_names({_, _, args}) do
-    args
-    |> Enum.map(&elem(&1, 0))
   end
 end
