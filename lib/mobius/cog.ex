@@ -24,18 +24,22 @@ defmodule Mobius.Cog do
 
       listen :message_create, %{"content" => content} do
         case Enum.find(@commands, fn {command_name, _handler, _arg_names} -> String.starts_with?(content, command_name) end) do
-          {_, handler, arg_names} ->
+          {command_name, handler, arg_names} ->
             arg_values =
               content
               |> String.split()
               |> tl()
 
-            args_map =
-              arg_names
-              |> Enum.zip(arg_values)
-              |> Map.new()
+              if length(arg_values) < length(arg_names) do
+                Logger.info("Too few arguments for command \"#{command_name}\". Expected #{length(arg_names)} arguments, got #{length(arg_values)}.")
+              else
+                args_map =
+                  arg_names
+                  |> Enum.zip(arg_values)
+                  |> Map.new()
 
-            apply(__MODULE__, handler, [args_map])
+                apply(__MODULE__, handler, [args_map])
+              end
 
           _ ->
             :ok
