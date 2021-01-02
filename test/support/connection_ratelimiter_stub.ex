@@ -5,9 +5,31 @@ defmodule Mobius.Stubs.ConnectionRatelimiter do
 
   alias Mobius.Services.ConnectionRatelimiter
 
+  @behaviour ConnectionRatelimiter
+
   @type state :: %{
           test_pid: pid | nil
         }
+
+  # Client API
+  @impl ConnectionRatelimiter
+  @spec start_link(keyword) :: GenServer.on_start()
+  def start_link(opts) do
+    GenServer.start_link(__MODULE__, opts, name: __MODULE__)
+  end
+
+  @impl ConnectionRatelimiter
+  @spec wait_until_can_connect(ConnectionRatelimiter.connect_callback()) :: :ok
+  def wait_until_can_connect(callback) do
+    GenServer.call(__MODULE__, {:connect, self(), callback})
+  end
+
+  @impl ConnectionRatelimiter
+  @spec ack_connected() :: :ok
+  def ack_connected do
+    GenServer.cast(__MODULE__, {:connect_ack, self()})
+    :ok
+  end
 
   # Stub API
   @spec set_owner() :: :ok
@@ -36,11 +58,12 @@ defmodule Mobius.Stubs.ConnectionRatelimiter do
   end
 
   @impl GenServer
-  def handle_call({:connect, pid}, _from, state) do
+  def handle_call({:connect, pid, callback}, _from, state) do
     if state.test_pid != nil do
       send(state.test_pid, {:connection_request, pid})
     end
 
+    callback.()
     {:reply, :ok, state}
   end
 

@@ -1,23 +1,18 @@
 defmodule Mobius.Services.ConnectionRatelimiter do
   @moduledoc false
 
-  @block_message :connect
+  @type connect_callback :: (() -> any)
 
-  @doc """
-  Unblocks processes waiting in `wait_until_can_connect/0`
-
-  This function is *NOT* for usage in modules other than those implementing this service
-  """
-  @spec unblock_client(pid) :: :ok
-  def unblock_client(pid) do
-    send(pid, @block_message)
-    :ok
-  end
+  @callback start_link(keyword) :: GenServer.on_start()
+  @callback child_spec(keyword) :: Supervisor.child_spec()
+  @callback wait_until_can_connect(connect_callback()) :: :ok
+  @callback ack_connected() :: :ok
 
   @spec start_link(keyword) :: GenServer.on_start()
-  def start_link(opts) do
-    GenServer.start_link(impl(), opts, name: Keyword.get(opts, :name, __MODULE__))
-  end
+  def start_link(opts), do: impl().start_link(opts)
+
+  @spec child_spec(any) :: Supervisor.child_spec()
+  def child_spec(opts), do: impl().child_spec(opts)
 
   @doc """
   Block the calling process until it has the authorization to connect
@@ -33,26 +28,14 @@ defmodule Mobius.Services.ConnectionRatelimiter do
 
   See https://discord.com/developers/docs/topics/gateway#rate-limiting for the few details
   """
-  @spec wait_until_can_connect() :: :ok
-  def wait_until_can_connect do
-    GenServer.call(__MODULE__, {:connect, self()})
-    block_client()
-  end
+  @spec wait_until_can_connect(connect_callback()) :: :ok
+  def wait_until_can_connect(callback), do: impl().wait_until_can_connect(callback)
 
   @doc """
   Ack that the process has succesfully connected to allow the next process to connect
   """
   @spec ack_connected() :: :ok
-  def ack_connected do
-    GenServer.cast(__MODULE__, {:connect_ack, self()})
-    :ok
-  end
-
-  defp block_client do
-    receive do
-      @block_message -> :ok
-    end
-  end
+  def ack_connected, do: impl().ack_connected()
 
   defp impl do
     Application.get_env(:mobius, :connection_ratelimiter_impl, __MODULE__.Timed)
