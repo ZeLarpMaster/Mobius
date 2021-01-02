@@ -12,7 +12,7 @@ defmodule Mobius.Services.ConnectionRatelimiter.Timed do
   @type state :: %{
           queue: :queue.queue(pid),
           current: pid | nil,
-          time_between_connections_ms: non_neg_integer,
+          connection_delay_ms: non_neg_integer,
           ack_timeout_ms: non_neg_integer,
           timeout_ref: reference | nil,
           timer_ref: reference | nil,
@@ -46,7 +46,7 @@ defmodule Mobius.Services.ConnectionRatelimiter.Timed do
     state = %{
       queue: :queue.new(),
       current: nil,
-      time_between_connections_ms: Keyword.fetch!(opts, :time_between_connections_ms),
+      connection_delay_ms: Keyword.fetch!(opts, :connection_delay_ms),
       ack_timeout_ms: Keyword.fetch!(opts, :ack_timeout_ms),
       timeout_ref: nil,
       timer_ref: nil,
@@ -85,7 +85,7 @@ defmodule Mobius.Services.ConnectionRatelimiter.Timed do
 
   @impl GenServer
   def handle_info(:ack_timeout, state) do
-    GenServer.cast(__MODULE__, {:connect_ack, self()})
+    GenServer.cast(__MODULE__, {:connect_ack, state.current})
     {:noreply, state}
   end
 
@@ -106,16 +106,12 @@ defmodule Mobius.Services.ConnectionRatelimiter.Timed do
   defp unblock_process(state, pid, callback) do
     callback.()
     ref = Process.monitor(pid)
-    timeout_ref = send_ack_timeout(state.ack_timeout_ms)
+    timeout_ref = Process.send_after(self(), :ack_timeout, state.ack_timeout_ms)
     %{state | current: pid, monitor_ref: ref, timeout_ref: timeout_ref}
   end
 
   defp unblock_later(state) do
-    ref = Process.send_after(self(), :unblock_next, state.time_between_connections_ms)
+    ref = Process.send_after(self(), :unblock_next, state.connection_delay_ms)
     %{state | timer_ref: ref}
-  end
-
-  defp send_ack_timeout(delay) do
-    Process.send_after(self(), :ack_timeout, delay)
   end
 end
