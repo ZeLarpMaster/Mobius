@@ -7,13 +7,9 @@ defmodule Mobius.Services.ConnectionRatelimiter.TimedTest do
   @ack_timeout 50
 
   setup do
-    # Manually start the service because it won't be started during tests
-    # This also means it's restarted on every test
-    # which means tests won't wait for the previous one to ack
-    start_supervised!(
-      {Timed, connection_delay_ms: @connection_delay, ack_timeout_ms: @ack_timeout}
-    )
-
+    # Manually start the service on each test because it won't be started at all during tests
+    service = {Timed, connection_delay_ms: @connection_delay, ack_timeout_ms: @ack_timeout}
+    start_supervised!(service)
     :ok
   end
 

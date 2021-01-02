@@ -15,7 +15,7 @@ defmodule Mobius.Services.ConnectionRatelimiter.Timed do
           connection_delay_ms: non_neg_integer,
           ack_timeout_ms: non_neg_integer,
           timeout_ref: reference | nil,
-          timer_ref: reference | nil,
+          delay_ref: reference | nil,
           monitor_ref: reference | nil
         }
 
@@ -49,7 +49,7 @@ defmodule Mobius.Services.ConnectionRatelimiter.Timed do
       connection_delay_ms: Keyword.fetch!(opts, :connection_delay_ms),
       ack_timeout_ms: Keyword.fetch!(opts, :ack_timeout_ms),
       timeout_ref: nil,
-      timer_ref: nil,
+      delay_ref: nil,
       monitor_ref: nil
     }
 
@@ -72,7 +72,7 @@ defmodule Mobius.Services.ConnectionRatelimiter.Timed do
         Logger.warn("Ack from #{inspect(pid)} when someone else was connecting")
         {:noreply, state}
 
-      state.timer_ref != nil ->
+      state.delay_ref != nil ->
         Logger.warn("#{inspect(state.current)} tried to ack again")
         {:noreply, state}
 
@@ -96,7 +96,7 @@ defmodule Mobius.Services.ConnectionRatelimiter.Timed do
         {:empty, _q} -> %{state | current: nil}
       end
 
-    {:noreply, %{state | timer_ref: nil}}
+    {:noreply, %{state | delay_ref: nil}}
   end
 
   def handle_info({:DOWN, _, _, pid, _}, %{current: conn_pid} = state) when pid == conn_pid do
@@ -105,13 +105,13 @@ defmodule Mobius.Services.ConnectionRatelimiter.Timed do
 
   defp unblock_process(state, pid, callback) do
     callback.()
-    ref = Process.monitor(pid)
+    monitor_ref = Process.monitor(pid)
     timeout_ref = Process.send_after(self(), :ack_timeout, state.ack_timeout_ms)
-    %{state | current: pid, monitor_ref: ref, timeout_ref: timeout_ref}
+    %{state | current: pid, monitor_ref: monitor_ref, timeout_ref: timeout_ref}
   end
 
   defp unblock_later(state) do
-    ref = Process.send_after(self(), :unblock_next, state.connection_delay_ms)
-    %{state | timer_ref: ref}
+    delay_ref = Process.send_after(self(), :unblock_next, state.connection_delay_ms)
+    %{state | delay_ref: delay_ref}
   end
 end
