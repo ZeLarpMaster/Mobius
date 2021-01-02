@@ -2,7 +2,9 @@
 locals_without_parens = [
   # Mobius.Services.Cog
   listen: 2,
-  listen: 3
+  listen: 3,
+  command: 2,
+  command: 3
 ]
 
 [

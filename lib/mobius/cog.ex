@@ -121,11 +121,7 @@ defmodule Mobius.Cog do
           Macro.Env.stacktrace(__ENV__)
         )
       else
-        Module.put_attribute(
-          __MODULE__,
-          :commands,
-          command
-        )
+        Module.put_attribute(__MODULE__, :commands, command)
 
         def unquote(handler_name)(unquote_splicing(arg_vars)), do: unquote(contents)
       end

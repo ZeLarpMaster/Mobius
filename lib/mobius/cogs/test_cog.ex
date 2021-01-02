@@ -11,5 +11,5 @@ defmodule Mobius.Cogs.TestCog do
     IO.puts("#{word1}#{word2}")
   end
 
-  command("test2", do: IO.puts("test2"))
+  command "test2", do: IO.puts("test2")
 end
