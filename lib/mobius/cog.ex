@@ -86,10 +86,10 @@ defmodule Mobius.Cog do
     end
   end
 
-  @spec command(String.t(), Macro.input(), do: Macro.input()) :: Macro.output()
-  defmacro command(command_name, var \\ quote(do: _), do: block) do
+  defmacro command(command_name, var \\ [], do: block) do
     arg_names = Command.get_command_arg_names(var)
-    var = Macro.escape(var)
+    arg_types = var |> Enum.map(&elem(&1, 1)) |> Enum.map(&Atom.to_string/1)
+    arg_vars = Enum.map(arg_names, &Macro.var(&1, nil)) |> Macro.escape()
     contents = Macro.escape(block, unquote: true)
     name = Command.command_handler_name(command_name)
 
@@ -97,8 +97,9 @@ defmodule Mobius.Cog do
             command_name: command_name,
             name: name,
             contents: contents,
-            var: var,
-            arg_names: arg_names
+            arg_names: arg_names,
+            arg_types: arg_types,
+            arg_vars: arg_vars
           ] do
       existing_commands = Module.get_attribute(__MODULE__, :commands)
 
@@ -108,8 +109,9 @@ defmodule Mobius.Cog do
           Macro.Env.stacktrace(__ENV__)
         )
       else
-        Module.put_attribute(__MODULE__, :commands, {command_name, name, arg_names})
-        def unquote(name)(unquote(var)), do: unquote(contents)
+        Module.put_attribute(__MODULE__, :commands, {command_name, name, arg_names, arg_types})
+
+        def unquote(name)(unquote_splicing(arg_vars)), do: unquote(contents)
       end
     end
   end

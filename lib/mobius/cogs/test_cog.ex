@@ -7,8 +7,9 @@ defmodule Mobius.Cogs.TestCog do
     IO.puts("message deleted")
   end
 
-  command "test", %{"word" => word, "tmp" => tmp} do
-    IO.puts(word)
-    IO.puts(tmp)
+  command "test", word: :string, times: :integer do
+    IO.puts("#{word}#{times}")
   end
+
+  command("test2", do: IO.puts("test2"))
 end
