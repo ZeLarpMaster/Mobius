@@ -27,15 +27,15 @@ defmodule Mobius.Cog do
       alias Mobius.Actions.Events
 
       listen :message_create, %{"content" => content} do
-        case Command.validate_command(@commands, content) do
-          {:ok, command} ->
-            Command.execute(command, __MODULE__)
+        case Command.parse_command(@commands, content) do
+          {:ok, command, arg_values} ->
+            Command.execute(command, arg_values)
 
-          {:too_few_args, command_name, expected, received} ->
+          {:too_few_args, command, received} ->
             Logger.info(
-              "Too few arguments for command \"#{command_name}\". Expected #{expected} arguments, got #{
-                received
-              }."
+              "Too few arguments for command \"#{command.name}\". Expected #{
+                Command.arg_count(command)
+              } arguments, got #{received}."
             )
 
           _ ->
@@ -63,7 +63,7 @@ defmodule Mobius.Cog do
 
         @event_handlers
         |> Enum.filter(&match?({^event_name, _handler}, &1))
-        |> Enum.each(fn {_event_name, handler} -> apply(__MODULE__, handler, [data]) end)
+        |> Enum.each(fn {_event_name, handler} -> apply(handler, [data]) end)
 
         {:noreply, state}
       end
@@ -77,42 +77,68 @@ defmodule Mobius.Cog do
     quote bind_quoted: [event_name: event_name, var: var, contents: contents] do
       existing_handlers = Module.get_attribute(__MODULE__, :event_handlers)
 
-      handler_id = length(existing_handlers)
-      name = :"#{Atom.to_string(event_name)}#{Integer.to_string(handler_id)}"
+      name = Mobius.Cog.event_handler_name(event_name, existing_handlers)
 
-      Module.put_attribute(__MODULE__, :event_handlers, {event_name, name})
+      Module.put_attribute(
+        __MODULE__,
+        :event_handlers,
+        {event_name, Function.capture(__MODULE__, name, 1)}
+      )
 
       def unquote(name)(unquote(var)), do: unquote(contents)
     end
   end
 
-  defmacro command(command_name, var \\ [], do: block) do
-    arg_names = Command.get_command_arg_names(var)
-    arg_types = var |> Enum.map(&elem(&1, 1)) |> Enum.map(&Atom.to_string/1)
-    arg_vars = Enum.map(arg_names, &Macro.var(&1, nil)) |> Macro.escape()
+  defmacro command(command_name, args \\ [], do: block) do
+    handler_name = Command.command_handler_name(command_name)
+
+    new_command = %Command{
+      name: command_name,
+      args: args,
+      handler: Function.capture(__CALLER__.module, handler_name, length(args))
+    }
+
+    arg_vars =
+      new_command
+      |> Command.arg_names()
+      |> Enum.map(&String.to_existing_atom/1)
+      |> Enum.map(&Macro.var(&1, nil))
+      |> Macro.escape()
+
     contents = Macro.escape(block, unquote: true)
-    name = Command.command_handler_name(command_name)
 
     quote bind_quoted: [
-            command_name: command_name,
-            name: name,
+            handler_name: handler_name,
             contents: contents,
-            arg_names: arg_names,
-            arg_types: arg_types,
-            arg_vars: arg_vars
+            arg_vars: arg_vars,
+            command: Macro.escape(new_command)
           ] do
       existing_commands = Module.get_attribute(__MODULE__, :commands)
 
-      if Module.defines?(__MODULE__, {name, 0}) do
+      if Module.defines?(__MODULE__, {handler_name, 0}) do
         IO.warn(
-          "Command \"#{command_name}\" already exists. Duplicated command will be ignored.",
+          "Command \"#{command.name}\" already exists. Duplicated command will be ignored.",
           Macro.Env.stacktrace(__ENV__)
         )
       else
-        Module.put_attribute(__MODULE__, :commands, {command_name, name, arg_names, arg_types})
+        Module.put_attribute(
+          __MODULE__,
+          :commands,
+          command
+        )
 
-        def unquote(name)(unquote_splicing(arg_vars)), do: unquote(contents)
+        def unquote(handler_name)(unquote_splicing(arg_vars)), do: unquote(contents)
       end
     end
+  end
+
+  def event_handler_name(event_name, event_handlers) do
+    handler_id =
+      event_handlers
+      |> Enum.group_by(&elem(&1, 0))
+      |> Map.get(event_name, [])
+      |> length()
+
+    :"mobius_event_#{Atom.to_string(event_name)}_#{Integer.to_string(handler_id)}"
   end
 end

@@ -1,11 +1,16 @@
 defmodule Mobius.Core.Command do
   @moduledoc false
 
-  @type name :: String.t()
-  @type handler :: atom()
-  @type arg_names :: [atom()]
-  @type arg_types :: [String.t()]
-  @type arg_values :: [String.t()]
+  @enforce_keys [:name, :args, :handler]
+  defstruct [:name, :args, :handler]
+
+  @type t :: %__MODULE__{
+          name: String.t(),
+          args: keyword(arg_type()),
+          handler: function()
+        }
+
+  @type arg_type :: :string
 
   @spec command_handler_name(String.t()) :: atom()
   def command_handler_name(command_name) do
@@ -18,35 +23,54 @@ defmodule Mobius.Core.Command do
     |> Enum.map(&elem(&1, 0))
   end
 
-  @spec validate_command([{name(), handler(), arg_names(), arg_types()}], String.t()) ::
+  @spec parse_command([t()], String.t()) ::
           :not_a_command
-          | {:ok, {name(), handler(), arg_names(), arg_values()}}
-          | {:too_few_args, name(), non_neg_integer(), non_neg_integer()}
-  def validate_command(commands, message) do
-    case Enum.find(commands, fn {name, _handler, _arg_names, _arg_types} ->
-           String.starts_with?(message, name)
+          | {:ok, t(), [String.t()]}
+          | {:too_few_args, t(), non_neg_integer()}
+  def parse_command(commands, message) do
+    case Enum.find(commands, fn %__MODULE__{} = command ->
+           String.starts_with?(message, command.name)
          end) do
       nil ->
         :not_a_command
 
-      {name, handler, arg_names, _arg_types} ->
+      %__MODULE__{} = command ->
         arg_values =
           message
           |> String.split()
           |> tl()
 
-        arg_names = Enum.map(arg_names, &Atom.to_string/1)
-
-        if length(arg_values) < length(arg_names) do
-          {:too_few_args, name, length(arg_names), length(arg_values)}
-        else
-          {:ok, {name, handler, arg_names, arg_values}}
+        with {:ok, command} <- validate(command, arg_values) do
+          {:ok, command, arg_values}
         end
     end
   end
 
-  @spec execute({name(), atom(), arg_names(), arg_values()}, module()) :: any
-  def execute({_name, handler, arg_names, arg_values}, module) do
-    apply(module, handler, arg_values)
+  @spec validate(t(), [String.t()]) ::
+          {:ok, t()} | {:too_few_args, t(), non_neg_integer()}
+  def validate(%__MODULE__{} = command, values) do
+    expected_count = arg_count(command)
+    actual_count = length(values)
+
+    if actual_count < expected_count do
+      {:too_few_args, command, actual_count}
+    else
+      {:ok, command}
+    end
   end
+
+  @spec execute(t(), [String.t()]) :: any
+  def execute(%__MODULE__{} = command, arg_values) do
+    apply(command.handler, arg_values)
+  end
+
+  @spec arg_names(t()) :: [String.t()]
+  def arg_names(%__MODULE__{} = command) do
+    command.args
+    |> Enum.map(&elem(&1, 0))
+    |> Enum.map(&Atom.to_string/1)
+  end
+
+  @spec arg_count(t()) :: non_neg_integer()
+  def arg_count(%__MODULE__{} = command), do: length(command.args)
 end
