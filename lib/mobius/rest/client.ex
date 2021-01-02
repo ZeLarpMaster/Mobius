@@ -16,6 +16,7 @@ defmodule Mobius.Rest.Client do
   @spec new(keyword) :: client()
   def new(opts) do
     token = Keyword.fetch!(opts, :token)
+    retries = Keyword.get(opts, :max_retries, 5)
 
     headers = [
       {"User-Agent",
@@ -27,7 +28,7 @@ defmodule Mobius.Rest.Client do
     ]
 
     middleware = [
-      {Tesla.Middleware.Retry, should_retry: &client_should_retry?/1},
+      {Tesla.Middleware.Retry, max_retries: retries, should_retry: &client_should_retry?/1},
       Mobius.Rest.Middleware.Ratelimit,
       {Tesla.Middleware.BaseUrl, base_url()},
       Tesla.Middleware.PathParams,

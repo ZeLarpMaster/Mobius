@@ -11,11 +11,11 @@ defmodule Mobius.Services.HeartbeatTest do
   setup :stub_socket
 
   test "sends heartbeat regularly" do
-    send_hello(500)
+    send_hello(50)
     assert_received_heartbeat(0)
     send_payload(op: :heartbeat_ack)
 
-    Process.sleep(500)
+    Process.sleep(50)
     assert_received_heartbeat(0)
     send_payload(op: :heartbeat_ack)
   end
@@ -30,11 +30,11 @@ defmodule Mobius.Services.HeartbeatTest do
   end
 
   test "closes the socket if no ack since last heartbeat" do
-    send_hello(500)
+    send_hello(50)
 
     assert_received_heartbeat(0)
-    Process.sleep(500)
-    assert_receive :socket_close, 100
+    Process.sleep(50)
+    assert_receive :socket_close, 20
   end
 
   test "updates ping when receives an ack", ctx do
