@@ -56,7 +56,7 @@ defmodule Mobius.Fixtures do
   end
 
   def create_rest_client(context) do
-    [client: Client.new(token: context.token)]
+    [client: Client.new(token: context.token, max_retries: 0)]
   end
 
   # Utility functions
