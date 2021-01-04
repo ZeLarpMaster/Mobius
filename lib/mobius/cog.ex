@@ -38,6 +38,16 @@ defmodule Mobius.Cog do
               } arguments, got #{received}."
             )
 
+          {:invalid_args, errors} ->
+            errors
+            |> Enum.each(fn {{arg_name, arg_type}, value} ->
+              Logger.info(
+                "Invalid type for argument \"#{arg_name}\". Expected \"#{Atom.to_string(arg_type)}\", got \"#{
+                  value
+                }\"."
+              )
+            end)
+
           _ ->
             nil
         end

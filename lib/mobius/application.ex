@@ -18,7 +18,9 @@ defmodule Mobius.Application do
       {Mobius.Services.RestRatelimiter, []},
       {Mobius.Services.PubSub, []},
       {Mobius.Services.EventPipeline, []},
-      {Mobius.Services.Bot, token: System.get_env("MOBIUS_BOT_TOKEN")}
+      {Mobius.Services.Bot, token: System.get_env("MOBIUS_BOT_TOKEN")},
+      dynamic_supervisor(Mobius.Supervisor.CogLoader),
+      {Mobius.Services.CogLoader, []}
     ]
 
     Supervisor.start_link(children, strategy: :one_for_one, name: Mobius.Supervisor)
