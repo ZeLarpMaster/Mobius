@@ -34,7 +34,7 @@ defmodule Mobius.Stubs.ConnectionRatelimiter do
   # Stub API
   @spec set_owner() :: :ok
   def set_owner do
-    GenServer.call(ConnectionRatelimiter, {:set_test, self()})
+    GenServer.call(__MODULE__, {:set_test, self()})
   end
 
   # GenServer stuff

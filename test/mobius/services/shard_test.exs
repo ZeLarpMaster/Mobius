@@ -9,63 +9,101 @@ defmodule Mobius.Services.ShardTest do
   setup :get_shard
   setup :reset_services
   setup :stub_socket
-  setup :handshake_shard
+  setup :stub_connection_ratelimiter
 
-  test "attempts to resume if socket closes with resumable code", ctx do
-    send_payload(op: :dispatch, type: :TYPING_START, seq: 2)
+  describe "shard" do
+    setup :handshake_shard
 
-    # Shard will attempt to resume when closed with code 1001 (Going away)
-    # See Mobius.Core.SocketCodes for the list of codes
-    close_socket_from_server(1001, "Going away")
-    send_hello()
+    test "attempts to resume if socket closes with resumable code", ctx do
+      send_payload(op: :dispatch, type: :TYPING_START, seq: 2)
 
-    resume = make_resume_payload(ctx, 2)
-    assert_receive {:socket_msg, ^resume}
+      # Shard will attempt to resume when closed with code 1001 (Going away)
+      # See Mobius.Core.SocketCodes for the list of codes
+      close_socket_from_server(1001, "Going away")
+      send_hello()
+
+      resume = make_resume_payload(ctx, 2)
+      assert_receive {:socket_msg, ^resume}
+    end
+
+    test "identifies if socket closes with unresumable code", ctx do
+      # Shard won't attempt to resume, but will reconnect when closed with code 4009 (Session timed out)
+      # See Mobius.Core.SocketCodes for the list of codes
+      close_socket_from_server(4009, "Session timed out")
+      send_hello()
+
+      msg = Opcode.identify(ctx.shard, ctx.token)
+      assert_receive {:socket_msg, ^msg}
+    end
+
+    test "exits the shard if socket closes with unrecoverable code", ctx do
+      # Shard will completely disconnect when closed with code 4013 (Invalid intent(s))
+      # See Mobius.Core.SocketCodes for the list of codes
+      close_socket_from_server(4013, "Invalid intent(s)")
+
+      # TODO: Make via/1 public?
+      pid = GenServer.whereis({:via, Registry, {Mobius.Registry.Shard, ctx.shard}})
+      assert pid == nil
+    end
+
+    test "resumes on invalid session if possible", ctx do
+      send_payload(op: :invalid_session, data: true)
+
+      send_hello()
+
+      resume = make_resume_payload(ctx, 1)
+      assert_receive {:socket_msg, ^resume}
+    end
+
+    test "identifies on invalid session if can't resume", ctx do
+      send_payload(op: :invalid_session, data: false)
+
+      assert_receive :socket_close
+      send_hello()
+
+      msg = Opcode.identify(ctx.shard, ctx.token)
+      assert_receive {:socket_msg, ^msg}
+    end
+
+    test "closes socket if discord requests reconnection" do
+      send_payload(op: :reconnect)
+
+      assert_receive :socket_close
+    end
+
+    test "waits until can connect when identifying" do
+      # The setup does a handshake which makes the shard request the connection ratelimiter
+      # Hence the message should already be there
+      assert_received {:connection_request, _}
+    end
   end
 
-  test "identifies if socket closes with unresumable code", ctx do
-    # Shard won't attempt to resume, but will reconnect when closed with code 4009 (Session timed out)
-    # See Mobius.Core.SocketCodes for the list of codes
-    close_socket_from_server(4009, "Session timed out")
-    send_hello()
+  describe "acks the connection on" do
+    setup do
+      send_hello()
+      assert_receive_heartbeat()
+      assert_receive_identify()
+      assert_received {:connection_request, pid}
+      [pid: pid]
+    end
 
-    msg = Opcode.identify(ctx.shard, ctx.token)
-    assert_receive {:socket_msg, ^msg}
-  end
+    test "invalid session which can resume", %{pid: pid} do
+      send_payload(op: :invalid_session, data: true)
 
-  test "exits the shard if socket closes with unrecoverable code", ctx do
-    # Shard will completely disconnect when closed with code 4013 (Invalid intent(s))
-    # See Mobius.Core.SocketCodes for the list of codes
-    close_socket_from_server(4013, "Invalid intent(s)")
+      assert_receive {:connection_ack, ^pid}
+    end
 
-    # TODO: Make via/1 public?
-    pid = GenServer.whereis({:via, Registry, {Mobius.Registry.Shard, ctx.shard}})
-    assert pid == nil
-  end
+    test "invalid session which can't resume", %{pid: pid} do
+      send_payload(op: :invalid_session, data: false)
 
-  test "resumes on invalid session if possible", ctx do
-    send_payload(op: :invalid_session, data: true)
+      assert_receive {:connection_ack, ^pid}
+    end
 
-    send_hello()
+    test "ready", %{pid: pid} do
+      send_payload(op: :dispatch, seq: 1, type: "READY", data: %{"session_id" => random_hex(16)})
 
-    resume = make_resume_payload(ctx, 1)
-    assert_receive {:socket_msg, ^resume}
-  end
-
-  test "identifies on invalid session if can't resume", ctx do
-    send_payload(op: :invalid_session, data: false)
-
-    assert_receive :socket_close
-    send_hello()
-
-    msg = Opcode.identify(ctx.shard, ctx.token)
-    assert_receive {:socket_msg, ^msg}
-  end
-
-  test "closes socket if discord requests reconnection" do
-    send_payload(op: :reconnect)
-
-    assert_receive :socket_close
+      assert_receive {:connection_ack, ^pid}
+    end
   end
 
   defp make_resume_payload(ctx, seq) do
