@@ -36,7 +36,7 @@ defmodule Mobius.Stubs.CommandsRatelimiter do
     GenServer.call(__MODULE__, {:set_test, self()})
   end
 
-  # GenServer and :gun stuff
+  # GenServer stuff
   @impl GenServer
   @spec init(keyword) :: {:ok, state()}
   def init(_opts) do

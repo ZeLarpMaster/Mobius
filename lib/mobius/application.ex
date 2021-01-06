@@ -19,6 +19,7 @@ defmodule Mobius.Application do
       {Mobius.Services.PubSub, []},
       {Mobius.Services.EventPipeline, []},
       {Mobius.Services.CommandsRatelimiter, []},
+      {Mobius.Services.ConnectionRatelimiter, connection_delay_ms: 5_000, ack_timeout_ms: 10_000},
       {Mobius.Services.Bot, token: System.get_env("MOBIUS_BOT_TOKEN")}
     ]
 

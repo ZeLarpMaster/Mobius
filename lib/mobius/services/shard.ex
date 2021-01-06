@@ -8,6 +8,7 @@ defmodule Mobius.Services.Shard do
   alias Mobius.Core.ShardInfo
   alias Mobius.Core.SocketCodes
   alias Mobius.Services.Bot
+  alias Mobius.Services.ConnectionRatelimiter
   alias Mobius.Services.EventPipeline
   alias Mobius.Services.Heartbeat
   alias Mobius.Services.Socket
@@ -139,10 +140,12 @@ defmodule Mobius.Services.Shard do
 
       # TODO: Set resuming flag? See :invalid_session for why
     else
-      # TODO: Make sure we can identify (only 1 identify per 5 seconds)
-      state.shard
-      |> Opcode.identify(state.gateway.token)
-      |> Socket.send_message(state.shard)
+      # Send the identify when the ratelimiter allows it
+      ConnectionRatelimiter.wait_until_can_connect(fn ->
+        state.shard
+        |> Opcode.identify(state.gateway.token)
+        |> Socket.send_message(state.shard)
+      end)
     end
 
     state
@@ -151,6 +154,8 @@ defmodule Mobius.Services.Shard do
   defp process_payload(:invalid_session, %{d: false}, state) do
     # d: false -> don't resume
     Logger.debug("Invalid session. Server says don't resume")
+    # Invalid session can happen after identifying, so we ack to let the next shard try to connect
+    ConnectionRatelimiter.ack_connected()
     # TODO: If we were previously resuming, sleep randomly between 1 and 5 seconds
     Socket.close(state.shard)
     reset_session(state)
@@ -159,6 +164,8 @@ defmodule Mobius.Services.Shard do
   defp process_payload(:invalid_session, %{d: true}, state) do
     # d: true -> Attempt to resume
     Logger.debug("Invalid session. Server says try to resume")
+    # Invalid session can happen after identifying, so we ack to let the next shard try to connect
+    ConnectionRatelimiter.ack_connected()
     # Close socket, when it comes back up we'll receive :hello and attempt to resume
     Socket.close(state.shard)
     state
@@ -176,6 +183,9 @@ defmodule Mobius.Services.Shard do
   end
 
   defp update_state_by_event(state, %{t: "READY", d: d}) do
+    # READY only happens when identifying and is the first thing we receive after identifying
+    # Therefore it's the perfect opportunity to ack that we have connected
+    ConnectionRatelimiter.ack_connected()
     Bot.notify_ready(state.shard)
     set_session(state, Map.fetch!(d, "session_id"))
   end
