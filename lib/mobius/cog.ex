@@ -1,8 +1,44 @@
 defmodule Mobius.Cog do
-  @moduledoc false
+  @moduledoc """
+  Defines a cog.
+
+  Cogs are small, self-contained services that implement a bot's logic. Cogs
+  have two ways of interacting with Discord: `listen/3` and `command/3`.
+
+  `listen/3` instructs the cog to listen to specific events that are sent from
+  Discord's API. These events are generally the result of normal user
+  interaction in Discord.
+
+  `command/3` defines a specific command that users can enter in the server's
+  textual chat to manually trigger an interaction with the bot.
+
+  ## Example
+  ```elixir
+  defmodule MyCog do
+    use Mobius.Cog
+
+    listen :guild_member_add, %{"user" => user} do
+      Logger.puts("Welcome \#{user["username"]}")
+    end
+
+    command "repeat", word: :string, times: :integer do
+      word
+      |> String.duplicate(times)
+      |> String.trim()
+      |> IO.puts()
+    end
+  end
+  ```
+
+  This cog does the following things:
+  * Every time a new user joins the server, it greets the user
+  * Every time a user enters "repeat word times", it repeats the word "word"
+    "times" times
+  """
 
   alias Mobius.Core.Command
 
+  @doc false
   defmacro __using__(_call) do
     quote do
       require Logger
@@ -21,6 +57,7 @@ defmodule Mobius.Cog do
     end
   end
 
+  @doc false
   defmacro __before_compile__(_env) do
     quote do
       use GenServer
@@ -80,11 +117,23 @@ defmodule Mobius.Cog do
     end
   end
 
-  defmacro listen(event_name, var \\ quote(do: _), do: block) do
-    var = Macro.escape(var)
+  @doc """
+  Defines an event handler for a Discord event.
+
+  The second parameter, "payload", can be used to access the events payload.
+
+  ## Example
+  ```elixir
+  listen :message_create, %{"content" => content} do
+    IO.puts("Message received: \#{content}")
+  end
+  ```
+  """
+  defmacro listen(event_name, payload \\ quote(do: _), do: block) do
+    payload = Macro.escape(payload)
     contents = Macro.escape(block, unquote: true)
 
-    quote bind_quoted: [event_name: event_name, var: var, contents: contents] do
+    quote bind_quoted: [event_name: event_name, payload: payload, contents: contents] do
       existing_handlers = Module.get_attribute(__MODULE__, :event_handlers)
 
       name = Mobius.Cog.event_handler_name(event_name, existing_handlers)
@@ -95,10 +144,53 @@ defmodule Mobius.Cog do
         {event_name, Function.capture(__MODULE__, name, 1)}
       )
 
-      def unquote(name)(unquote(var)), do: unquote(contents)
+      def unquote(name)(unquote(payload)), do: unquote(contents)
     end
   end
 
+  @doc """
+  Defines a command to be used by Discord users.
+
+  The first parameter defines the name of the command as a single word (no
+  spaces).
+
+  The second parameter defires the list of arguments that the command accepts,
+  along with their type. If a user passes more arguments than are defined by the
+  command, the extraneous arguments will be ignored.
+
+  ## Command types
+
+  The list of supported argument types is as follows:
+  * `:string`
+  * `:integer`
+
+  If you wish to use a type that isn't supported by Mobius, `:string` should be
+  used as a "catch all" type. You can then implement your own validation as part
+  oh the command body.
+
+  If a user enters a command with an argument that doesn't match its
+  corresponding type, Mobius will automatically reply to let the user know what
+  the expected type is.
+
+  ## Duplicate commands
+
+  Should you define two commands with the same name, Mobius will raise a
+  compilation warning indicating that the second command will be ignored.
+
+  ## Example
+  ```elixir
+  command "add", num1: :integer, num2: integer do
+    num1 + num2
+  end
+  ```
+
+  In discord chat:
+  ```
+  user: add 1 2
+  myBot: 3
+  user: add 1 hello
+  myBot: "Invalid type for argument "num2". Expected "integer", got "hello".
+  """
   defmacro command(command_name, args \\ [], do: block) do
     handler_name = Command.command_handler_name(command_name)
 
@@ -138,6 +230,7 @@ defmodule Mobius.Cog do
     end
   end
 
+  @doc false
   def event_handler_name(event_name, event_handlers) do
     handler_id =
       event_handlers
