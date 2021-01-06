@@ -19,8 +19,7 @@ defmodule Mobius.Core.Command do
 
   @spec get_command_arg_names(keyword(atom())) :: [atom()]
   def get_command_arg_names(args) do
-    args
-    |> Enum.map(&elem(&1, 0))
+    Enum.map(args, &elem(&1, 0))
   end
 
   @spec parse_command([t()], String.t()) ::

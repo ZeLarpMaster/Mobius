@@ -39,8 +39,8 @@ defmodule Mobius.Cog do
             )
 
           {:invalid_args, errors} ->
-            errors
-            |> Enum.each(fn {{arg_name, arg_type}, value} ->
+            Enum.each(errors, fn {{arg_name, arg_type}, value} ->
+              # credo:disable-for-next-line Credo.Check.Readability.StringSigils
               Logger.info(
                 "Invalid type for argument \"#{arg_name}\". Expected \"#{Atom.to_string(arg_type)}\", got \"#{
                   value

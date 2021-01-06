@@ -1,7 +1,9 @@
 defmodule Mobius.Command.ArgumentParser do
-  @callback parse(String.t()) :: any() | :error
+  @moduledoc false
 
   alias Mobius.Command.ArgumentParser
+
+  @callback parse(String.t()) :: any() | :error
 
   @type arg_type :: :string | :integer
 
