@@ -23,15 +23,18 @@ defmodule Mobius.Fixtures do
     Stubs.Socket.set_owner(@shard)
   end
 
+  def stub_ratelimiter(_context) do
+    Stubs.CommandsRatelimiter.set_owner()
+  end
+
+  def stub_connection_ratelimiter(_context) do
+    Stubs.ConnectionRatelimiter.set_owner()
+  end
+
   def handshake_shard(_context) do
     send_hello()
-
-    msg = Opcode.heartbeat(0)
-    assert_receive {:socket_msg, ^msg}, 100
-
-    token = System.fetch_env!("MOBIUS_BOT_TOKEN")
-    msg = Opcode.identify(@shard, token)
-    assert_receive {:socket_msg, ^msg}, 100
+    assert_receive_heartbeat()
+    token = assert_receive_identify()
 
     session_id = random_hex(16)
 
@@ -52,7 +55,7 @@ defmodule Mobius.Fixtures do
   end
 
   def create_rest_client(context) do
-    [client: Client.new(token: context.token)]
+    [client: Client.new(token: context.token, max_retries: 0)]
   end
 
   # Utility functions
@@ -69,6 +72,18 @@ defmodule Mobius.Fixtures do
     }
 
     Socket.notify_payload(data, @shard)
+  end
+
+  def assert_receive_heartbeat(seq \\ 0) do
+    msg = Opcode.heartbeat(seq)
+    assert_receive {:socket_msg, ^msg}, 50
+  end
+
+  def assert_receive_identify do
+    token = System.fetch_env!("MOBIUS_BOT_TOKEN")
+    msg = Opcode.identify(@shard, token)
+    assert_receive {:socket_msg, ^msg}, 50
+    token
   end
 
   @doc "Simulate the server closing the socket with an arbitrary code"

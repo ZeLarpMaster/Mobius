@@ -15,11 +15,13 @@ defmodule Mobius.Application do
       dynamic_supervisor(Mobius.Supervisor.Heartbeat),
       dynamic_supervisor(Mobius.Supervisor.Shard),
       dynamic_supervisor(Mobius.Supervisor.Socket),
+      dynamic_supervisor(Mobius.Supervisor.CogLoader),
       {Mobius.Services.RestRatelimiter, []},
       {Mobius.Services.PubSub, []},
       {Mobius.Services.EventPipeline, []},
+      {Mobius.Services.CommandsRatelimiter, []},
+      {Mobius.Services.ConnectionRatelimiter, connection_delay_ms: 5_000, ack_timeout_ms: 10_000},
       {Mobius.Services.Bot, token: System.get_env("MOBIUS_BOT_TOKEN")},
-      dynamic_supervisor(Mobius.Supervisor.CogLoader),
       {Mobius.Services.CogLoader, []}
     ]
 
