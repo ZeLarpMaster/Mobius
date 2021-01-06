@@ -21,7 +21,7 @@ defmodule Mobius.Services.ConnectionRatelimiter.TimedTest do
 
     test "executes callbacks a delay after the previous ack" do
       Timed.wait_until_can_connect(make_callback())
-      assert_received :callback_called
+      assert_callback_called(0)
       Timed.ack_connected()
       Timed.wait_until_can_connect(make_callback())
 
@@ -30,7 +30,7 @@ defmodule Mobius.Services.ConnectionRatelimiter.TimedTest do
 
     test "executes callbacks a delay after the previous ack timed out" do
       Timed.wait_until_can_connect(make_callback())
-      assert_received :callback_called
+      assert_callback_called(0)
       Timed.wait_until_can_connect(make_callback())
 
       assert_callback_called(@ack_timeout + @connection_delay)
