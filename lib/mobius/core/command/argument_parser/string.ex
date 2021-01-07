@@ -1,7 +1,7 @@
-defmodule Mobius.Command.ArgumentParser.String do
+defmodule Mobius.Core.Command.ArgumentParser.String do
   @moduledoc false
 
-  @behaviour Mobius.Command.ArgumentParser
+  @behaviour Mobius.Core.Command.ArgumentParser
 
   @impl true
   def parse(value), do: value

@@ -1,26 +1,32 @@
 defmodule Mobius.Cog do
-  @moduledoc """
+  @moduledoc ~S"""
   Defines a cog.
 
   Cogs are small, self-contained services that implement a bot's logic. Cogs
-  have two ways of interacting with Discord: `listen/3` and `command/3`.
+  have two ways of handling Discord events: `listen/3` and `command/3`.
 
   `listen/3` instructs the cog to listen to specific events that are sent from
-  Discord's API. These events are generally the result of normal user
-  interaction in Discord.
+  Discord's API. Events are sent when users (humans or bots) interact with
+  Discord. These include almost everything you can do on Discord from messages
+  sent to users changing their username. For a complete list of events and the
+  data associated with them see `Mobius.Core.Event`.
 
-  `command/3` defines a specific command that users can enter in the server's
-  textual chat to manually trigger an interaction with the bot.
+  `command/3` defines a command which can be used by users in text channels
+  where the bot has the permission to read. These commands will execute the code
+  specified in the do block of the command with its arguments.
 
   ## Example
   ```elixir
   defmodule MyCog do
     use Mobius.Cog
 
+    # Every time a new user joins the server, greet the user
     listen :guild_member_add, %{"user" => user} do
-      Logger.puts("Welcome \#{user["username"]}")
+      IO.puts("Welcome #{user["username"]}")
     end
 
+    # Every time a user enters "repeat word times", repeatthe word "word"
+    # "times" times
     command "repeat", word: :string, times: :integer do
       word
       |> String.duplicate(times)
@@ -29,11 +35,6 @@ defmodule Mobius.Cog do
     end
   end
   ```
-
-  This cog does the following things:
-  * Every time a new user joins the server, it greets the user
-  * Every time a user enters "repeat word times", it repeats the word "word"
-    "times" times
   """
 
   alias Mobius.Core.Command
@@ -77,11 +78,10 @@ defmodule Mobius.Cog do
 
           {:invalid_args, errors} ->
             Enum.each(errors, fn {{arg_name, arg_type}, value} ->
-              # credo:disable-for-next-line Credo.Check.Readability.StringSigils
               Logger.info(
-                "Invalid type for argument \"#{arg_name}\". Expected \"#{Atom.to_string(arg_type)}\", got \"#{
+                ~s("Invalid type for argument "#{arg_name}". Expected "#{Atom.to_string(arg_type)}", got "#{
                   value
-                }\"."
+                }".")
               )
             end)
 
@@ -117,15 +117,17 @@ defmodule Mobius.Cog do
     end
   end
 
-  @doc """
+  @doc ~S"""
   Defines an event handler for a Discord event.
 
   The second parameter, "payload", can be used to access the events payload.
+  Please see `Mobius.Core.Event` for the full description of the different event
+  payloads.
 
   ## Example
   ```elixir
   listen :message_create, %{"content" => content} do
-    IO.puts("Message received: \#{content}")
+    IO.puts("Message received: #{content}")
   end
   ```
   """
@@ -166,7 +168,7 @@ defmodule Mobius.Cog do
 
   If you wish to use a type that isn't supported by Mobius, `:string` should be
   used as a "catch all" type. You can then implement your own validation as part
-  oh the command body.
+  of the command body.
 
   If a user enters a command with an argument that doesn't match its
   corresponding type, Mobius will automatically reply to let the user know what
@@ -175,23 +177,24 @@ defmodule Mobius.Cog do
   ## Duplicate commands
 
   Should you define two commands with the same name, Mobius will raise a
-  compilation warning indicating that the second command will be ignored.
+  compilation error.
 
   ## Example
   ```elixir
-  command "add", num1: :integer, num2: integer do
+  command "add", num1: :integer, num2: :integer do
     num1 + num2
   end
   ```
 
-  In discord chat:
+  In a Discord text channel:
   ```
   user: add 1 2
   myBot: 3
   user: add 1 hello
-  myBot: "Invalid type for argument "num2". Expected "integer", got "hello".
+  myBot: Invalid type for argument "num2". Expected "integer", got "hello".
   """
   defmacro command(command_name, args \\ [], do: block) do
+    # TODO: assert that the command name contains no whitespace
     handler_name = Command.command_handler_name(command_name)
 
     new_command = %Command{
@@ -213,14 +216,21 @@ defmodule Mobius.Cog do
             handler_name: handler_name,
             contents: contents,
             arg_vars: arg_vars,
-            command: Macro.escape(new_command)
+            command: Macro.escape(new_command),
+            line: __CALLER__.line,
+            file: __CALLER__.file
           ] do
       existing_commands = Module.get_attribute(__MODULE__, :commands)
 
       if Module.defines?(__MODULE__, {handler_name, 0}) do
-        IO.warn(
-          "Command \"#{command.name}\" already exists. Duplicated command will be ignored.",
-          Macro.Env.stacktrace(__ENV__)
+        reraise(
+          %CompileError{
+            line: line,
+            file: file,
+            description:
+              "Command \"#{command.name}\" already exists. Duplicated command will be ignored."
+          },
+          []
         )
       else
         Module.put_attribute(__MODULE__, :commands, command)
@@ -232,12 +242,8 @@ defmodule Mobius.Cog do
 
   @doc false
   def event_handler_name(event_name, event_handlers) do
-    handler_id =
-      event_handlers
-      |> Enum.group_by(&elem(&1, 0))
-      |> Map.get(event_name, [])
-      |> length()
+    handler_id = Enum.count(event_handlers, &(elem(&1, 0) === event_name))
 
-    :"mobius_event_#{Atom.to_string(event_name)}_#{Integer.to_string(handler_id)}"
+    :"mobius_event_#{event_name}_#{handler_id}"
   end
 end

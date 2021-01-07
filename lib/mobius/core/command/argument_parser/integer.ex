@@ -1,7 +1,7 @@
-defmodule Mobius.Command.ArgumentParser.Integer do
+defmodule Mobius.Core.Command.ArgumentParser.Integer do
   @moduledoc false
 
-  @behaviour Mobius.Command.ArgumentParser
+  @behaviour Mobius.Core.Command.ArgumentParser
 
   @impl true
   def parse(value) do

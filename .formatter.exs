@@ -1,6 +1,6 @@
 # Used by "mix format"
 locals_without_parens = [
-  # Mobius.Services.Cog
+  # Mobius.Cog
   listen: 2,
   listen: 3,
   command: 2,

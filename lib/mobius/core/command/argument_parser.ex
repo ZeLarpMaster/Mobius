@@ -1,7 +1,7 @@
-defmodule Mobius.Command.ArgumentParser do
+defmodule Mobius.Core.Command.ArgumentParser do
   @moduledoc false
 
-  alias Mobius.Command.ArgumentParser
+  alias Mobius.Core.Command.ArgumentParser
 
   @callback parse(String.t()) :: any() | :error
 

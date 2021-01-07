@@ -1,7 +1,7 @@
 defmodule Mobius.Core.Command do
   @moduledoc false
 
-  alias Mobius.Command.ArgumentParser
+  alias Mobius.Core.Command.ArgumentParser
 
   @enforce_keys [:name, :args, :handler]
   defstruct [:name, :args, :handler]
@@ -17,7 +17,7 @@ defmodule Mobius.Core.Command do
     :"mobius_command_#{command_name}"
   end
 
-  @spec get_command_arg_names(keyword(atom())) :: [atom()]
+  @spec get_command_arg_names(keyword(ArgumentParser.arg_type()) :: [atom()]
   def get_command_arg_names(args) do
     Enum.map(args, &elem(&1, 0))
   end
