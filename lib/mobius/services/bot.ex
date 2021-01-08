@@ -70,12 +70,24 @@ defmodule Mobius.Services.Bot do
   defp start_shards(client, token) do
     {:ok, bot_info} = Rest.Gateway.get_bot(client)
     url = parse_url(bot_info["url"])
+    shard_count = bot_info["shards"]
 
     Logger.debug("Starting shards with #{inspect(bot_info)}")
 
-    # TODO: Take into account bot_info["session_start_limit"]
+    start_limit = Map.fetch!(bot_info, "session_start_limit")
+    remaining = Map.fetch!(start_limit, "remaining")
 
-    for shard <- ShardInfo.from_count(bot_info["shards"]) do
+    # Later we'll probably want to track this in ConnectionRatelimiter
+    # To prevent issues where, without restarting the bot, too many connections are issued
+    if remaining < shard_count do
+      time_ms = Map.fetch!(start_limit, "reset_after")
+      time_s = div(time_ms, 1000)
+      warning = "Too many connections were issued with this token!"
+      Logger.warn(warning <> " Waiting #{time_s} seconds...")
+      Process.sleep(time_ms)
+    end
+
+    for shard <- ShardInfo.from_count(shard_count) do
       {:ok, pid} = Shard.start_shard(shard, url, token)
       Logger.debug("Started shard #{inspect(shard)} on #{inspect(pid)}")
       shard
