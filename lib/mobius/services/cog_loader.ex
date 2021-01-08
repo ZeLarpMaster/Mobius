@@ -19,13 +19,13 @@ defmodule Mobius.Services.CogLoader do
   def init(_init_arg) do
     Enum.each(@initial_cogs, &start_cog/1)
 
-    {:ok, @initial_cogs}
+    {:ok, %{cogs: @initial_cogs}}
   end
 
   @impl true
   def handle_call({:load_cog, cog}, _from, state) do
     start_cog(cog)
-    {:reply, :ok, [cog | state]}
+    {:reply, :ok, %{state | cogs: [cog | state.cogs]}}
   end
 
   defp start_cog(cog) do

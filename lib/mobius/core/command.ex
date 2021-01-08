@@ -12,46 +12,36 @@ defmodule Mobius.Core.Command do
           handler: function()
         }
 
+  @type parse_result ::
+          :not_a_command
+          | {:ok, t(), [String.t()]}
+          | {:too_few_args, t(), non_neg_integer()}
+          | {:invalid_args, [{Validator.arg_type(), String.t()}]}
+
   @spec command_handler_name(String.t()) :: atom()
   def command_handler_name(command_name) do
     :"mobius_command_#{command_name}"
   end
 
-  @spec get_command_arg_names(keyword(ArgumentParser.arg_type()) :: [atom()]
+  @spec get_command_arg_names(keyword(ArgumentParser.arg_type())) :: [atom()]
   def get_command_arg_names(args) do
     Enum.map(args, &elem(&1, 0))
   end
 
-  @spec parse_command([t()], String.t()) ::
-          :not_a_command
-          | {:ok, t(), [String.t()]}
-          | {:too_few_args, t(), non_neg_integer()}
-          | {:invalid_args, [{Validator.arg_type(), String.t()}]}
+  @spec parse_command([t()], String.t()) :: parse_result()
   def parse_command(commands, message) do
-    case Enum.find(commands, fn %__MODULE__{} = command ->
-           String.starts_with?(message, command.name)
-         end) do
+    commands
+    |> Enum.find(fn %__MODULE__{} = command -> String.starts_with?(message, command.name) end)
+    |> case do
       nil ->
         :not_a_command
 
       %__MODULE__{} = command ->
-        arg_values =
-          message
-          |> String.split()
-          |> tl()
+        arg_values = split_arguments(message)
 
         with {:ok, values} <- validate(command, arg_values) do
           {:ok, command, values}
         end
-    end
-  end
-
-  @spec validate(t(), [String.t()]) ::
-          {:ok, [any()]} | {:too_few_args, t(), non_neg_integer()} | {:invalid_args, [String.t()]}
-  defp validate(%__MODULE__{} = command, values) do
-    with :ok <- validate_arg_count(command, values),
-         {:ok, values} <- parse_arg_values(command, values) do
-      {:ok, values}
     end
   end
 
@@ -65,6 +55,15 @@ defmodule Mobius.Core.Command do
     command.args
     |> Enum.map(&elem(&1, 0))
     |> Enum.map(&Atom.to_string/1)
+  end
+
+  @spec validate(t(), [String.t()]) ::
+          {:ok, [any()]} | {:too_few_args, t(), non_neg_integer()} | {:invalid_args, [String.t()]}
+  defp validate(%__MODULE__{} = command, values) do
+    with :ok <- validate_arg_count(command, values),
+         {:ok, values} <- parse_arg_values(command, values) do
+      {:ok, values}
+    end
   end
 
   @spec arg_count(t()) :: non_neg_integer()
@@ -95,5 +94,11 @@ defmodule Mobius.Core.Command do
     else
       {:ok, Enum.map(valids, fn {_, _, val} -> val end)}
     end
+  end
+
+  defp split_arguments(message) do
+    message
+    |> String.split()
+    |> tl()
   end
 end

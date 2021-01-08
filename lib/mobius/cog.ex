@@ -174,11 +174,6 @@ defmodule Mobius.Cog do
   corresponding type, Mobius will automatically reply to let the user know what
   the expected type is.
 
-  ## Duplicate commands
-
-  Should you define two commands with the same name, Mobius will raise a
-  compilation error.
-
   ## Example
   ```elixir
   command "add", num1: :integer, num2: :integer do
