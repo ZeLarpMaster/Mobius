@@ -5,6 +5,7 @@ defmodule Mobius.Services.CommandsRatelimiter do
 
   @type bucket :: {String.t(), pos_integer(), pos_integer()}
 
+  @callback start_link(keyword) :: GenServer.on_start()
   @callback child_spec(keyword) :: Supervisor.child_spec()
   @callback request_access(bucket()) :: :ok | :ratelimited
 
