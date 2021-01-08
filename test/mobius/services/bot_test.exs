@@ -3,7 +3,6 @@ defmodule Mobius.Services.BotTest do
 
   import ExUnit.CaptureLog
   import Mobius.Fixtures
-  import Mobius.TestUtils
 
   test "waits for the reset to start shards if no session starts left", ctx do
     # Bot will think there's 0 sessions left and it resets in 25ms
