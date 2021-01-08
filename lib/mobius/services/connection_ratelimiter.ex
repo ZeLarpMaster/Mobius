@@ -3,13 +3,9 @@ defmodule Mobius.Services.ConnectionRatelimiter do
 
   @type connect_callback :: (() -> any)
 
-  @callback start_link(keyword) :: GenServer.on_start()
   @callback child_spec(keyword) :: Supervisor.child_spec()
   @callback wait_until_can_connect(connect_callback()) :: :ok
   @callback ack_connected() :: :ok
-
-  @spec start_link(keyword) :: GenServer.on_start()
-  def start_link(opts), do: impl().start_link(opts)
 
   @spec child_spec(any) :: Supervisor.child_spec()
   def child_spec(opts), do: impl().child_spec(opts)
