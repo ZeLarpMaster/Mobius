@@ -10,7 +10,7 @@ defmodule Mobius.Core.SocketCodes do
     4000 => {"Unknown error", :resume},
     4001 => {"Unknown opcode", :dont_resume},
     4002 => {"Decode error", :resume},
-    4003 => {"Not authenticated", :dont_resume},
+    4003 => {"Not authenticated", :dont_reconnect},
     4004 => {"Authentication failed", :dont_reconnect},
     4005 => {"Already authenticated", :dont_resume},
     4007 => {"Invalid seq", :dont_resume},
