@@ -10,7 +10,7 @@ defmodule Mobius.Services.CogLoader do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
-  @spec load_cog(module()) :: DynamicSupervisor.on_start_child()
+  @spec load_cog(module()) :: :ok | {:error, any()}
   def load_cog(cog) do
     GenServer.call(__MODULE__, {:load_cog, cog})
   end
@@ -24,8 +24,12 @@ defmodule Mobius.Services.CogLoader do
 
   @impl true
   def handle_call({:load_cog, cog}, _from, state) do
-    start_cog(cog)
-    {:reply, :ok, %{state | cogs: [cog | state.cogs]}}
+    case start_cog(cog) do
+      {:ok, _pid} -> {:reply, :ok, %{state | cogs: [cog | state.cogs]}}
+      {:ok, _pid, _info} -> {:reply, :ok, %{state | cogs: [cog | state.cogs]}}
+      :ignore -> {:reply, {:error, :ignore}, state}
+      {:error, error} -> {:reply, {:error, error}, state}
+    end
   end
 
   defp start_cog(cog) do
