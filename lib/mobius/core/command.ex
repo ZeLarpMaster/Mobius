@@ -12,11 +12,19 @@ defmodule Mobius.Core.Command do
           handler: function()
         }
 
-  @type parse_result ::
-          :not_a_command
-          | {:ok, t(), [String.t()]}
+  @type handle_message_result ::
+          {:ok, any()}
+          | :not_a_command
           | {:too_few_args, t(), non_neg_integer()}
           | {:invalid_args, [{Validator.arg_type(), String.t()}]}
+
+  @spec handle_message([t()], binary) :: handle_message_result()
+  def handle_message(commands, message) do
+    case parse_command(commands, message) do
+      {:ok, command, arg_values} -> {:ok, execute(command, arg_values)}
+      error -> error
+    end
+  end
 
   @spec command_handler_name(String.t()) :: atom()
   def command_handler_name(command_name) do
@@ -28,8 +36,17 @@ defmodule Mobius.Core.Command do
     Enum.map(args, &elem(&1, 0))
   end
 
-  @spec parse_command([t()], String.t()) :: parse_result()
-  def parse_command(commands, message) do
+  @spec arg_names(t()) :: [String.t()]
+  def arg_names(%__MODULE__{} = command) do
+    command.args
+    |> Enum.map(&elem(&1, 0))
+    |> Enum.map(&Atom.to_string/1)
+  end
+
+  @spec arg_count(t()) :: non_neg_integer()
+  def arg_count(%__MODULE__{} = command), do: length(command.args)
+
+  defp parse_command(commands, message) do
     commands
     |> Enum.find(fn %__MODULE__{} = command -> String.starts_with?(message, command.name) end)
     |> case do
@@ -45,20 +62,6 @@ defmodule Mobius.Core.Command do
     end
   end
 
-  @spec execute(t(), [String.t()]) :: any
-  def execute(%__MODULE__{} = command, arg_values) do
-    apply(command.handler, arg_values)
-  end
-
-  @spec arg_names(t()) :: [String.t()]
-  def arg_names(%__MODULE__{} = command) do
-    command.args
-    |> Enum.map(&elem(&1, 0))
-    |> Enum.map(&Atom.to_string/1)
-  end
-
-  @spec validate(t(), [String.t()]) ::
-          {:ok, [any()]} | {:too_few_args, t(), non_neg_integer()} | {:invalid_args, [String.t()]}
   defp validate(%__MODULE__{} = command, values) do
     with :ok <- validate_arg_count(command, values),
          {:ok, values} <- parse_arg_values(command, values) do
@@ -66,8 +69,9 @@ defmodule Mobius.Core.Command do
     end
   end
 
-  @spec arg_count(t()) :: non_neg_integer()
-  def arg_count(%__MODULE__{} = command), do: length(command.args)
+  defp execute(%__MODULE__{} = command, arg_values) do
+    apply(command.handler, arg_values)
+  end
 
   defp validate_arg_count(%__MODULE__{} = command, values) do
     expected_count = arg_count(command)

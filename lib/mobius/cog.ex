@@ -65,9 +65,9 @@ defmodule Mobius.Cog do
       alias Mobius.Actions.Events
 
       listen :message_create, %{"content" => content} do
-        case Command.parse_command(@commands, content) do
-          {:ok, command, arg_values} ->
-            Command.execute(command, arg_values)
+        case Command.handle_message(@commands, content) do
+          {:ok, _} ->
+            :ok
 
           {:too_few_args, command, received} ->
             Logger.info(
@@ -85,8 +85,8 @@ defmodule Mobius.Cog do
               )
             end)
 
-          _ ->
-            nil
+          :not_a_command ->
+            :ok
         end
       end
 
