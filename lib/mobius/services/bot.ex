@@ -24,11 +24,17 @@ defmodule Mobius.Services.Bot do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
+  @doc "Returns the list of shards currently running"
   @spec list_shards :: [ShardInfo.t()]
   def list_shards do
     ShardList.list_shards(@shards_table)
   end
 
+  @doc """
+  Notifies Bot about the shard being ready
+
+  This function is meant for internal use by the shards and nothing else
+  """
   @spec notify_ready(ShardInfo.t()) :: :ok
   def notify_ready(shard) do
     send(__MODULE__, {:shard_ready, shard})
@@ -65,17 +71,26 @@ defmodule Mobius.Services.Bot do
     {:noreply, state}
   end
 
-  # TODO: Notify about all shards being ready?
-
   defp start_shards(client, token) do
     {:ok, bot_info} = Rest.Gateway.get_bot(client)
     url = parse_url(bot_info["url"])
+    shard_count = bot_info["shards"]
 
     Logger.debug("Starting shards with #{inspect(bot_info)}")
 
-    # TODO: Take into account bot_info["session_start_limit"]
+    start_limit = bot_info["session_start_limit"]
+    remaining = start_limit["remaining"]
 
-    for shard <- ShardInfo.from_count(bot_info["shards"]) do
+    # Later we'll probably want to track this in ConnectionRatelimiter
+    # To prevent issues where, without restarting the bot, too many connections are issued
+    if remaining < shard_count do
+      time_ms = start_limit["reset_after"]
+      warning = "Too many connections were issued with this token!"
+      Logger.warn(warning <> " Waiting #{time_ms} milliseconds...")
+      Process.sleep(time_ms)
+    end
+
+    for shard <- ShardInfo.from_count(shard_count) do
       {:ok, pid} = Shard.start_shard(shard, url, token)
       Logger.debug("Started shard #{inspect(shard)} on #{inspect(pid)}")
       shard
