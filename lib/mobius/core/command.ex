@@ -28,7 +28,7 @@ defmodule Mobius.Core.Command do
 
   @spec command_handler_name(String.t()) :: atom()
   def command_handler_name(command_name) do
-    :"mobius_command_#{command_name}"
+    :"__mobius_command_#{command_name}__"
   end
 
   @spec get_command_arg_names(keyword(ArgumentParser.arg_type())) :: [atom()]

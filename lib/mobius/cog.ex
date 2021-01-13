@@ -41,7 +41,7 @@ defmodule Mobius.Cog do
 
   @doc false
   defmacro __using__(_call) do
-    quote do
+    quote location: :keep do
       require Logger
 
       @before_compile unquote(__MODULE__)
@@ -60,7 +60,7 @@ defmodule Mobius.Cog do
 
   @doc false
   defmacro __before_compile__(_env) do
-    quote do
+    quote location: :keep do
       use GenServer
       alias Mobius.Actions.Events
 
@@ -79,9 +79,9 @@ defmodule Mobius.Cog do
           {:invalid_args, errors} ->
             Enum.each(errors, fn {{arg_name, arg_type}, value} ->
               Logger.info(
-                ~s("Invalid type for argument "#{arg_name}". Expected "#{Atom.to_string(arg_type)}", got "#{
+                ~s(Invalid type for argument "#{arg_name}". Expected "#{Atom.to_string(arg_type)}", got "#{
                   value
-                }".")
+                }".)
               )
             end)
 
@@ -138,7 +138,7 @@ defmodule Mobius.Cog do
     quote bind_quoted: [event_name: event_name, payload: payload, contents: contents] do
       existing_handlers = Module.get_attribute(__MODULE__, :event_handlers)
 
-      name = Mobius.Cog.event_handler_name(event_name, existing_handlers)
+      name = Mobius.Cog.__event_handler_name__(event_name, existing_handlers)
 
       Module.put_attribute(
         __MODULE__,
@@ -236,9 +236,9 @@ defmodule Mobius.Cog do
   end
 
   @doc false
-  def event_handler_name(event_name, event_handlers) do
+  def __event_handler_name__(event_name, event_handlers) do
     handler_id = Enum.count(event_handlers, &(elem(&1, 0) === event_name))
 
-    :"mobius_event_#{event_name}_#{handler_id}"
+    :"__mobius_event_#{event_name}_#{handler_id}__"
   end
 end
