@@ -25,7 +25,7 @@ defmodule Mobius.Cog do
       IO.puts("Welcome #{user["username"]}")
     end
 
-    # Every time a user enters "repeat word times", repeatthe word "word"
+    # Every time a user enters "repeat word times", repeat the word "word"
     # "times" times
     command "repeat", word: :string, times: :integer do
       word

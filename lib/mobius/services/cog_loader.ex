@@ -26,7 +26,6 @@ defmodule Mobius.Services.CogLoader do
   def handle_call({:load_cog, cog}, _from, state) do
     case start_cog(cog) do
       {:ok, _pid} -> {:reply, :ok, %{state | cogs: [cog | state.cogs]}}
-      {:ok, _pid, _info} -> {:reply, :ok, %{state | cogs: [cog | state.cogs]}}
       :ignore -> {:reply, {:error, :ignore}, state}
       {:error, error} -> {:reply, {:error, error}, state}
     end
