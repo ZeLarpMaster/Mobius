@@ -3,6 +3,7 @@ defmodule Mobius.Services.Bot do
 
   use GenServer
 
+  alias Mobius.Core.Intents
   alias Mobius.Core.ShardInfo
   alias Mobius.Core.ShardList
   alias Mobius.Rest
@@ -16,6 +17,7 @@ defmodule Mobius.Services.Bot do
 
   @typep state :: %{
            client: Rest.Client.client(),
+           intents: Intents.t(),
            token: String.t()
          }
 
@@ -42,13 +44,14 @@ defmodule Mobius.Services.Bot do
 
     state = %{
       client: client,
+      intents: Keyword.fetch!(opts, :intents),
       token: token
     }
 
     :ok = ETSShelf.create_table(@shards_table, ShardList.table_options())
 
     client
-    |> start_shards(token)
+    |> start_shards(token, state.intents)
     |> Enum.each(&ShardList.add_shard(@shards_table, &1))
 
     {:ok, state}
@@ -67,7 +70,7 @@ defmodule Mobius.Services.Bot do
 
   # TODO: Notify about all shards being ready?
 
-  defp start_shards(client, token) do
+  defp start_shards(client, token, intents) do
     {:ok, bot_info} = Rest.Gateway.get_bot(client)
     url = parse_url(bot_info["url"])
 
@@ -76,7 +79,7 @@ defmodule Mobius.Services.Bot do
     # TODO: Take into account bot_info["session_start_limit"]
 
     for shard <- ShardInfo.from_count(bot_info["shards"]) do
-      {:ok, pid} = Shard.start_shard(shard, url, token)
+      {:ok, pid} = Shard.start_shard(shard, url: url, token: token, intents: intents)
       Logger.debug("Started shard #{inspect(shard)} on #{inspect(pid)}")
       shard
     end

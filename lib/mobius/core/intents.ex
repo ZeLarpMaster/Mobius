@@ -5,7 +5,7 @@ defmodule Mobius.Core.Intents do
 
   require Logger
 
-  @type intents :: MapSet.t(atom)
+  @type t :: MapSet.t(atom)
 
   # Order is important, use nil for missing bitflags
   @intents [
@@ -73,7 +73,7 @@ defmodule Mobius.Core.Intents do
   ]
 
   @doc "Returns the set of all intents"
-  @spec all_intents() :: intents()
+  @spec all_intents() :: t()
   def all_intents, do: MapSet.new(@intents)
 
   @doc """
@@ -82,11 +82,11 @@ defmodule Mobius.Core.Intents do
   The integer follows what's specified in the Discord documentation:
   https://discord.com/developers/docs/topics/gateway#gateway-intents
   """
-  @spec intents_to_integer(intents()) :: integer
+  @spec intents_to_integer(t()) :: integer
   def intents_to_integer(intents), do: Bitflags.create_bitflags(intents, @intents)
 
   @doc "Returns a set of privileged intents found in the given intents"
-  @spec filter_privileged_intents(intents()) :: intents()
+  @spec filter_privileged_intents(t()) :: t()
   def filter_privileged_intents(intents) do
     MapSet.intersection(intents, MapSet.new(@privileged))
   end
@@ -96,7 +96,7 @@ defmodule Mobius.Core.Intents do
 
   Mostly useful for debugging
   """
-  @spec events_for_intents(intents()) :: list(atom)
+  @spec events_for_intents(t()) :: list(atom)
   def events_for_intents(intents) do
     @event_intents
     |> Enum.map(fn {name, _} -> name end)

@@ -3,6 +3,7 @@ defmodule Mobius.Core.Opcode do
 
   alias Mobius.Core.BotStatus
   alias Mobius.Core.Gateway
+  alias Mobius.Core.Intents
   alias Mobius.Core.ShardInfo
 
   @doc """
@@ -38,8 +39,8 @@ defmodule Mobius.Core.Opcode do
       iex> payload["properties"]["$device"]
       "Mobius"
   """
-  @spec identify(ShardInfo.t(), String.t()) :: map
-  def identify(shard, token) do
+  @spec identify(ShardInfo.t(), String.t(), Intents.t()) :: map
+  def identify(shard, token, intents) do
     {family, name} = :os.type()
 
     data = %{
@@ -49,10 +50,10 @@ defmodule Mobius.Core.Opcode do
         "$browser" => "Mobius",
         "$device" => "Mobius"
       },
-      # Compression here can't be enabled because we're using ETF
+      # Compression can't be enabled here because we're using compression at the transport level
       "compress" => false,
+      "intents" => Intents.intents_to_integer(intents),
       "shard" => ShardInfo.to_list(shard)
-      # "intents" => 0, TODO
     }
 
     serialize(data, :identify)
