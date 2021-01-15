@@ -60,6 +60,18 @@ defmodule Mobius.Fixtures do
   end
 
   # Utility functions
+  @spec mock_gateway_bot(integer, integer) :: any
+  def mock_gateway_bot(remaining \\ 1000, reset_after \\ 0) do
+    app_info = %{
+      "shards" => 1,
+      "url" => "wss://gateway.discord.gg",
+      "session_start_limit" => %{"remaining" => remaining, "reset_after" => reset_after}
+    }
+
+    url = Client.base_url() <> "/gateway/bot"
+    Tesla.Mock.mock_global(fn %{url: ^url, method: :get} -> Mobius.Fixtures.json(app_info) end)
+  end
+
   def send_hello(interval \\ 45_000) do
     send_payload(op: :hello, data: %{"heartbeat_interval" => interval})
   end
