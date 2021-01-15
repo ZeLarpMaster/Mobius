@@ -4,6 +4,7 @@ defmodule Mobius.Services.ShardTest do
   import Mobius.Fixtures
 
   alias Mobius.Core.Gateway
+  alias Mobius.Core.Intents
   alias Mobius.Core.Opcode
 
   setup :get_shard
@@ -32,7 +33,7 @@ defmodule Mobius.Services.ShardTest do
       close_socket_from_server(4009, "Session timed out")
       send_hello()
 
-      msg = Opcode.identify(ctx.shard, ctx.token)
+      msg = Opcode.identify(ctx.shard, ctx.token, Intents.all_intents())
       assert_receive {:socket_msg, ^msg}
     end
 
@@ -61,7 +62,7 @@ defmodule Mobius.Services.ShardTest do
       assert_receive :socket_close
       send_hello()
 
-      msg = Opcode.identify(ctx.shard, ctx.token)
+      msg = Opcode.identify(ctx.shard, ctx.token, Intents.all_intents())
       assert_receive {:socket_msg, ^msg}
     end
 

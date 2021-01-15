@@ -23,14 +23,17 @@ defmodule Mobius.Core.Opcode do
   Creates an identify payload
 
       iex> shard = Mobius.Core.ShardInfo.new(number: 0, count: 1)
-      iex> identify(shard, "a token")["op"] == name_to_opcode(:identify)
+      iex> intents = Mobius.Core.Intents.all_intents()
+      iex> identify(shard, "a token", intents)["op"] == name_to_opcode(:identify)
       true
-      iex> payload = identify(shard, "a token")["d"]
+      iex> payload = identify(shard, "a token", intents)["d"]
       iex> payload["token"]
       "a token"
       iex> payload["compress"]
       false
       iex> payload["shard"] == Mobius.Core.ShardInfo.to_list(shard)
+      true
+      iex> payload["intents"] == Mobius.Core.Intents.intents_to_integer(intents)
       true
       iex> String.length(payload["properties"]["$os"]) > 1
       true
