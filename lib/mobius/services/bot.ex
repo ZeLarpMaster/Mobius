@@ -16,8 +16,6 @@ defmodule Mobius.Services.Bot do
   @shards_table :mobius_shards
 
   @typep state :: %{
-           client: Rest.Client.client(),
-           intents: Intents.t(),
            token: String.t()
          }
 
@@ -31,6 +29,30 @@ defmodule Mobius.Services.Bot do
     ShardList.list_shards(@shards_table)
   end
 
+  @doc """
+  Returns the current `Mobius.Core.Intents` of the bot
+
+  This may raise a `KeyError` if this service isn't started yet
+  """
+  @spec get_intents! :: Intents.t()
+  def get_intents! do
+    __MODULE__
+    |> :persistent_term.get(%{})
+    |> Map.fetch!(:intents)
+  end
+
+  @doc """
+  Returns the current `Mobius.Rest.Client` of the bot
+
+  This may raise a `KeyError` if this service isn't started yet
+  """
+  @spec get_client!() :: Rest.Client.t()
+  def get_client! do
+    __MODULE__
+    |> :persistent_term.get(%{})
+    |> Map.fetch!(:client)
+  end
+
   @spec notify_ready(ShardInfo.t()) :: :ok
   def notify_ready(shard) do
     send(__MODULE__, {:shard_ready, shard})
@@ -39,22 +61,23 @@ defmodule Mobius.Services.Bot do
 
   @spec init(keyword) :: {:ok, state()}
   def init(opts) do
+    intents = Keyword.fetch!(opts, :intents)
     token = Keyword.fetch!(opts, :token)
     client = Rest.Client.new(token: token)
 
-    state = %{
-      client: client,
-      intents: Keyword.fetch!(opts, :intents),
-      token: token
-    }
-
     :ok = ETSShelf.create_table(@shards_table, ShardList.table_options())
 
+    # Infrequent writes and very frequent reads make :persistent_term appropriate
+    # Both are regrouped in one term as recommended in the :persistent_term's best practices:
+    # > Prefer creating a few large persistent terms to creating many small persistent terms
+    # https://erlang.org/doc/man/persistent_term.html#best-practices-for-using-persistent-terms
+    :persistent_term.put(__MODULE__, %{client: client, intents: intents})
+
     client
-    |> start_shards(token, state.intents)
+    |> start_shards(token, intents)
     |> Enum.each(&ShardList.add_shard(@shards_table, &1))
 
-    {:ok, state}
+    {:ok, %{token: token}}
   end
 
   def handle_info({:shard_ready, shard}, state) do
