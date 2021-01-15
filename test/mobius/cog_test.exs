@@ -53,12 +53,4 @@ defmodule Mobius.CogTest do
                ~s'Invalid type for argument "num2". Expected "integer", got "hello".'
     end
   end
-
-  defp send_message_payload(content) do
-    send_payload(
-      op: :dispatch,
-      type: "MESSAGE_CREATE",
-      data: %{"content" => content}
-    )
-  end
 end

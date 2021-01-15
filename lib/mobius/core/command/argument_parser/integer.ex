@@ -7,7 +7,7 @@ defmodule Mobius.Core.Command.ArgumentParser.Integer do
   def parse(value) do
     case Integer.parse(value) do
       {int, ""} -> int
-      :error -> :error
+      _ -> :error
     end
   end
 end

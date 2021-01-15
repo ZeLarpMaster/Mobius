@@ -16,7 +16,7 @@ defmodule Mobius.Core.Command do
           {:ok, any()}
           | :not_a_command
           | {:too_few_args, t(), non_neg_integer()}
-          | {:invalid_args, [{Validator.arg_type(), String.t()}]}
+          | {:invalid_args, [{{:atom, ArgumentParser.arg_type()}, String.t()}]}
 
   @spec handle_message([t()], binary) :: handle_message_result()
   def handle_message(commands, message) do
@@ -29,11 +29,6 @@ defmodule Mobius.Core.Command do
   @spec command_handler_name(String.t()) :: atom()
   def command_handler_name(command_name) do
     :"__mobius_command_#{command_name}__"
-  end
-
-  @spec get_command_arg_names(keyword(ArgumentParser.arg_type())) :: [atom()]
-  def get_command_arg_names(args) do
-    Enum.map(args, &elem(&1, 0))
   end
 
   @spec arg_names(t()) :: [String.t()]

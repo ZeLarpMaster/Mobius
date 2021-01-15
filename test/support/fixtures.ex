@@ -106,4 +106,12 @@ defmodule Mobius.Fixtures do
   def json(term, status_code \\ 200) do
     {status_code, [{"content-type", "application/json"}], Jason.encode!(term)}
   end
+
+  def send_message_payload(content) do
+    send_payload(
+      op: :dispatch,
+      type: "MESSAGE_CREATE",
+      data: %{"content" => content}
+    )
+  end
 end
