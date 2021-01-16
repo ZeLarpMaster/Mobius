@@ -17,13 +17,9 @@ defmodule Mobius.Services.CogLoader do
 
   @impl true
   def init(_init_arg) do
-    if Mix.env() in [:dev, :prod] do
-      Enum.each(@initial_cogs, &start_cog/1)
+    Enum.each(@initial_cogs, &start_cog/1)
 
-      {:ok, %{cogs: @initial_cogs}}
-    else
-      {:ok, %{cogs: []}}
-    end
+    {:ok, %{cogs: @initial_cogs}}
   end
 
   @impl true

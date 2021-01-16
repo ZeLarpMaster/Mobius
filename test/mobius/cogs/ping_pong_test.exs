@@ -1,5 +1,5 @@
 defmodule Mobius.Cogs.PingPongTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
 
   import Mobius.Fixtures
   import ExUnit.CaptureLog
@@ -11,7 +11,6 @@ defmodule Mobius.Cogs.PingPongTest do
 
   setup do
     Process.register(self(), :cog_test_process)
-    start_supervised!(Mobius.Cogs.PingPong)
 
     :ok
   end

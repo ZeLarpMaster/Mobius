@@ -1,5 +1,5 @@
 defmodule Mobius.CogTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
 
   import Mobius.Fixtures
   import ExUnit.CaptureLog
