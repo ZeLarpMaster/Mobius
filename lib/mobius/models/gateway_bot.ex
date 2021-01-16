@@ -27,7 +27,7 @@ defmodule Mobius.Models.GatewayBot do
       nil
       iex> parse(%{})
       %GatewayBot{}
-      iex> parse(%{"url" => "wss://something", "shards" => 1, "session_limit" => %{}})
+      iex> parse(%{"url" => "wss://something", "shards" => 1, "session_start_limit" => %{}})
       %GatewayBot{url: "wss://something", shards: 1, session_limit: %SessionLimit{}}
   """
   @spec parse(any) :: t() | nil
@@ -35,7 +35,7 @@ defmodule Mobius.Models.GatewayBot do
     %__MODULE__{}
     |> add_field(map, "url", :url)
     |> add_field(map, "shards", :shards)
-    |> add_field(map, "session_limit", :session_limit, &SessionLimit.parse/1)
+    |> add_field(map, "session_start_limit", :session_limit, &SessionLimit.parse/1)
   end
 
   def parse(_), do: nil
