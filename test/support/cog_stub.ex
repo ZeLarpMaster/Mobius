@@ -1,4 +1,6 @@
 defmodule Mobius.Stubs.Cog do
+  @moduledoc false
+
   use Mobius.Cog
 
   listen :message_create, %{"content" => content} do

@@ -1,9 +1,9 @@
 defmodule Mobius.Services.CogLoaderTest do
   use ExUnit.Case
 
-  alias Mobius.Services.CogLoader
-
   import Mobius.Fixtures
+
+  alias Mobius.Services.CogLoader
 
   setup :get_shard
   setup :reset_services
