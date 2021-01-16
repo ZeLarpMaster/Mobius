@@ -78,13 +78,13 @@ defmodule Mobius.Services.Bot do
 
     Logger.debug("Starting shards with #{inspect(bot_info)}")
 
-    session_limit = bot_info.session_limit
-    remaining = session_limit.remaining
+    limit = bot_info.session_start_limit
+    remaining = limit.remaining
 
     # Later we'll probably want to track this in ConnectionRatelimiter
     # To prevent issues where, without restarting the bot, too many connections are issued
     if remaining < shard_count do
-      time_ms = session_limit.reset_after
+      time_ms = limit.reset_after
       warning = "Too many connections were issued with this token!"
       Logger.warn(warning <> " Waiting #{time_ms} milliseconds...")
       Process.sleep(time_ms)

@@ -1,4 +1,4 @@
-defmodule Mobius.Models.SessionLimit do
+defmodule Mobius.Models.SessionStartLimit do
   @moduledoc """
   Struct for the session start limit given by GET /gateway/bot
 
@@ -21,21 +21,21 @@ defmodule Mobius.Models.SessionLimit do
 
   ## Examples
 
-      iex> alias Mobius.Models.SessionLimit
+      iex> alias Mobius.Models.SessionStartLimit
       iex> parse("not a map")
       nil
       iex> parse(%{})
-      %SessionLimit{}
+      %SessionStartLimit{}
       iex> parse(%{"total" => 10, "remaining" => 9, "reset_after" => 0, "max_concurrency" => 1})
-      %SessionLimit{max_concurrency: 1, remaining: 9, reset_after: 0, total: 10}
+      %SessionStartLimit{max_concurrency: 1, remaining: 9, reset_after: 0, total: 10}
   """
   @spec parse(any) :: t() | nil
   def parse(map) when is_map(map) do
     %__MODULE__{}
-    |> add_field(map, "total", :total)
-    |> add_field(map, "remaining", :remaining)
-    |> add_field(map, "reset_after", :reset_after)
-    |> add_field(map, "max_concurrency", :max_concurrency)
+    |> add_field(map, :total)
+    |> add_field(map, :remaining)
+    |> add_field(map, :reset_after)
+    |> add_field(map, :max_concurrency)
   end
 
   def parse(_), do: nil
