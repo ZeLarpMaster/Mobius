@@ -104,7 +104,7 @@ defmodule Mobius.Core.Intents do
   end
 
   @doc "Returns true if the event can be received with the given intents. Returns false otherwise"
-  @spec has_intent_for_event?(atom, list(atom)) :: boolean
+  @spec has_intent_for_event?(atom, t()) :: boolean
   def has_intent_for_event?(event_name, intents)
 
   for {event_name, required_intents} <- @event_intents do
