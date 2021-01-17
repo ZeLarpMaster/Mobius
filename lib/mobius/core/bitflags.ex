@@ -38,7 +38,7 @@ defmodule Mobius.Core.Bitflags do
   @doc """
   Converts a list of flags into an integer of bitflags
 
-  Foreach flag, if it can be found in the input, its associated bit will be 1 in the result.
+  For each flag, if it can be found in the input, its associated bit will be 1 in the result.
   Starting from the least significant bit.
 
   This function is the inverse of `parse_bitflags/2`
