@@ -18,6 +18,17 @@
         "review",
         "test"
       ]
+    },
+    {
+      "login": "Blond11516",
+      "name": "Étienne Lévesque",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/44734484?v=4",
+      "profile": "https://github.com/Blond11516",
+      "contributions": [
+        "code",
+        "test",
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
