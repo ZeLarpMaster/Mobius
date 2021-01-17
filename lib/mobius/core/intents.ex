@@ -30,7 +30,7 @@ defmodule Mobius.Core.Intents do
   @privileged [:guild_members, :guild_presences]
 
   # Must have at least one of the intents to receive the event
-  @event_intents [
+  @event_intents %{
     hello: [],
     ready: [],
     resumed: [],
@@ -70,7 +70,7 @@ defmodule Mobius.Core.Intents do
     voice_state_update: [:guild_voice_states],
     voice_server_update: [],
     webhooks_update: [:guild_webhooks]
-  ]
+  }
 
   @doc "Returns the set of all intents"
   @spec all_intents() :: t()
@@ -105,15 +105,12 @@ defmodule Mobius.Core.Intents do
 
   @doc "Returns true if the event can be received with the given intents. Returns false otherwise"
   @spec has_intent_for_event?(atom, t()) :: boolean
-  def has_intent_for_event?(event_name, intents)
-
-  for {event_name, required_intents} <- @event_intents do
-    if required_intents == [] do
-      def has_intent_for_event?(unquote(event_name), _intents), do: true
-    else
-      def has_intent_for_event?(unquote(event_name), intents) do
-        Enum.any?(unquote(required_intents), &(&1 in intents))
-      end
-    end
+  def has_intent_for_event?(event_name, intents) do
+    @event_intents
+    |> Map.fetch!(event_name)
+    |> check_has_intents(intents)
   end
+
+  defp check_has_intents([], _intents), do: true
+  defp check_has_intents(required, intents), do: Enum.any?(required, &Enum.member?(intents, &1))
 end
