@@ -35,6 +35,19 @@ defmodule Mobius.Cog do
     end
   end
   ```
+
+  ## Notice about GenServer callbacks
+  Cogs use GenServers underneath to handle communication with the other layers
+  of the bot. While it is possible, it is not recommended to implement GenServer
+  callbacks in your Cogs. If a Cog needs to handle any form of persistent
+  state, it is recommended that this state be handled in another module, be it a
+  GenServer or otherwise.
+
+  Should you decide to implement GenServer callbacks in your cog, be aware that
+  `Cog` already implements the `handle_info/2` callback, matching a two element
+  tuple as the message (`{event_name, data}, state`), where `event_name` is an
+  atom and `data` is a map. Please make sure that any other implementations of
+  `handle_info/2` match a different pattern.
   """
 
   alias Mobius.Core.Command
@@ -105,7 +118,7 @@ defmodule Mobius.Cog do
       end
 
       @impl true
-      def handle_info({event_name, data}, state) do
+      def handle_info({event_name, data}, state) when is_atom(event_name) and is_map(data) do
         Logger.debug("Cog \"#{__MODULE__}\" received event #{inspect(event_name)}")
 
         @event_handlers
