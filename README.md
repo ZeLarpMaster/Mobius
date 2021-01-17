@@ -1,6 +1,6 @@
 # Mobius
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-2-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 An Elixir framework for creating Discord bots in a modular way
@@ -33,6 +33,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <table>
   <tr>
     <td align="center"><a href="https://github.com/ZeLarpMaster"><img src="https://avatars0.githubusercontent.com/u/1305105?v=4?s=100" width="100px;" alt=""/><br /><sub><b>ZeLarpMaster</b></sub></a><br /><a href="https://github.com/ZeLarpMaster/Mobius/commits?author=ZeLarpMaster" title="Code">💻</a> <a href="https://github.com/ZeLarpMaster/Mobius/commits?author=ZeLarpMaster" title="Documentation">📖</a> <a href="#maintenance-ZeLarpMaster" title="Maintenance">🚧</a> <a href="#question-ZeLarpMaster" title="Answering Questions">💬</a> <a href="https://github.com/ZeLarpMaster/Mobius/pulls?q=is%3Apr+reviewed-by%3AZeLarpMaster" title="Reviewed Pull Requests">👀</a> <a href="https://github.com/ZeLarpMaster/Mobius/commits?author=ZeLarpMaster" title="Tests">⚠️</a></td>
+    <td align="center"><a href="https://github.com/Blond11516"><img src="https://avatars1.githubusercontent.com/u/44734484?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Étienne Lévesque</b></sub></a><br /><a href="https://github.com/ZeLarpMaster/Mobius/commits?author=Blond11516" title="Code">💻</a> <a href="https://github.com/ZeLarpMaster/Mobius/commits?author=Blond11516" title="Tests">⚠️</a> <a href="https://github.com/ZeLarpMaster/Mobius/commits?author=Blond11516" title="Documentation">📖</a></td>
   </tr>
 </table>
 
