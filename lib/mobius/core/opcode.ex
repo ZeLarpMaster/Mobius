@@ -3,6 +3,7 @@ defmodule Mobius.Core.Opcode do
 
   alias Mobius.Core.BotStatus
   alias Mobius.Core.Gateway
+  alias Mobius.Core.Intents
   alias Mobius.Core.ShardInfo
 
   @doc """
@@ -22,14 +23,17 @@ defmodule Mobius.Core.Opcode do
   Creates an identify payload
 
       iex> shard = Mobius.Core.ShardInfo.new(number: 0, count: 1)
-      iex> identify(shard, "a token")["op"] == name_to_opcode(:identify)
+      iex> intents = Mobius.Core.Intents.all_intents()
+      iex> identify(shard, "a token", intents)["op"] == name_to_opcode(:identify)
       true
-      iex> payload = identify(shard, "a token")["d"]
+      iex> payload = identify(shard, "a token", intents)["d"]
       iex> payload["token"]
       "a token"
       iex> payload["compress"]
       false
       iex> payload["shard"] == Mobius.Core.ShardInfo.to_list(shard)
+      true
+      iex> payload["intents"] == Mobius.Core.Intents.intents_to_integer(intents)
       true
       iex> String.length(payload["properties"]["$os"]) > 1
       true
@@ -38,8 +42,8 @@ defmodule Mobius.Core.Opcode do
       iex> payload["properties"]["$device"]
       "Mobius"
   """
-  @spec identify(ShardInfo.t(), String.t()) :: map
-  def identify(shard, token) do
+  @spec identify(ShardInfo.t(), String.t(), Intents.t()) :: map
+  def identify(shard, token, intents) do
     {family, name} = :os.type()
 
     data = %{
@@ -49,10 +53,10 @@ defmodule Mobius.Core.Opcode do
         "$browser" => "Mobius",
         "$device" => "Mobius"
       },
-      # Compression here can't be enabled because we're using ETF
+      # Compression can't be enabled here because we're using compression at the transport level
       "compress" => false,
+      "intents" => Intents.intents_to_integer(intents),
       "shard" => ShardInfo.to_list(shard)
-      # "intents" => 0, TODO
     }
 
     serialize(data, :identify)

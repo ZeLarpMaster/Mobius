@@ -1,6 +1,8 @@
 defmodule Mobius.TestUtils do
   @moduledoc false
 
+  import ExUnit.Assertions
+
   @doc """
   Returns runtime of a function call in milliseconds
 
@@ -17,5 +19,21 @@ defmodule Mobius.TestUtils do
       |> elem(0)
       |> :erlang.convert_time_unit(:microsecond, :millisecond)
     end
+  end
+
+  @doc """
+  Asserts that two lists contain exactly the same items, regardless of order
+
+  ## Examples
+
+      iex> assert_list_unordered([1, 2, 3], [3, 2, 1])
+      true
+
+      iex> assert_list_unordered([1, 2, 3], [1, 2])
+      false
+  """
+  @spec assert_list_unordered([any], [any]) :: any
+  def assert_list_unordered(actual, expectation) do
+    assert Enum.sort(actual) == Enum.sort(expectation)
   end
 end

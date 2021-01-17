@@ -1,10 +1,15 @@
 defmodule Mobius.Services.ShardTest do
   use ExUnit.Case
 
+  import ExUnit.CaptureLog
   import Mobius.Fixtures
 
   alias Mobius.Core.Gateway
+  alias Mobius.Core.Intents
   alias Mobius.Core.Opcode
+
+  # Currently hardcoded in Mobius.Application
+  @intents Intents.all_intents()
 
   setup :get_shard
   setup :reset_services
@@ -12,6 +17,7 @@ defmodule Mobius.Services.ShardTest do
   setup :stub_connection_ratelimiter
 
   describe "shard" do
+    @describetag intents: @intents
     setup :handshake_shard
 
     test "attempts to resume if socket closes with resumable code", ctx do
@@ -32,7 +38,7 @@ defmodule Mobius.Services.ShardTest do
       close_socket_from_server(4009, "Session timed out")
       send_hello()
 
-      msg = Opcode.identify(ctx.shard, ctx.token)
+      msg = Opcode.identify(ctx.shard, ctx.token, @intents)
       assert_receive {:socket_msg, ^msg}
     end
 
@@ -44,6 +50,16 @@ defmodule Mobius.Services.ShardTest do
       # TODO: Make via/1 public?
       pid = GenServer.whereis({:via, Registry, {Mobius.Registry.Shard, ctx.shard}})
       assert pid == nil
+    end
+
+    test "warns about intents if socket closes with 4014" do
+      # 4014 is the code for disallowed intents and is sent went trying to connect
+      # with intents which weren't enabled for the bot
+      intents = "guild_members, guild_presences"
+
+      assert capture_log(fn ->
+               close_socket_from_server(4014, "Disallowed intent(s)")
+             end) =~ "You used the intents #{intents}, but at least one of them isn't enabled"
     end
 
     test "resumes on invalid session if possible", ctx do
@@ -61,7 +77,7 @@ defmodule Mobius.Services.ShardTest do
       assert_receive :socket_close
       send_hello()
 
-      msg = Opcode.identify(ctx.shard, ctx.token)
+      msg = Opcode.identify(ctx.shard, ctx.token, @intents)
       assert_receive {:socket_msg, ^msg}
     end
 
