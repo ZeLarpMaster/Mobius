@@ -70,7 +70,10 @@ defmodule Mobius.Rest.Client do
   defp check_status(%Tesla.Env{status: 200, body: body}), do: {:ok, body}
   defp check_status(%Tesla.Env{} = env), do: {:error, env.status, env.body}
 
+  defp client_should_retry?({:error, :forbidden}), do: false
+  defp client_should_retry?({:error, :unauthorized_token}), do: false
   defp client_should_retry?({:error, _}), do: true
+  defp client_should_retry?({:error, error, _}), do: error in [:bad_request]
   defp client_should_retry?({:ok, %{status: status}}) when status in [429, 500, 502], do: true
   defp client_should_retry?({:ok, _}), do: false
 end

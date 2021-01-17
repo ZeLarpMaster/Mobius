@@ -4,6 +4,7 @@ defmodule Mobius.Rest.GatewayTest do
   import Tesla.Mock, only: [mock: 1]
   import Mobius.Fixtures
 
+  alias Mobius.Models
   alias Mobius.Rest
   alias Mobius.Rest.Client
 
@@ -25,21 +26,22 @@ defmodule Mobius.Rest.GatewayTest do
       refute {:error, :unauthorized} == Rest.Gateway.get_bot(ctx.client)
     end
 
-    test "returns {:ok, map} if status is 200", ctx do
+    test "returns {:ok, GatewayBot.t()} if status is 200", ctx do
       raw = %{
         "url" => "wss://test.websocket.org",
         "shards" => 1,
         "session_start_limit" => %{
           "total" => 1000,
           "remaining" => 999,
-          "reset_after" => 18_000_000
+          "reset_after" => 18_000_000,
+          "max_concurrency" => 1
         }
       }
 
       url = Client.base_url() <> "/gateway/bot"
       mock(fn %{method: :get, url: ^url} -> json(raw) end)
 
-      assert {:ok, raw} == Rest.Gateway.get_bot(ctx.client)
+      assert {:ok, Models.GatewayBot.parse(raw)} == Rest.Gateway.get_bot(ctx.client)
     end
   end
 

@@ -4,6 +4,7 @@ defmodule Mobius.Services.Shard do
   use GenServer
 
   alias Mobius.Core.Gateway
+  alias Mobius.Core.Intents
   alias Mobius.Core.Opcode
   alias Mobius.Core.ShardInfo
   alias Mobius.Core.SocketCodes
@@ -19,6 +20,7 @@ defmodule Mobius.Services.Shard do
 
   @typep state :: %{
            gateway: Gateway.t(),
+           intents: Intents.t(),
            shard: ShardInfo.t()
          }
 
@@ -29,12 +31,9 @@ defmodule Mobius.Services.Shard do
            s: integer | nil
          }
 
-  @spec start_shard(ShardInfo.t(), String.t(), String.t()) :: DynamicSupervisor.on_start_child()
-  def start_shard(shard, url, token) do
-    DynamicSupervisor.start_child(
-      Mobius.Supervisor.Shard,
-      {__MODULE__, {shard, url: url, token: token}}
-    )
+  @spec start_shard(ShardInfo.t(), keyword) :: DynamicSupervisor.on_start_child()
+  def start_shard(shard, opts) do
+    DynamicSupervisor.start_child(Mobius.Supervisor.Shard, {__MODULE__, {shard, opts}})
   end
 
   @spec child_spec({ShardInfo.t(), keyword}) :: Supervisor.child_spec()
@@ -74,6 +73,7 @@ defmodule Mobius.Services.Shard do
 
     state = %{
       gateway: Gateway.new(Keyword.fetch!(opts, :token)),
+      intents: Keyword.fetch!(opts, :intents),
       shard: shard
     }
 
@@ -96,6 +96,7 @@ defmodule Mobius.Services.Shard do
   def handle_call({:socket_closed, close_num, reason}, _from, state) do
     {close_reason, what_can_do} = SocketCodes.translate_close_code(close_num)
     Logger.warn("Socket closed (#{close_num}: #{close_reason}) #{reason}")
+    if close_num == 4014, do: warn_privileged_intents(state.intents)
 
     case what_can_do do
       :resume -> {:reply, :ok, state}
@@ -143,7 +144,7 @@ defmodule Mobius.Services.Shard do
       # Send the identify when the ratelimiter allows it
       ConnectionRatelimiter.wait_until_can_connect(fn ->
         state.shard
-        |> Opcode.identify(state.gateway.token)
+        |> Opcode.identify(state.gateway.token, state.intents)
         |> Socket.send_message(state.shard)
       end)
     end
@@ -197,6 +198,16 @@ defmodule Mobius.Services.Shard do
   defp broadcast_event(state, payload) do
     EventPipeline.notify_event(payload.t, payload.d)
     state
+  end
+
+  defp warn_privileged_intents(intents) do
+    intents_string =
+      intents
+      |> Intents.filter_privileged_intents()
+      |> Enum.map(&Atom.to_string/1)
+      |> Enum.join(", ")
+
+    Logger.warn("You used the intents #{intents_string}, but at least one of them isn't enabled")
   end
 
   defp update_seq(state, seq), do: update_in(state.gateway, &Gateway.update_seq(&1, seq))

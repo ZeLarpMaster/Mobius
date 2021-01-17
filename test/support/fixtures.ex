@@ -3,6 +3,7 @@ defmodule Mobius.Fixtures do
 
   import ExUnit.Assertions
 
+  alias Mobius.Core.Intents
   alias Mobius.Core.Opcode
   alias Mobius.Core.ShardInfo
   alias Mobius.Rest.Client
@@ -31,10 +32,10 @@ defmodule Mobius.Fixtures do
     Stubs.ConnectionRatelimiter.set_owner()
   end
 
-  def handshake_shard(_context) do
+  def handshake_shard(context) do
     send_hello()
     assert_receive_heartbeat()
-    token = assert_receive_identify()
+    token = assert_receive_identify(context[:intents] || Intents.all_intents())
 
     session_id = random_hex(16)
 
@@ -59,6 +60,18 @@ defmodule Mobius.Fixtures do
   end
 
   # Utility functions
+  @spec mock_gateway_bot(integer, integer) :: any
+  def mock_gateway_bot(remaining \\ 1000, reset_after \\ 0) do
+    app_info = %{
+      "shards" => 1,
+      "url" => "wss://gateway.discord.gg",
+      "session_start_limit" => %{"remaining" => remaining, "reset_after" => reset_after}
+    }
+
+    url = Client.base_url() <> "/gateway/bot"
+    Tesla.Mock.mock_global(fn %{url: ^url, method: :get} -> Mobius.Fixtures.json(app_info) end)
+  end
+
   def send_hello(interval \\ 45_000) do
     send_payload(op: :hello, data: %{"heartbeat_interval" => interval})
   end
@@ -79,9 +92,9 @@ defmodule Mobius.Fixtures do
     assert_receive {:socket_msg, ^msg}, 50
   end
 
-  def assert_receive_identify do
+  def assert_receive_identify(intents \\ Intents.all_intents()) do
     token = System.fetch_env!("MOBIUS_BOT_TOKEN")
-    msg = Opcode.identify(@shard, token)
+    msg = Opcode.identify(@shard, token, intents)
     assert_receive {:socket_msg, ^msg}, 50
     token
   end

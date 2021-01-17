@@ -5,6 +5,8 @@ defmodule Mobius.Application do
 
   use Application
 
+  alias Mobius.Core.Intents
+
   @spec start(any, list) :: {:ok, pid}
   def start(_type, _args) do
     children = [
@@ -21,7 +23,8 @@ defmodule Mobius.Application do
       {Mobius.Services.EventPipeline, []},
       {Mobius.Services.CommandsRatelimiter, []},
       {Mobius.Services.ConnectionRatelimiter, connection_delay_ms: 5_000, ack_timeout_ms: 10_000},
-      {Mobius.Services.Bot, token: System.get_env("MOBIUS_BOT_TOKEN")},
+      {Mobius.Services.Bot,
+       token: System.get_env("MOBIUS_BOT_TOKEN"), intents: Intents.all_intents()},
       {Mobius.Services.CogLoader, []}
     ]
 

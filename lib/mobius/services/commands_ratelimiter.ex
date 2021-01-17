@@ -6,12 +6,10 @@ defmodule Mobius.Services.CommandsRatelimiter do
   @type bucket :: {String.t(), pos_integer(), pos_integer()}
 
   @callback start_link(keyword) :: GenServer.on_start()
+  @callback child_spec(keyword) :: Supervisor.child_spec()
   @callback request_access(bucket()) :: :ok | :ratelimited
 
-  @spec start_link(keyword) :: GenServer.on_start()
-  def start_link(opts), do: impl().start_link(opts)
-
-  @spec child_spec(any) :: Supervisor.child_spec()
+  @spec child_spec(keyword) :: Supervisor.child_spec()
   def child_spec(opts), do: impl().child_spec(opts)
 
   @doc """
