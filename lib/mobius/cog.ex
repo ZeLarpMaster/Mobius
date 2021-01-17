@@ -78,7 +78,7 @@ defmodule Mobius.Cog do
       alias Mobius.Actions.Events
 
       listen :message_create, %{"content" => content} do
-        case Command.handle_message(@commands, content) do
+        case Command.execute_command(@commands, content) do
           {:ok, _} ->
             :ok
 
@@ -169,7 +169,7 @@ defmodule Mobius.Cog do
   The first parameter defines the name of the command as a single word (no
   spaces).
 
-  The second parameter defires the list of arguments that the command accepts,
+  The second parameter defines the list of arguments that the command accepts,
   along with their type. If a user passes more arguments than are defined by the
   command, the extraneous arguments will be ignored.
 
@@ -235,8 +235,7 @@ defmodule Mobius.Cog do
           %CompileError{
             line: line,
             file: file,
-            description:
-              "Command \"#{command.name}\" already exists. Duplicated command will be ignored."
+            description: "Command \"#{command.name}\" already exists."
           },
           []
         )

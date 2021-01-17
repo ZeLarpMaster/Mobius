@@ -22,11 +22,4 @@ defmodule Mobius.Cogs.PingPongTest do
       end) =~ "pong"
     end
   end
-
-  @impl true
-  def handle_info(message, state) do
-    IO.inspect(message, label: "custom")
-
-    {:noreply, state}
-  end
 end

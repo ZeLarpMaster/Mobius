@@ -41,7 +41,7 @@ defmodule Mobius.Core.CommandTest do
     end
   end
 
-  describe "handle_message/2" do
+  describe "execute_command/2" do
     setup do
       command = %Command{
         name: "hello",
@@ -53,24 +53,24 @@ defmodule Mobius.Core.CommandTest do
         handler: &command_handler/3
       }
 
-      {:ok, command: command}
+      [command: command]
     end
 
     test "should return an error when no command matches the message" do
-      assert Command.handle_message([], "hello") == :not_a_command
+      assert Command.execute_command([], "hello") == :not_a_command
     end
 
     test "should return an error when the command has missing arguments", %{command: command} do
-      assert Command.handle_message([command], "hello") == {:too_few_args, command, 0}
+      assert Command.execute_command([command], "hello") == {:too_few_args, command, 0}
     end
 
     test "should return an error when the command has invalid arguments", %{command: command} do
-      assert Command.handle_message([command], "hello foo bar baz") ==
+      assert Command.execute_command([command], "hello foo bar baz") ==
                {:invalid_args, [{{:foo, :integer}, "foo"}]}
     end
 
     test "should execute the command when the arguments are valid", %{command: command} do
-      Command.handle_message([command], "hello 1 foo bar")
+      Command.execute_command([command], "hello 1 foo bar")
       assert_receive("command handled")
     end
   end

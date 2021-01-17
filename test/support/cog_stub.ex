@@ -16,8 +16,6 @@ defmodule Mobius.Stubs.Cog do
   end
 
   defp send_to_test(message) do
-    :cog_test_process
-    |> Process.whereis()
-    |> send(message)
+    send(:cog_test_process, message)
   end
 end

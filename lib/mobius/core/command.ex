@@ -16,15 +16,7 @@ defmodule Mobius.Core.Command do
           {:ok, any()}
           | :not_a_command
           | {:too_few_args, t(), non_neg_integer()}
-          | {:invalid_args, [{{:atom, ArgumentParser.arg_type()}, String.t()}]}
-
-  @spec handle_message([t()], binary) :: handle_message_result()
-  def handle_message(commands, message) do
-    case parse_command(commands, message) do
-      {:ok, command, arg_values} -> {:ok, execute(command, arg_values)}
-      error -> error
-    end
-  end
+          | {:invalid_args, [{{atom(), ArgumentParser.arg_type()}, String.t()}]}
 
   @spec command_handler_name(String.t()) :: atom()
   def command_handler_name(command_name) do
@@ -41,7 +33,8 @@ defmodule Mobius.Core.Command do
   @spec arg_count(t()) :: non_neg_integer()
   def arg_count(%__MODULE__{} = command), do: length(command.args)
 
-  defp parse_command(commands, message) do
+  @spec execute_command([t()], binary) :: handle_message_result()
+  def execute_command(commands, message) do
     commands
     |> Enum.find(fn %__MODULE__{} = command -> String.starts_with?(message, command.name) end)
     |> case do
@@ -51,21 +44,11 @@ defmodule Mobius.Core.Command do
       %__MODULE__{} = command ->
         arg_values = split_arguments(message)
 
-        with {:ok, values} <- validate(command, arg_values) do
-          {:ok, command, values}
+        with :ok <- validate_arg_count(command, arg_values),
+             {:ok, values} <- parse_arg_values(command, arg_values) do
+          {:ok, apply(command.handler, values)}
         end
     end
-  end
-
-  defp validate(%__MODULE__{} = command, values) do
-    with :ok <- validate_arg_count(command, values),
-         {:ok, values} <- parse_arg_values(command, values) do
-      {:ok, values}
-    end
-  end
-
-  defp execute(%__MODULE__{} = command, arg_values) do
-    apply(command.handler, arg_values)
   end
 
   defp validate_arg_count(%__MODULE__{} = command, values) do
