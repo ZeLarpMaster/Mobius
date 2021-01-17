@@ -33,14 +33,7 @@ defmodule Mobius.Core.Bitflags do
       0b1010
   """
   @spec parse_bitflags(integer, [arg | nil], MapSet.t(arg)) :: MapSet.t(arg) when arg: var
-  def parse_bitflags(num, flags, out \\ MapSet.new())
-  def parse_bitflags(_num, [], out), do: out
-  def parse_bitflags(0, _flags, out), do: out
-
-  def parse_bitflags(num, [flag | flags], out) when is_integer(num) do
-    out = if (num &&& 1) == 1 and flag != nil, do: MapSet.put(out, flag), else: out
-    parse_bitflags(num >>> 1, flags, out)
-  end
+  def parse_bitflags(num, flags), do: parse_bitflags(num, flags, MapSet.new())
 
   @doc """
   Converts a list of flags into an integer of bitflags
@@ -76,5 +69,19 @@ defmodule Mobius.Core.Bitflags do
     |> Stream.filter(fn {flag, _index} -> flag in input end)
     |> Stream.map(fn {_flag, index} -> index end)
     |> Enum.reduce(0, &Bitwise.bor/2)
+  end
+
+  defp parse_bitflags(_num, [], out), do: out
+  defp parse_bitflags(0, _flags, out), do: out
+
+  defp parse_bitflags(num, [flag | flags], out) when is_integer(num) do
+    out =
+      if (num &&& 1) == 1 and flag != nil do
+        MapSet.put(out, flag)
+      else
+        out
+      end
+
+    parse_bitflags(num >>> 1, flags, out)
   end
 end
