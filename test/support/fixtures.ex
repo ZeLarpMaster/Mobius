@@ -115,6 +115,10 @@ defmodule Mobius.Fixtures do
     |> Enum.join()
   end
 
+  def random_snowflake do
+    Integer.to_string(:rand.uniform(100_000_000_000))
+  end
+
   def json(term, status_code \\ 200) do
     {status_code, [{"content-type", "application/json"}], Jason.encode!(term)}
   end

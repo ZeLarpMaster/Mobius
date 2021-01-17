@@ -1,9 +1,9 @@
-defmodule Mobius.Models.ApplicationInfo do
+defmodule Mobius.Models.Application do
   @moduledoc """
   Struct for the response of a GET /oauth2/applications/@me request
 
   Related documentation:
-  https://discord.com/developers/docs/topics/oauth2#get-current-application-information
+  https://discord.com/developers/docs/topics/oauth2#application-object
   """
 
   import Mobius.Models.Utils
