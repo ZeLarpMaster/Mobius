@@ -3,6 +3,7 @@ defmodule Mobius.Services.Bot do
 
   use GenServer
 
+  alias Mobius.Core.Intents
   alias Mobius.Core.ShardInfo
   alias Mobius.Core.ShardList
   alias Mobius.Rest
@@ -15,7 +16,6 @@ defmodule Mobius.Services.Bot do
   @shards_table :mobius_shards
 
   @typep state :: %{
-           client: Rest.Client.client(),
            token: String.t()
          }
 
@@ -31,6 +31,30 @@ defmodule Mobius.Services.Bot do
   end
 
   @doc """
+  Returns the current `Mobius.Core.Intents` of the bot
+
+  This may raise a `KeyError` if this service isn't started yet
+  """
+  @spec get_intents! :: Intents.t()
+  def get_intents! do
+    __MODULE__
+    |> :persistent_term.get(%{})
+    |> Map.fetch!(:intents)
+  end
+
+  @doc """
+  Returns the current `Mobius.Rest.Client` of the bot
+
+  This may raise a `KeyError` if this service isn't started yet
+  """
+  @spec get_client!() :: Rest.Client.t()
+  def get_client! do
+    __MODULE__
+    |> :persistent_term.get(%{})
+    |> Map.fetch!(:client)
+  end
+
+  @doc """
   Notifies Bot about the shard being ready
 
   This function is meant for internal use by the shards and nothing else
@@ -43,21 +67,23 @@ defmodule Mobius.Services.Bot do
 
   @spec init(keyword) :: {:ok, state()}
   def init(opts) do
+    intents = Keyword.fetch!(opts, :intents)
     token = Keyword.fetch!(opts, :token)
     client = Rest.Client.new(token: token)
 
-    state = %{
-      client: client,
-      token: token
-    }
-
     :ok = ETSShelf.create_table(@shards_table, ShardList.table_options())
 
+    # Infrequent writes and very frequent reads make :persistent_term appropriate
+    # Both are regrouped in one term as recommended in the :persistent_term's best practices:
+    # > Prefer creating a few large persistent terms to creating many small persistent terms
+    # https://erlang.org/doc/man/persistent_term.html#best-practices-for-using-persistent-terms
+    :persistent_term.put(__MODULE__, %{client: client, intents: intents})
+
     client
-    |> start_shards(token)
+    |> start_shards(token, intents)
     |> Enum.each(&ShardList.add_shard(@shards_table, &1))
 
-    {:ok, state}
+    {:ok, %{token: token}}
   end
 
   def handle_info({:shard_ready, shard}, state) do
@@ -71,7 +97,7 @@ defmodule Mobius.Services.Bot do
     {:noreply, state}
   end
 
-  defp start_shards(client, token) do
+  defp start_shards(client, token, intents) do
     {:ok, bot_info} = Rest.Gateway.get_bot(client)
     url = parse_url(bot_info.url)
     shard_count = bot_info.shards
@@ -91,7 +117,7 @@ defmodule Mobius.Services.Bot do
     end
 
     for shard <- ShardInfo.from_count(shard_count) do
-      {:ok, pid} = Shard.start_shard(shard, url, token)
+      {:ok, pid} = Shard.start_shard(shard, url: url, token: token, intents: intents)
       Logger.debug("Started shard #{inspect(shard)} on #{inspect(pid)}")
       shard
     end

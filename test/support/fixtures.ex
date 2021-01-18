@@ -3,6 +3,7 @@ defmodule Mobius.Fixtures do
 
   import ExUnit.Assertions
 
+  alias Mobius.Core.Intents
   alias Mobius.Core.Opcode
   alias Mobius.Core.ShardInfo
   alias Mobius.Rest.Client
@@ -31,10 +32,10 @@ defmodule Mobius.Fixtures do
     Stubs.ConnectionRatelimiter.set_owner()
   end
 
-  def handshake_shard(_context) do
+  def handshake_shard(context) do
     send_hello()
     assert_receive_heartbeat()
-    token = assert_receive_identify()
+    token = assert_receive_identify(context[:intents] || Intents.all_intents())
 
     session_id = random_hex(16)
 
@@ -91,9 +92,9 @@ defmodule Mobius.Fixtures do
     assert_receive {:socket_msg, ^msg}, 50
   end
 
-  def assert_receive_identify do
+  def assert_receive_identify(intents \\ Intents.all_intents()) do
     token = System.fetch_env!("MOBIUS_BOT_TOKEN")
-    msg = Opcode.identify(@shard, token)
+    msg = Opcode.identify(@shard, token, intents)
     assert_receive {:socket_msg, ^msg}, 50
     token
   end
@@ -121,5 +122,13 @@ defmodule Mobius.Fixtures do
 
   def json(term, status_code \\ 200) do
     {status_code, [{"content-type", "application/json"}], Jason.encode!(term)}
+  end
+
+  def send_message_payload(content) do
+    send_payload(
+      op: :dispatch,
+      type: "MESSAGE_CREATE",
+      data: %{"content" => content}
+    )
   end
 end
