@@ -11,4 +11,5 @@
       "groupName": "non-major dependencies"
     }
   ]
+  "rangeStrategy": "bump"
 }
