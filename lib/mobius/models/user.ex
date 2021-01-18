@@ -7,6 +7,7 @@ defmodule Mobius.Models.User do
 
   import Mobius.Models.Utils
 
+  alias Mobius.Core.Bitflags
   alias Mobius.Models.Snowflake
 
   defstruct [
@@ -23,6 +24,27 @@ defmodule Mobius.Models.User do
     :flags,
     :premium_type,
     :public_flags
+  ]
+
+  @flags [
+    :discord_employee,
+    :partnered_server_owner,
+    :hypesquad_events,
+    :bug_hunter_level_1,
+    nil,
+    nil,
+    :house_bravery,
+    :house_brilliance,
+    :house_balance,
+    :early_supporter,
+    :team_user,
+    nil,
+    :system,
+    nil,
+    :bug_hunter_level_2,
+    nil,
+    :verified_bot,
+    :early_verified_bot_developer
   ]
 
   @type flag ::
@@ -91,6 +113,6 @@ defmodule Mobius.Models.User do
   defp parse_premium_type(2), do: :nitro
   defp parse_premium_type(_), do: nil
 
-  # TODO: Need bitflags from the Intents PR
-  defp parse_flags(flags), do: flags
+  defp parse_flags(flags) when is_integer(flags), do: Bitflags.parse_bitflags(flags, @flags)
+  defp parse_flags(_flags), do: nil
 end

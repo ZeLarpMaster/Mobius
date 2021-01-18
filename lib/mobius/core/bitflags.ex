@@ -7,6 +7,7 @@ defmodule Mobius.Core.Bitflags do
   Converts bitflags into a MapSet of flag values
 
   Values from the list are included starting from the least significant bit.
+  `nil` can be used to indicate ignored bits.
   Parsing is stopped and the current result is returned when the list of things is exhausted.
 
   This function is the inverse of `create_bitflags/2`
@@ -15,6 +16,9 @@ defmodule Mobius.Core.Bitflags do
 
       iex> parse_bitflags(0b01, [:a, :b])
       #MapSet<[:a]>
+
+      iex> parse_bitflags(0b101, [:a, nil, :b])
+      #MapSet<[:a, :b]>
 
       iex> parse_bitflags(0b1011, [0, 1, 2, 3])
       #MapSet<[0, 1, 3]>
@@ -40,6 +44,7 @@ defmodule Mobius.Core.Bitflags do
 
   For each flag, if it can be found in the input, its associated bit will be 1 in the result.
   Starting from the least significant bit.
+  Just like `parse_bitflags/2`, `nil` can be used to indicate ignored bits which are always 0.
 
   This function is the inverse of `parse_bitflags/2`
 
@@ -47,6 +52,9 @@ defmodule Mobius.Core.Bitflags do
 
       iex> create_bitflags(MapSet.new([:a, :b]), [:a, :b])
       0b11
+
+      iex> create_bitflags(MapSet.new([:a, :b]), [nil, :a, :b])
+      0b110
 
       iex> create_bitflags(MapSet.new([:b]), [:a, :b])
       0b10
