@@ -10,6 +10,6 @@
       "updateTypes": ["patch", "minor"],
       "groupName": "non-major dependencies"
     }
-  ]
+  ],
   "rangeStrategy": "bump"
 }
