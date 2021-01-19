@@ -1,7 +1,8 @@
 defmodule Mobius.Models.UserTest do
   use ExUnit.Case, async: true
 
-  import Mobius.Fixtures
+  import Mobius.Generators
+  import Mobius.TestUtils
 
   alias Mobius.Models.Snowflake
   alias Mobius.Models.User
@@ -33,21 +34,7 @@ defmodule Mobius.Models.UserTest do
     end
 
     test "parses all fields as expected" do
-      map = %{
-        "id" => random_snowflake(),
-        "username" => random_hex(8),
-        "discriminator" => "#{:rand.uniform(9999)}",
-        "avatar" => random_hex(8),
-        "bot" => true,
-        "system" => false,
-        "mfa_enabled" => false,
-        "locale" => "en_US",
-        "verified" => false,
-        "email" => nil,
-        "flags" => Bitwise.<<<(1, 16),
-        "premium_type" => 0,
-        "public_flags" => Bitwise.<<<(1, 16)
-      }
+      map = user()
 
       map
       |> User.parse()
@@ -65,10 +52,5 @@ defmodule Mobius.Models.UserTest do
       |> check_field(:premium_type, :none)
       |> check_field(:public_flags, MapSet.new([:verified_bot]))
     end
-  end
-
-  defp check_field(struct, field, expected_value) do
-    assert Map.fetch!(struct, field) == expected_value
-    struct
   end
 end
