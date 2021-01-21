@@ -36,13 +36,35 @@ defmodule Mobius.Generators do
     merge_opts(defaults, opts)
   end
 
+  @spec application(keyword) :: map
+  def application(opts \\ []) do
+    team_id = random_snowflake()
+    # The `team user` flag is enabled
+    team_user = user(id: team_id, username: "team#{team_id}", flags: 1024, public_flags: 1024)
+
+    defaults = %{
+      "id" => team_id,
+      "name" => random_hex(8),
+      "icon" => random_hex(16),
+      "description" => random_hex(32),
+      "bot_public" => true,
+      "bot_require_code_grant" => false,
+      "owner" => team_user,
+      "team" => team()
+    }
+
+    merge_opts(defaults, opts)
+  end
+
   @spec team(keyword) :: map
   def team(opts \\ []) do
+    owner_id = random_snowflake()
+
     defaults = %{
       "id" => random_snowflake(),
       "icon" => random_hex(8),
-      "members" => [team_member(), team_member(), team_member()],
-      "owner_user_id" => random_snowflake()
+      "members" => [team_member(id: owner_id), team_member(), team_member()],
+      "owner_user_id" => owner_id
     }
 
     merge_opts(defaults, opts)

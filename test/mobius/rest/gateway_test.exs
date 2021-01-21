@@ -46,48 +46,7 @@ defmodule Mobius.Rest.GatewayTest do
   end
 
   test "get_app_info/1", ctx do
-    owner_id = random_snowflake()
-    team_id = random_snowflake()
-
-    raw = %{
-      "bot_public" => false,
-      "bot_require_code_grant" => false,
-      "description" => "My cool bot application",
-      "icon" => random_hex(32),
-      "id" => random_snowflake(),
-      "name" => "My Bot",
-      "owner" => %{
-        "id" => team_id,
-        "username" => "team#{team_id}",
-        "avatar" => random_hex(32),
-        "discriminator" => "0000",
-        # Team flag is enabled for both public_flags and flags
-        "flags" => 1024,
-        "public_flags" => 1024
-      },
-      "summary" => "",
-      "team" => %{
-        "icon" => random_hex(32),
-        "id" => team_id,
-        "members" => [
-          %{
-            "membership_state" => 2,
-            "permissions" => ["*"],
-            "team_id" => team_id,
-            "user" => %{
-              "avatar" => random_hex(32),
-              "discriminator" => "#{:rand.uniform(9999)}",
-              "id" => owner_id,
-              "public_flags" => 0,
-              "username" => random_hex(8)
-            }
-          }
-        ],
-        "name" => random_hex(8),
-        "owner_user_id" => owner_id
-      },
-      "verify_key" => random_hex(64)
-    }
+    raw = Mobius.Generators.application()
 
     url = Client.base_url() <> "/oauth2/applications/@me"
     mock(fn %{method: :get, url: ^url} -> json(raw) end)
