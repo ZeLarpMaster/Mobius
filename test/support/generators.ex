@@ -36,6 +36,18 @@ defmodule Mobius.Generators do
     merge_opts(defaults, opts)
   end
 
+  @spec team(keyword) :: map
+  def team(opts \\ []) do
+    defaults = %{
+      "id" => random_snowflake(),
+      "icon" => random_hex(8),
+      "members" => [team_member(), team_member(), team_member()],
+      "owner_user_id" => random_snowflake()
+    }
+
+    merge_opts(defaults, opts)
+  end
+
   @spec team_member(keyword) :: map
   def team_member(opts \\ []) do
     defaults = %{
