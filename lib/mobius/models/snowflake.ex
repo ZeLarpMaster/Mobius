@@ -18,15 +18,52 @@ defmodule Mobius.Models.Snowflake do
 
   @discord_epoch 1_420_070_400_000
 
+  @doc "Calls `Mobius.Models.Utils.parse_integer/1`"
   @spec parse(any) :: t() | nil
   def parse(value), do: Utils.parse_integer(value)
 
+  @doc """
+  Returns the timestamp part (in milliseconds) of the snowflake
+
+  ## Examples
+
+      iex> to_timestamp(801609672695611394)
+      1611189039158
+      iex> to_timestamp(801609665888256071)
+      1611189037535
+  """
   @spec to_timestamp(t()) :: integer
   def to_timestamp(snowflake), do: (snowflake >>> 22) + @discord_epoch
 
+  @doc """
+  Returns a snowflake from a timestamp in milliseconds
+
+  The snowflake has zeroes for the non-timestamp section.
+  This means generated snowflakes will always be smaller
+  than any snowflake made at that time.
+
+  Mostly useful for filtering things by creation time.
+  For example to filter messages by when they were sent,
+  you can create snowflakes with the timestamp and compare the snowflakes together.
+
+  ## Examples
+
+      iex> from_timestamp(1611189039158)
+      801609672694956032
+      iex> to_timestamp(from_timestamp(1611189039158))
+      1611189039158
+  """
   @spec from_timestamp(integer) :: t()
   def from_timestamp(timestamp_ms), do: (timestamp_ms - @discord_epoch) <<< 22
 
+  @doc """
+  Returns a `t:DateTime.t/0` from a snowflake
+
+  ## Examples
+
+      iex> to_datetime(801609672695611394)
+      ~U[2021-01-21 00:30:39.158Z]
+  """
   @spec to_datetime(t()) :: DateTime.t()
   def to_datetime(snowflake) do
     snowflake
