@@ -9,7 +9,7 @@ defmodule Mobius.Rest.Middleware.RatelimitTest do
   setup do: [client: Tesla.client([{Ratelimit, []}], Tesla.Mock)]
 
   test "doesn't wait if route still has remaining calls", ctx do
-    url = "https://discord.com/api/v6/something"
+    url = "https://discord.com/api/something"
     mock(fn %{url: ^url} -> response_with_route_ratelimit(remaining: 2, delay_ms: 50) end)
     Tesla.get(ctx.client, url)
 
@@ -17,7 +17,7 @@ defmodule Mobius.Rest.Middleware.RatelimitTest do
   end
 
   test "waits until reset-after if route is exhausted", ctx do
-    url = "https://discord.com/api/v6/something"
+    url = "https://discord.com/api/something"
     mock(fn %{url: ^url} -> response_with_route_ratelimit(remaining: 0, delay_ms: 50) end)
     Tesla.get(ctx.client, url)
 
@@ -25,7 +25,7 @@ defmodule Mobius.Rest.Middleware.RatelimitTest do
   end
 
   test "waits until reset-after if global ratelimit was exceeded", ctx do
-    url = "https://discord.com/api/v6/something"
+    url = "https://discord.com/api/something"
     mock(fn %{url: ^url} -> response_with_global_ratelimit(50) end)
     Tesla.get(ctx.client, url)
 
@@ -43,14 +43,14 @@ defmodule Mobius.Rest.Middleware.RatelimitTest do
 
     # First 2 calls to associate both routes to the same bucket
     :ets.insert(table, {:remaining, 2})
-    Tesla.get(ctx.client, "https://discord.com/api/v6/something")
+    Tesla.get(ctx.client, "https://discord.com/api/something")
     :ets.insert(table, {:remaining, 1})
-    Tesla.get(ctx.client, "https://discord.com/api/v6/different")
+    Tesla.get(ctx.client, "https://discord.com/api/different")
     # Trigger the ratelimit on the bucket
     :ets.insert(table, {:remaining, 0})
-    Tesla.get(ctx.client, "https://discord.com/api/v6/something")
+    Tesla.get(ctx.client, "https://discord.com/api/something")
 
-    assert_get_time(ctx.client, "https://discord.com/api/v6/different", 50)
+    assert_get_time(ctx.client, "https://discord.com/api/different", 50)
   end
 
   defp assert_get_time(client, url, expected_time) do
