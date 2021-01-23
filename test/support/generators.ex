@@ -52,6 +52,21 @@ defmodule Mobius.Generators do
     merge_opts(defaults, opts)
   end
 
+  @spec attachment(keyword) :: map
+  def attachment(opts \\ []) do
+    defaults = %{
+      "id" => random_snowflake(),
+      "filename" => random_hex(32),
+      "size" => :rand.uniform(32_000_000),
+      "url" => random_hex(32),
+      "proxy_url" => random_hex(32),
+      "height" => :rand.uniform(1080),
+      "width" => :rand.uniform(1920)
+    }
+
+    merge_opts(defaults, opts)
+  end
+
   @spec application(keyword) :: map
   def application(opts \\ []) do
     team_id = random_snowflake()
