@@ -36,6 +36,22 @@ defmodule Mobius.Generators do
     merge_opts(defaults, opts)
   end
 
+  @spec emoji(keyword) :: map
+  def emoji(opts \\ []) do
+    defaults = %{
+      "id" => random_snowflake(),
+      "name" => random_hex(8),
+      "roles" => [random_snowflake(), random_snowflake()],
+      "user" => partial_user(Keyword.get(opts, :user, [])),
+      "require_colons" => true,
+      "managed" => false,
+      "animated" => false,
+      "available" => true
+    }
+
+    merge_opts(defaults, opts)
+  end
+
   @spec application(keyword) :: map
   def application(opts \\ []) do
     team_id = random_snowflake()
