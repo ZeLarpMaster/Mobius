@@ -60,7 +60,7 @@ defmodule Mobius.Generators do
       "color" => :rand.uniform(256 * 256 * 256),
       "hoist" => true,
       "position" => :rand.uniform(21) - 1,
-      "permissions" => "0",
+      "permissions" => "2048",
       "managed" => false,
       "mentionable" => true,
       "tags" => %{"integration_id" => random_snowflake()}
