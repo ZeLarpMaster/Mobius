@@ -18,13 +18,13 @@ defmodule Mobius.Models.AttachmentTest do
     test "defaults to nil for all fields" do
       %{}
       |> Attachment.parse()
-      |> check_field(:id, nil)
-      |> check_field(:filename, nil)
-      |> check_field(:size, nil)
-      |> check_field(:url, nil)
-      |> check_field(:proxy_url, nil)
-      |> check_field(:height, nil)
-      |> check_field(:width, nil)
+      |> assert_field(:id, nil)
+      |> assert_field(:filename, nil)
+      |> assert_field(:size, nil)
+      |> assert_field(:url, nil)
+      |> assert_field(:proxy_url, nil)
+      |> assert_field(:height, nil)
+      |> assert_field(:width, nil)
     end
 
     test "parses all fields as expected" do
@@ -32,13 +32,13 @@ defmodule Mobius.Models.AttachmentTest do
 
       map
       |> Attachment.parse()
-      |> check_field(:id, Snowflake.parse(map["id"]))
-      |> check_field(:filename, map["filename"])
-      |> check_field(:size, map["size"])
-      |> check_field(:url, map["url"])
-      |> check_field(:proxy_url, map["proxy_url"])
-      |> check_field(:height, map["height"])
-      |> check_field(:width, map["width"])
+      |> assert_field(:id, Snowflake.parse(map["id"]))
+      |> assert_field(:filename, map["filename"])
+      |> assert_field(:size, map["size"])
+      |> assert_field(:url, map["url"])
+      |> assert_field(:proxy_url, map["proxy_url"])
+      |> assert_field(:height, map["height"])
+      |> assert_field(:width, map["width"])
     end
   end
 end

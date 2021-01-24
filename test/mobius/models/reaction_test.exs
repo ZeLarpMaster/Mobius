@@ -18,9 +18,9 @@ defmodule Mobius.Models.ReactionTest do
     test "defaults to nil for all fields" do
       %{}
       |> Reaction.parse()
-      |> check_field(:count, nil)
-      |> check_field(:me, nil)
-      |> check_field(:emoji, nil)
+      |> assert_field(:count, nil)
+      |> assert_field(:me, nil)
+      |> assert_field(:emoji, nil)
     end
 
     test "parses all fields as expected" do
@@ -28,9 +28,9 @@ defmodule Mobius.Models.ReactionTest do
 
       map
       |> Reaction.parse()
-      |> check_field(:count, map["count"])
-      |> check_field(:me, map["me"])
-      |> check_field(:emoji, Emoji.parse(map["emoji"]))
+      |> assert_field(:count, map["count"])
+      |> assert_field(:me, map["me"])
+      |> assert_field(:emoji, Emoji.parse(map["emoji"]))
     end
   end
 end
