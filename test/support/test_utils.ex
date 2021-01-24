@@ -43,11 +43,11 @@ defmodule Mobius.TestUtils do
   ## Examples
 
       iex> my_struct = %MyStruct{field: "value"}
-      iex> check_field(my_struct, :field, "value") == my_struct
+      iex> assert_field(my_struct, :field, "value") == my_struct
       true
   """
-  @spec check_field(arg, atom, any) :: arg when arg: struct
-  def check_field(struct, field, expected_value) do
+  @spec assert_field(arg, atom, any) :: arg when arg: struct
+  def assert_field(struct, field, expected_value) do
     assert Map.fetch!(struct, field) == expected_value
     struct
   end

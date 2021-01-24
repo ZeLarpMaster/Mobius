@@ -16,19 +16,14 @@ defmodule Mobius.Core.Bitflags do
 
       iex> parse_bitflags(0b01, [:a, :b])
       #MapSet<[:a]>
-
-      iex> parse_bitflags(0b101, [:a, nil, :b])
+      iex> parse_bitflags(0b111, [:a, nil, :b])
       #MapSet<[:a, :b]>
-
       iex> parse_bitflags(0b1011, [0, 1, 2, 3])
       #MapSet<[0, 1, 3]>
-
       iex> parse_bitflags(0b1111, [0, 1, 2])
       #MapSet<[0, 1, 2]>
-
       iex> parse_bitflags(0, [[], %{}, "hi"])
       #MapSet<[]>
-
       iex> parse_bitflags(0b11111111, [])
       #MapSet<[]>
 
@@ -52,16 +47,12 @@ defmodule Mobius.Core.Bitflags do
 
       iex> create_bitflags(MapSet.new([:a, :b]), [:a, :b])
       0b11
-
       iex> create_bitflags(MapSet.new([:a, :b]), [nil, :a, :b])
       0b110
-
       iex> create_bitflags(MapSet.new([:b]), [:a, :b])
       0b10
-
       iex> create_bitflags(MapSet.new([]), [:a, :b])
       0
-
       iex> create_bitflags(MapSet.new([:a, :b]), [])
       0
 
