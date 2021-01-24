@@ -79,7 +79,7 @@ defmodule Mobius.Models.Permissions do
 
   @type t :: MapSet.t(permission())
 
-  @doc "Returns all permissions possible"
+  @doc "Returns all existing permissions"
   @spec all_permissions() :: MapSet.t(permission())
   def all_permissions, do: MapSet.new(@permissions)
 
