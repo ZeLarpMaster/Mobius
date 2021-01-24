@@ -16,7 +16,7 @@ defmodule Mobius.Services.Shard do
 
   require Logger
 
-  @gateway_version "6"
+  @gateway_version "8"
 
   @typep state :: %{
            gateway: Gateway.t(),
