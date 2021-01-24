@@ -83,10 +83,7 @@ defmodule Mobius.Generators do
   end
 
   defp merge_opts(defaults, opts) do
-    opts_map =
-      opts
-      |> Enum.map(fn {key, value} -> {Atom.to_string(key), value} end)
-      |> Map.new()
+    opts_map = Map.new(opts, fn {key, value} -> {Atom.to_string(key), value} end)
 
     Map.merge(defaults, opts_map)
   end
