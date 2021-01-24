@@ -3,6 +3,22 @@ defmodule Mobius.Generators do
 
   import Mobius.Fixtures
 
+  @spec member(keyword) :: map
+  def member(opts \\ []) do
+    defaults = %{
+      "user" => user(Keyword.get(opts, :user, [])),
+      "nick" => random_hex(8),
+      "roles" => [random_snowflake(), random_snowflake(), random_snowflake()],
+      "joined_at" => DateTime.to_iso8601(DateTime.utc_now()),
+      "premium_since" => DateTime.to_iso8601(DateTime.utc_now()),
+      "deaf" => true,
+      "mute" => true,
+      "pending" => false
+    }
+
+    merge_opts(defaults, opts)
+  end
+
   @spec user(keyword) :: map
   def user(opts \\ []) do
     defaults = %{
@@ -62,6 +78,23 @@ defmodule Mobius.Generators do
       "proxy_url" => random_hex(32),
       "height" => :rand.uniform(1080),
       "width" => :rand.uniform(1920)
+    }
+
+    merge_opts(defaults, opts)
+  end
+
+  @spec role(keyword) :: map
+  def role(opts \\ []) do
+    defaults = %{
+      "id" => random_snowflake(),
+      "name" => random_hex(8),
+      "color" => :rand.uniform(256 * 256 * 256),
+      "hoist" => true,
+      "position" => :rand.uniform(21) - 1,
+      "permissions" => "0",
+      "managed" => false,
+      "mentionable" => true,
+      "tags" => %{"integration_id" => random_snowflake()}
     }
 
     merge_opts(defaults, opts)
