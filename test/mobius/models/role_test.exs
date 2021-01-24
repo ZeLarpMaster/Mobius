@@ -20,15 +20,15 @@ defmodule Mobius.Models.RoleTest do
     test "defaults to nil for all fields" do
       %{}
       |> Role.parse()
-      |> check_field(:id, nil)
-      |> check_field(:name, nil)
-      |> check_field(:color, nil)
-      |> check_field(:hoist, nil)
-      |> check_field(:position, nil)
-      |> check_field(:permissions, nil)
-      |> check_field(:managed, nil)
-      |> check_field(:mentionable, nil)
-      |> check_field(:tags, nil)
+      |> assert_field(:id, nil)
+      |> assert_field(:name, nil)
+      |> assert_field(:color, nil)
+      |> assert_field(:hoist, nil)
+      |> assert_field(:position, nil)
+      |> assert_field(:permissions, nil)
+      |> assert_field(:managed, nil)
+      |> assert_field(:mentionable, nil)
+      |> assert_field(:tags, nil)
     end
 
     test "parses all fields as expected" do
@@ -36,15 +36,15 @@ defmodule Mobius.Models.RoleTest do
 
       map
       |> Role.parse()
-      |> check_field(:id, Snowflake.parse(map["id"]))
-      |> check_field(:name, map["name"])
-      |> check_field(:color, map["color"])
-      |> check_field(:hoist, map["hoist"])
-      |> check_field(:position, map["position"])
-      |> check_field(:permissions, Permissions.parse(map["permissions"]))
-      |> check_field(:managed, map["managed"])
-      |> check_field(:mentionable, map["mentionable"])
-      |> check_field(:tags, RoleTags.parse(map["tags"]))
+      |> assert_field(:id, Snowflake.parse(map["id"]))
+      |> assert_field(:name, map["name"])
+      |> assert_field(:color, map["color"])
+      |> assert_field(:hoist, map["hoist"])
+      |> assert_field(:position, map["position"])
+      |> assert_field(:permissions, Permissions.parse(map["permissions"]))
+      |> assert_field(:managed, map["managed"])
+      |> assert_field(:mentionable, map["mentionable"])
+      |> assert_field(:tags, RoleTags.parse(map["tags"]))
     end
   end
 end

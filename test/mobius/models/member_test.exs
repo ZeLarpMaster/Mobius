@@ -21,14 +21,14 @@ defmodule Mobius.Models.MemberTest do
     test "defaults to nil for all fields" do
       %{}
       |> Member.parse()
-      |> check_field(:user, nil)
-      |> check_field(:nick, nil)
-      |> check_field(:roles, nil)
-      |> check_field(:joined_at, nil)
-      |> check_field(:premium_since, nil)
-      |> check_field(:deaf, nil)
-      |> check_field(:mute, nil)
-      |> check_field(:pending, nil)
+      |> assert_field(:user, nil)
+      |> assert_field(:nick, nil)
+      |> assert_field(:roles, nil)
+      |> assert_field(:joined_at, nil)
+      |> assert_field(:premium_since, nil)
+      |> assert_field(:deaf, nil)
+      |> assert_field(:mute, nil)
+      |> assert_field(:pending, nil)
     end
 
     test "parses all fields as expected" do
@@ -36,14 +36,14 @@ defmodule Mobius.Models.MemberTest do
 
       map
       |> Member.parse()
-      |> check_field(:user, User.parse(map["user"]))
-      |> check_field(:nick, map["nick"])
-      |> check_field(:roles, Utils.parse_list(map["roles"], &Snowflake.parse/1))
-      |> check_field(:joined_at, DateTime.parse(map["joined_at"]))
-      |> check_field(:premium_since, DateTime.parse(map["premium_since"]))
-      |> check_field(:deaf, map["deaf"])
-      |> check_field(:mute, map["mute"])
-      |> check_field(:pending, map["pending"])
+      |> assert_field(:user, User.parse(map["user"]))
+      |> assert_field(:nick, map["nick"])
+      |> assert_field(:roles, Utils.parse_list(map["roles"], &Snowflake.parse/1))
+      |> assert_field(:joined_at, DateTime.parse(map["joined_at"]))
+      |> assert_field(:premium_since, DateTime.parse(map["premium_since"]))
+      |> assert_field(:deaf, map["deaf"])
+      |> assert_field(:mute, map["mute"])
+      |> assert_field(:pending, map["pending"])
     end
   end
 end

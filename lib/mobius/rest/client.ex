@@ -9,7 +9,7 @@ defmodule Mobius.Rest.Client do
   @type result(arg) :: {:ok, arg} | error()
 
   @lib_url "https://github.com/ZeLarpMaster/Mobius"
-  @api_vsn 6
+  @api_vsn 8
 
   defguardp is_not_error(value) when not is_tuple(value) or elem(value, 0) != :error
 
@@ -23,7 +23,6 @@ defmodule Mobius.Rest.Client do
        "DiscordBot" <>
          " (#{@lib_url}, #{Application.spec(:mobius, :vsn)}" <>
          " Elixir/#{System.version()}"},
-      {"X-RateLimit-Precision", "millisecond"},
       {"Authorization", "Bot #{token}"}
     ]
 

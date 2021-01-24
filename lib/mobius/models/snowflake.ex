@@ -18,7 +18,11 @@ defmodule Mobius.Models.Snowflake do
 
   @discord_epoch 1_420_070_400_000
 
-  @doc "Calls `Mobius.Models.Utils.parse_integer/1`"
+  @doc """
+  Parses a snowflake string into its integer representation
+
+  Returns nil if the value isn't a string or isn't only a number
+  """
   @spec parse(any) :: t() | nil
   def parse(value), do: Utils.parse_integer(value)
 
