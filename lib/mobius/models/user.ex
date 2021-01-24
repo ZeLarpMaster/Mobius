@@ -58,7 +58,7 @@ defmodule Mobius.Models.User do
           | :early_supporter
           | :team_user
           | :system
-          | :bug_hunter_level_1
+          | :bug_hunter_level_2
           | :verified_bot
           | :early_verified_bot_developer
   @type flags :: MapSet.t(flag())

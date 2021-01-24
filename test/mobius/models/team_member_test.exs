@@ -19,10 +19,10 @@ defmodule Mobius.Models.TeamMemberTest do
     test "defaults to nil for all fields" do
       %{}
       |> TeamMember.parse()
-      |> check_field(:membership_state, nil)
-      |> check_field(:permissions, nil)
-      |> check_field(:team_id, nil)
-      |> check_field(:user, nil)
+      |> assert_field(:membership_state, nil)
+      |> assert_field(:permissions, nil)
+      |> assert_field(:team_id, nil)
+      |> assert_field(:user, nil)
     end
 
     test "parses all fields as expected" do
@@ -30,10 +30,10 @@ defmodule Mobius.Models.TeamMemberTest do
 
       map
       |> TeamMember.parse()
-      |> check_field(:membership_state, :accepted)
-      |> check_field(:permissions, ["*"])
-      |> check_field(:team_id, Snowflake.parse(map["team_id"]))
-      |> check_field(:user, User.parse(map["user"]))
+      |> assert_field(:membership_state, :accepted)
+      |> assert_field(:permissions, ["*"])
+      |> assert_field(:team_id, Snowflake.parse(map["team_id"]))
+      |> assert_field(:user, User.parse(map["user"]))
     end
   end
 end

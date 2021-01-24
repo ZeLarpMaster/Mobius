@@ -45,16 +45,16 @@ defmodule Mobius.Validations.Utils do
     fields
     |> Map.fetch!(field_name)
     |> f.()
-    |> check_field(errors, field_name)
+    |> assert_field(errors, field_name)
   end
 
   defp check_required_field(_present, _fields, errors, field_name, _f) do
     [{field_name, "is required"} | errors]
   end
 
-  defp check_field(:ok, _errors, _field_name), do: :ok
-  defp check_field({:error, message}, errors, field_name), do: [{field_name, message} | errors]
+  defp assert_field(:ok, _errors, _field_name), do: :ok
+  defp assert_field({:error, message}, errors, field_name), do: [{field_name, message} | errors]
 
-  defp check_field({:errors, messages}, errors, field_name),
+  defp assert_field({:errors, messages}, errors, field_name),
     do: errors ++ Enum.map(messages, &{field_name, &1})
 end
