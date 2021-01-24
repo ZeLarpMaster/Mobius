@@ -19,4 +19,19 @@ defmodule Mobius.Models.Utils do
 
     struct!(struct, [{struct_key, value}])
   end
+
+  @spec parse_list(any, (any -> output)) :: [output] | nil when output: var
+  def parse_list(list, parser) when is_list(list), do: Enum.map(list, parser)
+  def parse_list(_list, _parser), do: nil
+
+  @doc "Parse strings of numbers into integer, returns nil for any other value"
+  @spec parse_integer(any) :: integer | nil
+  def parse_integer(value) when is_binary(value) do
+    case Integer.parse(value) do
+      {integer, ""} -> integer
+      _ -> nil
+    end
+  end
+
+  def parse_integer(_value), do: nil
 end

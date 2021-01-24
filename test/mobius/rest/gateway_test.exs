@@ -46,13 +46,11 @@ defmodule Mobius.Rest.GatewayTest do
   end
 
   test "get_app_info/1", ctx do
-    raw = %{
-      "field" => "value"
-    }
+    raw = Mobius.Generators.application()
 
     url = Client.base_url() <> "/oauth2/applications/@me"
     mock(fn %{method: :get, url: ^url} -> json(raw) end)
 
-    assert {:ok, raw} == Rest.Gateway.get_app_info(ctx.client)
+    assert {:ok, Models.Application.parse(raw)} == Rest.Gateway.get_app_info(ctx.client)
   end
 end

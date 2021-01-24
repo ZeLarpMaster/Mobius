@@ -109,12 +109,17 @@ defmodule Mobius.Fixtures do
     Socket.notify_up(@shard)
   end
 
-  @chars String.codepoints("0123456789abcdef")
-  def random_hex(len) do
-    1..len
-    |> Enum.map(fn _ -> Enum.random(@chars) end)
+  def random_n_chars(n, chars) do
+    1..n
+    |> Enum.map(fn _ -> Enum.random(String.codepoints(chars)) end)
     |> Enum.join()
   end
+
+  def random_hex(len), do: random_n_chars(len, "0123456789abcdef")
+
+  def random_snowflake, do: Integer.to_string(:rand.uniform(100_000_000_000))
+
+  def random_discriminator, do: random_n_chars(4, "0123456789")
 
   def json(term, status_code \\ 200) do
     {status_code, [{"content-type", "application/json"}], Jason.encode!(term)}

@@ -11,10 +11,10 @@ defmodule Mobius.Rest.Gateway do
     |> Client.parse_response(&Models.GatewayBot.parse/1)
   end
 
-  @spec get_app_info(Client.client()) :: Client.result(map)
+  @spec get_app_info(Client.client()) :: Client.result(Models.Application.t())
   def get_app_info(client) do
     client
     |> Tesla.get("/oauth2/applications/@me")
-    |> Client.parse_response(& &1)
+    |> Client.parse_response(&Models.Application.parse/1)
   end
 end

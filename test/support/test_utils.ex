@@ -36,4 +36,19 @@ defmodule Mobius.TestUtils do
   def assert_list_unordered(actual, expectation) do
     assert Enum.sort(actual) == Enum.sort(expectation)
   end
+
+  @doc """
+  Asserts that a struct's field contains the expected value and returns the struct
+
+  ## Examples
+
+      iex> my_struct = %MyStruct{field: "value"}
+      iex> assert_field(my_struct, :field, "value") == my_struct
+      true
+  """
+  @spec assert_field(arg, atom, any) :: arg when arg: struct
+  def assert_field(struct, field, expected_value) do
+    assert Map.fetch!(struct, field) == expected_value
+    struct
+  end
 end
