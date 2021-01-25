@@ -52,6 +52,37 @@ defmodule Mobius.Generators do
     merge_opts(defaults, opts)
   end
 
+  @spec emoji(keyword) :: map
+  def emoji(opts \\ []) do
+    defaults = %{
+      "id" => random_snowflake(),
+      "name" => random_hex(8),
+      "roles" => [random_snowflake(), random_snowflake()],
+      "user" => partial_user(Keyword.get(opts, :user, [])),
+      "require_colons" => true,
+      "managed" => false,
+      "animated" => false,
+      "available" => true
+    }
+
+    merge_opts(defaults, opts)
+  end
+
+  @spec attachment(keyword) :: map
+  def attachment(opts \\ []) do
+    defaults = %{
+      "id" => random_snowflake(),
+      "filename" => random_hex(32),
+      "size" => :rand.uniform(32_000_000),
+      "url" => random_hex(32),
+      "proxy_url" => random_hex(32),
+      "height" => :rand.uniform(1080),
+      "width" => :rand.uniform(1920)
+    }
+
+    merge_opts(defaults, opts)
+  end
+
   @spec role(keyword) :: map
   def role(opts \\ []) do
     defaults = %{
