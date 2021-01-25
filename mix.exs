@@ -32,7 +32,7 @@ defmodule Mobius.MixProject do
     [
       {:gun, "~> 1.3"},
       {:castore, "~> 0.1"},
-      {:jason, ">= 1.0.0"},
+      {:jason, ">= 1.2.2"},
       {:hackney, "~> 1.13"},
       {:tesla, "~> 1.4.0"},
       {:excoveralls, "~> 0.13", only: :test},
