@@ -33,7 +33,7 @@ defmodule Mobius.MixProject do
       {:gun, "~> 1.3"},
       {:castore, "~> 0.1"},
       {:jason, ">= 1.0.0"},
-      {:hackney, "~> 1.13"},
+      {:hackney, "~> 1.17"},
       {:tesla, "~> 1.4.0"},
       {:excoveralls, "~> 0.13", only: :test},
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
