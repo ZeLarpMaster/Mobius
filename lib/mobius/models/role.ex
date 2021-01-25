@@ -8,6 +8,7 @@ defmodule Mobius.Models.Role do
 
   import Mobius.Models.Utils
 
+  alias Mobius.Models.Permissions
   alias Mobius.Models.RoleTags
   alias Mobius.Models.Snowflake
 
@@ -29,7 +30,7 @@ defmodule Mobius.Models.Role do
           color: non_neg_integer(),
           hoist: boolean,
           position: non_neg_integer(),
-          permissions: String.t(),
+          permissions: Permissions.t(),
           managed: boolean,
           mentionable: boolean,
           tags: RoleTags.t()
@@ -44,7 +45,7 @@ defmodule Mobius.Models.Role do
     |> add_field(map, :color)
     |> add_field(map, :hoist)
     |> add_field(map, :position)
-    |> add_field(map, :permissions)
+    |> add_field(map, :permissions, &Permissions.parse/1)
     |> add_field(map, :managed)
     |> add_field(map, :mentionable)
     |> add_field(map, :tags, &RoleTags.parse/1)

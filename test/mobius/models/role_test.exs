@@ -4,6 +4,7 @@ defmodule Mobius.Models.RoleTest do
   import Mobius.Generators
   import Mobius.TestUtils
 
+  alias Mobius.Models.Permissions
   alias Mobius.Models.Role
   alias Mobius.Models.RoleTags
   alias Mobius.Models.Snowflake
@@ -40,7 +41,7 @@ defmodule Mobius.Models.RoleTest do
       |> assert_field(:color, map["color"])
       |> assert_field(:hoist, map["hoist"])
       |> assert_field(:position, map["position"])
-      |> assert_field(:permissions, map["permissions"])
+      |> assert_field(:permissions, Permissions.parse(map["permissions"]))
       |> assert_field(:managed, map["managed"])
       |> assert_field(:mentionable, map["mentionable"])
       |> assert_field(:tags, RoleTags.parse(map["tags"]))
