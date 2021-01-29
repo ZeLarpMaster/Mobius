@@ -26,7 +26,18 @@ defmodule Mobius.Rest.Client do
       {"Authorization", "Bot #{token}"}
     ]
 
+    fuse_opts = [
+      # Reset after one day, allowing one call per day if the token keeps being invalid
+      opts: {{:standard, 1, 60_000}, {:reset, 24 * 60 * 60 * 1000}},
+      name: __MODULE__,
+      keep_original_error: true,
+      should_melt: &client_should_melt?/1
+    ]
+
+    :fuse.reset(__MODULE__)
+
     middleware = [
+      {Tesla.Middleware.Fuse, fuse_opts},
       {Tesla.Middleware.Retry, max_retries: retries, should_retry: &client_should_retry?/1},
       Mobius.Rest.Middleware.Ratelimit,
       {Tesla.Middleware.BaseUrl, base_url()},
@@ -45,8 +56,11 @@ defmodule Mobius.Rest.Client do
 
   @spec check_empty_response(Tesla.Env.result()) :: :ok | error()
   def check_empty_response(response) do
-    with {:ok, response} <- response do
-      check_status(response)
+    case response do
+      {:ok, response} -> check_status(response)
+      # Error when Tesla.Middleware.Fuse melts
+      {:error, :unavailable} -> {:error, :unauthorized_token}
+      error -> error
     end
   end
 
@@ -56,6 +70,10 @@ defmodule Mobius.Rest.Client do
          {:ok, body} <- check_status(response),
          result when is_not_error(result) <- parser_func.(body) do
       {:ok, result}
+    else
+      # Error when Tesla.Middleware.Fuse melts
+      {:error, :unavailable} -> {:error, :unauthorized_token}
+      error -> error
     end
   end
 
@@ -75,4 +93,13 @@ defmodule Mobius.Rest.Client do
   defp client_should_retry?({:error, error, _}), do: error in [:bad_request]
   defp client_should_retry?({:ok, %{status: status}}) when status in [429, 500, 502], do: true
   defp client_should_retry?({:ok, _}), do: false
+
+  defp client_should_melt?({:ok, %Tesla.Env{status: 401}}) do
+    # Melt a 2nd time cause we can't config it to 0 tolerance :(
+    # See: https://github.com/jlouis/fuse/pull/27
+    :fuse.melt(__MODULE__)
+    true
+  end
+
+  defp client_should_melt?(_), do: false
 end

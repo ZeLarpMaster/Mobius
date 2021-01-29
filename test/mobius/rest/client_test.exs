@@ -10,6 +10,17 @@ defmodule Mobius.Rest.ClientTest do
   setup :create_rest_client
 
   describe "parse_response/2" do
+    test "translates {:error, :unavailable} to {:error, :unauthorized_token}", ctx do
+      url = Client.base_url() <> "/401"
+      mock(fn %{method: :get, url: ^url} -> {401, [], ""} end)
+
+      # Requesting after receiving a 401 will return `{:error, :unavailable}`
+      Client.check_empty_response(Tesla.get(ctx.client, url))
+      response = Client.check_empty_response(Tesla.get(ctx.client, url))
+
+      assert {:error, :unauthorized_token} == response
+    end
+
     test "returns {:error, :unauthorized_token} on status 401", ctx do
       url = Client.base_url() <> "/401"
       mock(fn %{method: :get, url: ^url} -> {401, [], ""} end)
@@ -94,6 +105,38 @@ defmodule Mobius.Rest.ClientTest do
         |> Client.parse_response(&stub_parser/1)
 
       assert {:ok, %{key: value}} == response
+    end
+  end
+
+  describe "invalid token handling" do
+    setup do
+      test_pid = self()
+      url = Client.base_url() <> "/401"
+
+      mock(fn %{method: :get, url: ^url} ->
+        send(test_pid, :called_api)
+        {401, [], ""}
+      end)
+
+      [url: url]
+    end
+
+    test "prevents calls after receiving a 401", ctx do
+      Tesla.get(ctx.client, ctx.url)
+      assert_received :called_api
+
+      Tesla.get(ctx.client, ctx.url)
+      refute_received :called_api
+    end
+
+    test "allows new calls when a new client is made", ctx do
+      Tesla.get(ctx.client, ctx.url)
+      assert_received :called_api
+
+      [{:token, token}] = create_token(%{})
+      [{:client, client}] = create_rest_client(%{token: token})
+      Tesla.get(client, ctx.url)
+      assert_received :called_api
     end
   end
 
