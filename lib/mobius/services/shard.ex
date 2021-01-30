@@ -139,7 +139,7 @@ defmodule Mobius.Services.Shard do
       |> Opcode.resume()
       |> Socket.send_message(state.shard)
 
-      # TODO: Set resuming flag? See :invalid_session for why
+      set_resuming(state, true)
     else
       # Send the identify when the ratelimiter allows it
       ConnectionRatelimiter.wait_until_can_connect(fn ->
@@ -147,9 +147,9 @@ defmodule Mobius.Services.Shard do
         |> Opcode.identify(state.gateway.token, state.intents)
         |> Socket.send_message(state.shard)
       end)
-    end
 
-    state
+      state
+    end
   end
 
   defp process_payload(:invalid_session, %{d: false}, state) do
@@ -157,9 +157,19 @@ defmodule Mobius.Services.Shard do
     Logger.debug("Invalid session. Server says don't resume")
     # Invalid session can happen after identifying, so we ack to let the next shard try to connect
     ConnectionRatelimiter.ack_connected()
-    # TODO: If we were previously resuming, sleep randomly between 1 and 5 seconds
     Socket.close(state.shard)
-    reset_session(state)
+
+    if state.gateway.resuming do
+      # "It's also possible that your client cannot reconnect in time to resume,
+      #   in which case the client will receive a Opcode 9 Invalid Session and
+      #   is expected to wait a random amount of time — between 1 and 5 seconds —
+      #   then send a fresh Opcode 2 Identify"
+      # Source: https://discord.com/developers/docs/topics/gateway#resuming
+      resuming_sleep()
+    end
+
+    # We might've attempted to resume and failed, therefore we aren't resuming anymore
+    reset_session(set_resuming(state, false))
   end
 
   defp process_payload(:invalid_session, %{d: true}, state) do
@@ -169,7 +179,9 @@ defmodule Mobius.Services.Shard do
     ConnectionRatelimiter.ack_connected()
     # Close socket, when it comes back up we'll receive :hello and attempt to resume
     Socket.close(state.shard)
-    state
+    # Invalid session can happen after a failed attempt to resume
+    #   which means we aren't resuming anymore
+    set_resuming(state, false)
   end
 
   defp process_payload(:reconnect, _payload, state) do
@@ -191,6 +203,11 @@ defmodule Mobius.Services.Shard do
     set_session(state, Map.fetch!(d, "session_id"))
   end
 
+  defp update_state_by_event(state, %{t: "RESUMED"}) do
+    # RESUMED is sent after a successful resume which means we aren't resuming anymore
+    set_resuming(state, false)
+  end
+
   defp update_state_by_event(state, _payload), do: state
 
   defp broadcast_event(state, %{t: type}) when type in ["READY"], do: state
@@ -210,9 +227,16 @@ defmodule Mobius.Services.Shard do
     Logger.warn("You used the intents #{intents_string}, but at least one of them isn't enabled")
   end
 
+  defp resuming_sleep do
+    # Make tests not take excessively long
+    sleep_time_ms = Application.get_env(:mobius, :resuming_sleep_time_ms, :rand.uniform(5) * 1000)
+    Process.sleep(sleep_time_ms)
+  end
+
   defp update_seq(state, seq), do: update_in(state.gateway, &Gateway.update_seq(&1, seq))
   defp set_session(state, id), do: update_in(state.gateway, &Gateway.set_session_id(&1, id))
   defp reset_session(state), do: update_in(state.gateway, &Gateway.reset_session_id/1)
+  defp set_resuming(state, value), do: update_in(state.gateway, &Gateway.set_resuming(&1, value))
 
   defp via(%ShardInfo{} = shard), do: {:via, Registry, {Mobius.Registry.Shard, shard}}
   defp reply(state), do: {:reply, :ok, state}
