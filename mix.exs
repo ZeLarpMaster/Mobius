@@ -34,6 +34,7 @@ defmodule Mobius.MixProject do
       {:castore, "~> 0.1"},
       {:jason, ">= 1.2.2"},
       {:hackney, "~> 1.17"},
+      {:fuse, "~> 2.4"},
       {:tesla, "~> 1.4.0"},
       {:excoveralls, "~> 0.13", only: :test},
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
