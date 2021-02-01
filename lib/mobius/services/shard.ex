@@ -57,7 +57,8 @@ defmodule Mobius.Services.Shard do
 
   @spec notify_payload(payload(), ShardInfo.t()) :: :ok
   def notify_payload(payload, shard) do
-    GenServer.call(via(shard), {:payload, payload})
+    # Increase the default timeout to 6s since it can sleep for 5s after a failed resume
+    GenServer.call(via(shard), {:payload, payload}, 6000)
   end
 
   @spec notify_closed(ShardInfo.t(), integer, String.t()) :: :ok
