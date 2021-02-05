@@ -92,7 +92,9 @@ defmodule Mobius.Services.Socket.Gun do
 
   @impl GenServer
   def handle_cast(:close, state) do
-    :ok = :gun.ws_send(state.gun_pid, :close)
+    # Close with code 1000 to gracefully shutdown
+    # See: https://discord.com/developers/docs/topics/gateway#disconnections
+    :ok = :gun.ws_send(state.gun_pid, {:close, 1000, []})
     {:noreply, state}
   end
 

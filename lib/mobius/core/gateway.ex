@@ -1,9 +1,10 @@
 defmodule Mobius.Core.Gateway do
   @moduledoc false
 
-  defstruct [:token, :session_id, :seq]
+  defstruct [:resuming, :token, :session_id, :seq]
 
   @type t :: %__MODULE__{
+          resuming: boolean,
           token: String.t(),
           session_id: String.t() | nil,
           seq: integer
@@ -12,6 +13,7 @@ defmodule Mobius.Core.Gateway do
   @spec new(String.t()) :: t()
   def new(token) do
     %__MODULE__{
+      resuming: false,
       token: token,
       session_id: nil,
       seq: 0
@@ -20,6 +22,8 @@ defmodule Mobius.Core.Gateway do
 
   @doc """
   Checks whether the gateway is in a session or not
+
+  ## Examples
 
       iex> has_session?(new("token"))
       false
@@ -40,9 +44,24 @@ defmodule Mobius.Core.Gateway do
   @doc """
   Updates the sequence number to a new value
 
+  ## Examples
+
       iex> update_seq(new("token"), 42).seq
       42
   """
   @spec update_seq(t(), integer) :: t()
   def update_seq(gateway, seq), do: %__MODULE__{gateway | seq: seq}
+
+  @doc """
+  Sets the flag about the gateway attempting to resume
+
+  ## Examples
+
+      iex> set_resuming(new("token"), true).resuming
+      true
+      iex> set_resuming(new("token"), false).resuming
+      false
+  """
+  @spec set_resuming(t(), boolean) :: t()
+  def set_resuming(gateway, value), do: %__MODULE__{gateway | resuming: value}
 end
