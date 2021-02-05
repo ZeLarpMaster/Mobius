@@ -28,6 +28,7 @@ defmodule Mobius.Models.Embed do
 
   @type type ::
           :image
+          | :rich
           | :video
           | :gifv
           | :article
