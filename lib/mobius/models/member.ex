@@ -8,8 +8,8 @@ defmodule Mobius.Models.Member do
 
   import Mobius.Models.Utils
 
-  alias Mobius.Models.DateTime, as: DateTimeModel
   alias Mobius.Models.Snowflake
+  alias Mobius.Models.Timestamp
   alias Mobius.Models.User
 
   defstruct [
@@ -41,8 +41,8 @@ defmodule Mobius.Models.Member do
     |> add_field(map, :user, &User.parse/1)
     |> add_field(map, :nick)
     |> add_field(map, :roles, &parse_roles/1)
-    |> add_field(map, :joined_at, &DateTimeModel.parse/1)
-    |> add_field(map, :premium_since, &DateTimeModel.parse/1)
+    |> add_field(map, :joined_at, &Timestamp.parse/1)
+    |> add_field(map, :premium_since, &Timestamp.parse/1)
     |> add_field(map, :deaf)
     |> add_field(map, :mute)
     |> add_field(map, :pending)

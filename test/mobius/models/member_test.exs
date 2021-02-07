@@ -4,9 +4,9 @@ defmodule Mobius.Models.MemberTest do
   import Mobius.Generators
   import Mobius.TestUtils
 
-  alias Mobius.Models.DateTime
   alias Mobius.Models.Member
   alias Mobius.Models.Snowflake
+  alias Mobius.Models.Timestamp
   alias Mobius.Models.User
   alias Mobius.Models.Utils
 
@@ -39,8 +39,8 @@ defmodule Mobius.Models.MemberTest do
       |> assert_field(:user, User.parse(map["user"]))
       |> assert_field(:nick, map["nick"])
       |> assert_field(:roles, Utils.parse_list(map["roles"], &Snowflake.parse/1))
-      |> assert_field(:joined_at, DateTime.parse(map["joined_at"]))
-      |> assert_field(:premium_since, DateTime.parse(map["premium_since"]))
+      |> assert_field(:joined_at, Timestamp.parse(map["joined_at"]))
+      |> assert_field(:premium_since, Timestamp.parse(map["premium_since"]))
       |> assert_field(:deaf, map["deaf"])
       |> assert_field(:mute, map["mute"])
       |> assert_field(:pending, map["pending"])

@@ -100,6 +100,27 @@ defmodule Mobius.Generators do
     merge_opts(defaults, opts)
   end
 
+  @spec embed(keyword) :: map
+  def embed(opts \\ []) do
+    defaults = %{
+      "title" => random_hex(8),
+      "type" => "rich",
+      "description" => random_hex(16),
+      "url" => random_hex(8),
+      "timestamp" => DateTime.to_iso8601(DateTime.utc_now()),
+      "color" => :rand.uniform(256 * 256 * 256),
+      "footer" => %{"text" => random_hex(8)},
+      "image" => %{"url" => random_hex(8)},
+      "thumbnail" => %{"url" => random_hex(8)},
+      "video" => %{"url" => random_hex(8)},
+      "provider" => %{"name" => random_hex(8), "url" => random_hex(8)},
+      "author" => %{"name" => random_hex(8), "url" => random_hex(8), "icon_url" => random_hex(8)},
+      "fields" => [%{"name" => random_hex(8), "value" => random_hex(8), "inline" => true}]
+    }
+
+    merge_opts(defaults, opts)
+  end
+
   @spec application(keyword) :: map
   def application(opts \\ []) do
     team_id = random_snowflake()

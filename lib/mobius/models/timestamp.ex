@@ -1,4 +1,4 @@
-defmodule Mobius.Models.DateTime do
+defmodule Mobius.Models.Timestamp do
   @moduledoc false
 
   @doc """
