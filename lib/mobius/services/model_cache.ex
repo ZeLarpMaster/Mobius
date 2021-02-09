@@ -55,7 +55,7 @@ defmodule Mobius.Services.ModelCache do
   def cache_event(:guild_emojis_update, _data), do: nil
   def cache_event(:guild_integrations_update, _data), do: nil
   def cache_event(:guild_member_add, member), do: cache_member(member)
-  def cache_event(:guild_member_remove, data), do: uncache_member(data)
+  def cache_event(:guild_member_remove, data), do: invalidate_member(data)
 
   def cache_event(:guild_member_update, data) do
     Cachex.get_and_update(__MODULE__.Member, {data["guild_id"], data["user"]["id"]}, fn
@@ -92,7 +92,7 @@ defmodule Mobius.Services.ModelCache do
     Cachex.put(__MODULE__.Member, {member["guild_id"], user["id"]}, member)
   end
 
-  defp uncache_member(%{"guild_id" => guild_id, "user" => %{"id" => id}}) do
+  defp invalidate_member(%{"guild_id" => guild_id, "user" => %{"id" => id}}) do
     Cachex.del(__MODULE__.Member, {guild_id, id})
   end
 
