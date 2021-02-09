@@ -17,8 +17,8 @@ defmodule Mobius.Services.ModelCache do
     children = [
       # Start each individual cache
       # {Cachex, name: __MODULE__.Guild},
-      {Cachex, name: __MODULE__.Member},
-      {Cachex, name: __MODULE__.User}
+      cache_spec(__MODULE__.Member),
+      cache_spec(__MODULE__.User)
       # {Cachex, name: __MODULE__.Channel},
       # {Cachex, name: __MODULE__.Permissions},
       # {Cachex, name: __MODULE__.Role},
@@ -95,4 +95,6 @@ defmodule Mobius.Services.ModelCache do
   defp uncache_member(%{"guild_id" => guild_id, "user" => %{"id" => id}}) do
     Cachex.del(__MODULE__.Member, {guild_id, id})
   end
+
+  defp cache_spec(name), do: Supervisor.child_spec({Cachex, name: name}, id: name)
 end
