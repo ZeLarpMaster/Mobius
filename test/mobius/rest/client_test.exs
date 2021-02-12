@@ -1,5 +1,5 @@
 defmodule Mobius.Rest.ClientTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
 
   import Tesla.Mock, only: [mock: 1]
   import Mobius.Fixtures
