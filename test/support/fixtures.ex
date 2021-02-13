@@ -11,7 +11,7 @@ defmodule Mobius.Fixtures do
   alias Mobius.Stubs
 
   @shard ShardInfo.new(number: 0, count: 1)
-  @token System.fetch_env!("MOBIUS_BOT_TOKEN")
+  @token System.get_env("MOBIUS_BOT_TOKEN", "default_token")
 
   def reset_services(_context) do
     Mobius.Application.reset_services()

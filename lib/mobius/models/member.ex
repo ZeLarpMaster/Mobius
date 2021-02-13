@@ -24,7 +24,7 @@ defmodule Mobius.Models.Member do
   ]
 
   @type t :: %__MODULE__{
-          user: User.t() | nil,
+          user: User.t(),
           nick: String.t(),
           roles: [Snowflake.t()],
           joined_at: DateTime.t(),
