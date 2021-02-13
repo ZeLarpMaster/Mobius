@@ -3,6 +3,68 @@ defmodule Mobius.Generators do
 
   import Mobius.Fixtures
 
+  @spec message(keyword) :: map
+  def message(opts \\ []) do
+    defaults = %{
+      "id" => random_snowflake(),
+      "channel_id" => random_snowflake(),
+      "guild_id" => random_snowflake(),
+      "author" => user(),
+      "member" => Map.delete(member(), "user"),
+      "content" => random_hex(16),
+      "timestamp" => DateTime.to_iso8601(DateTime.utc_now()),
+      "edited_timestamp" => DateTime.to_iso8601(DateTime.utc_now()),
+      "tts" => false,
+      "mention_everyone" => true,
+      "mentions" => Map.put(user(), "member", member()),
+      "mention_roles" => [random_snowflake()],
+      "mention_channels" => [
+        %{
+          "id" => random_snowflake(),
+          "guild_id" => random_snowflake(),
+          "type" => 0,
+          "name" => random_hex(8)
+        }
+      ],
+      "attachments" => [attachment()],
+      "embeds" => [embed()],
+      "reactions" => [%{"count" => :rand.uniform(5000), "me" => false, "emoji" => emoji()}],
+      "nonce" => random_hex(16),
+      "pinned" => true,
+      "webhook_id" => random_snowflake(),
+      "type" => 0,
+      "activity" => %{"type" => 2, "party_id" => random_hex(16)},
+      "application" => %{
+        "id" => random_snowflake(),
+        "cover_image" => random_hex(32),
+        "description" => random_hex(32),
+        "icon" => random_hex(16),
+        "name" => random_hex(8)
+      },
+      "message_reference" => %{
+        "message_id" => random_snowflake(),
+        "channel_id" => random_snowflake(),
+        "guild_id" => random_snowflake()
+      },
+      "flags" => 0b100,
+      "stickers" => [
+        %{
+          "id" => random_snowflake(),
+          "pack_id" => random_snowflake(),
+          "name" => random_hex(8),
+          "description" => random_hex(16),
+          "tags" => "abc,def",
+          "asset" => random_hex(8),
+          "preview_asset" => random_hex(8),
+          "format_type" => 1
+        }
+      ],
+      "referenced_message" => nil
+    }
+
+    merge_opts(defaults, opts)
+  end
+
   @spec member(keyword) :: map
   def member(opts \\ []) do
     defaults = %{

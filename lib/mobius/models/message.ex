@@ -123,7 +123,7 @@ defmodule Mobius.Models.Message do
     |> add_field(map, :channel_id, &Snowflake.parse/1)
     |> add_field(map, :guild_id, &Snowflake.parse/1)
     |> add_field(map, :author, &User.parse/1)
-    |> add_field(map, :member, &inject_user_in_member(&1, map["user"]))
+    |> add_field(map, :member, &inject_user_in_member(&1, map["author"]))
     |> add_field(map, :content)
     |> add_field(map, :timestamp, &Timestamp.parse/1)
     |> add_field(map, :edited_timestamp, &Timestamp.parse/1)
@@ -179,5 +179,7 @@ defmodule Mobius.Models.Message do
   defp parse_role_ids(role_ids), do: parse_list(role_ids, &Snowflake.parse/1)
   defp parse_mentions(mentions), do: parse_list(mentions, &parse_mention/1)
   defp parse_mention(user), do: inject_user_in_member(user["member"], user)
-  defp inject_user_in_member(member, user), do: Member.parse(%{member | user: User.parse(user)})
+
+  defp inject_user_in_member(nil, _), do: nil
+  defp inject_user_in_member(member, user), do: Member.parse(Map.put(member, "user", user))
 end
