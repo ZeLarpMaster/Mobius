@@ -8,6 +8,7 @@ defmodule Mobius.Models.ChannelMention do
 
   import Mobius.Models.Utils
 
+  alias Mobius.Models.Channel
   alias Mobius.Models.Snowflake
 
   defstruct [
@@ -20,8 +21,7 @@ defmodule Mobius.Models.ChannelMention do
   @type t :: %__MODULE__{
           id: Snowflake.t(),
           guild_id: Snowflake.t(),
-          # TODO: When channel parsing is done
-          type: integer,
+          type: Channel.type(),
           name: String.t()
         }
 
@@ -31,7 +31,7 @@ defmodule Mobius.Models.ChannelMention do
     %__MODULE__{}
     |> add_field(map, :id, &Snowflake.parse/1)
     |> add_field(map, :guild_id, &Snowflake.parse/1)
-    |> add_field(map, :type)
+    |> add_field(map, :type, &Channel.parse_type/1)
     |> add_field(map, :name)
   end
 
