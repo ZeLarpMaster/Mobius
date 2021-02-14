@@ -36,7 +36,7 @@ defmodule Mobius.Models.ChannelMentionTest do
       |> ChannelMention.parse()
       |> assert_field(:id, Snowflake.parse(map["id"]))
       |> assert_field(:guild_id, Snowflake.parse(map["guild_id"]))
-      |> assert_field(:type, map["type"])
+      |> assert_field(:type, :guild_text)
       |> assert_field(:name, map["name"])
     end
   end

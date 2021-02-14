@@ -3,6 +3,39 @@ defmodule Mobius.Generators do
 
   import Mobius.Fixtures
 
+  @spec channel(keyword) :: map
+  def channel(opts \\ []) do
+    defaults = %{
+      "id" => random_snowflake(),
+      "type" => 0,
+      "guild_id" => random_snowflake(),
+      "position" => :rand.uniform(20),
+      "permission_overwrites" => [
+        %{
+          "id" => random_snowflake(),
+          "type" => 0,
+          "allow" => "#{:rand.uniform(Bitwise.<<<(1, 30))}",
+          "deny" => "#{:rand.uniform(Bitwise.<<<(1, 30))}"
+        }
+      ],
+      "name" => random_hex(8),
+      "topic" => random_hex(8),
+      "nsfw" => false,
+      "last_message_id" => random_snowflake(),
+      "bitrate" => :rand.uniform(18) * 1000,
+      "user_limit" => :rand.uniform(25),
+      "rate_limit_per_user" => :rand.uniform(60 * 60 * 24),
+      "recipients" => [user()],
+      "icon" => random_hex(16),
+      "owner_id" => random_snowflake(),
+      "application_id" => random_snowflake(),
+      "parent_id" => random_snowflake(),
+      "last_pin_timestamp" => DateTime.to_iso8601(DateTime.utc_now())
+    }
+
+    merge_opts(defaults, opts)
+  end
+
   @spec message(keyword) :: map
   def message(opts \\ []) do
     defaults = %{
