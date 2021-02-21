@@ -98,6 +98,26 @@ defmodule Mobius.Generators do
     merge_opts(defaults, opts)
   end
 
+  @spec voice_state(keyword) :: map
+  def voice_state(opts \\ []) do
+    defaults = %{
+      "guild_id" => random_snowflake(),
+      "channel_id" => random_snowflake(),
+      "user_id" => random_snowflake(),
+      "member" => member(),
+      "session_id" => random_hex(16),
+      "deaf" => false,
+      "mute" => false,
+      "self_deaf" => true,
+      "self_mute" => true,
+      "self_stream" => true,
+      "self_video" => false,
+      "suppress" => false
+    }
+
+    merge_opts(defaults, opts)
+  end
+
   @spec member(keyword) :: map
   def member(opts \\ []) do
     defaults = %{
