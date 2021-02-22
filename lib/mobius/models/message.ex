@@ -8,7 +8,6 @@ defmodule Mobius.Models.Message do
 
   import Mobius.Models.Utils
 
-  alias Mobius.Core.Bitflags
   alias Mobius.Models.Attachment
   alias Mobius.Models.ChannelMention
   alias Mobius.Models.Embed
@@ -142,7 +141,7 @@ defmodule Mobius.Models.Message do
     |> add_field(map, :activity, &MessageActivity.parse/1)
     |> add_field(map, :application, &MessageApplication.parse/1)
     |> add_field(map, :message_reference, &MessageReference.parse/1)
-    |> add_field(map, :flags, &parse_flags/1)
+    |> add_field(map, :flags, &parse_flags(&1, @flags))
     |> add_field(map, :stickers, &parse_stickers/1)
     |> add_field(map, :referenced_message, &parse/1)
   end
@@ -167,9 +166,6 @@ defmodule Mobius.Models.Message do
   defp parse_type(19), do: :reply
   defp parse_type(20), do: :application_command
   defp parse_type(_), do: nil
-
-  defp parse_flags(flags) when is_integer(flags), do: Bitflags.parse_bitflags(flags, @flags)
-  defp parse_flags(_flags), do: nil
 
   defp parse_stickers(stickers), do: parse_list(stickers, &Sticker.parse/1)
   defp parse_reactions(reactions), do: parse_list(reactions, &Reaction.parse/1)
