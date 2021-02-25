@@ -47,7 +47,14 @@ defmodule Mobius.Services.ModelCache do
   def cache_event(:channel_update, _channel), do: nil
   def cache_event(:channel_delete, _data), do: nil
   def cache_event(:channel_pins_update, _data), do: nil
-  def cache_event(:guild_create, _guild), do: nil
+
+  def cache_event(:guild_create, guild) do
+    guild
+    |> Map.get("members", [])
+    |> Enum.map(fn member -> member["user"] end)
+    |> cache_users()
+  end
+
   def cache_event(:guild_update, _guild), do: nil
   def cache_event(:guild_delete, _data), do: nil
   def cache_event(:guild_ban_add, _ban), do: nil
@@ -85,6 +92,10 @@ defmodule Mobius.Services.ModelCache do
   def cache_event(:webhooks_update, _data), do: nil
 
   defp cache_user(user), do: Cachex.put(__MODULE__.User, user["id"], user)
+
+  defp cache_users(users) do
+    Cachex.put_many(__MODULE__.User, Enum.map(users, fn user -> {user["id"], user} end))
+  end
 
   defp cache_member(member) do
     user = member["user"]
