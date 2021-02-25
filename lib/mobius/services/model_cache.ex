@@ -5,7 +5,7 @@ defmodule Mobius.Services.ModelCache do
 
   alias Mobius.Core.Event
 
-  @type cache :: __MODULE__.User
+  @type cache :: __MODULE__.User | __MODULE__.Member
 
   @spec start_link(keyword) :: Supervisor.on_start()
   def start_link(opts) do
