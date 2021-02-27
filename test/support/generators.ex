@@ -98,6 +98,26 @@ defmodule Mobius.Generators do
     merge_opts(defaults, opts)
   end
 
+  @spec voice_state(keyword) :: map
+  def voice_state(opts \\ []) do
+    defaults = %{
+      "guild_id" => random_snowflake(),
+      "channel_id" => random_snowflake(),
+      "user_id" => random_snowflake(),
+      "member" => member(),
+      "session_id" => random_hex(16),
+      "deaf" => false,
+      "mute" => false,
+      "self_deaf" => true,
+      "self_mute" => true,
+      "self_stream" => true,
+      "self_video" => false,
+      "suppress" => false
+    }
+
+    merge_opts(defaults, opts)
+  end
+
   @spec member(keyword) :: map
   def member(opts \\ []) do
     defaults = %{
@@ -211,6 +231,61 @@ defmodule Mobius.Generators do
       "provider" => %{"name" => random_hex(8), "url" => random_hex(8)},
       "author" => %{"name" => random_hex(8), "url" => random_hex(8), "icon_url" => random_hex(8)},
       "fields" => [%{"name" => random_hex(8), "value" => random_hex(8), "inline" => true}]
+    }
+
+    merge_opts(defaults, opts)
+  end
+
+  @spec presence(keyword) :: map
+  def presence(opts \\ []) do
+    defaults = %{
+      "user" => partial_user(),
+      "guild_id" => random_snowflake(),
+      "status" => "online",
+      "activities" => [activity()],
+      "client_status" => %{
+        "desktop" => "idle",
+        "mobile" => "dnd",
+        "web" => "offline"
+      }
+    }
+
+    merge_opts(defaults, opts)
+  end
+
+  @spec activity(keyword) :: map
+  def activity(opts \\ []) do
+    defaults = %{
+      "name" => random_hex(8),
+      "type" => 4,
+      "url" => random_hex(16),
+      "created_at" => DateTime.to_unix(DateTime.utc_now(), :millisecond),
+      "timestamps" => %{
+        "start" => DateTime.to_unix(DateTime.utc_now(), :millisecond),
+        "end" => DateTime.to_unix(DateTime.utc_now(), :millisecond)
+      },
+      "application_id" => random_snowflake(),
+      "details" => random_hex(8),
+      "state" => random_hex(16),
+      "emoji" => %{
+        "name" => random_hex(8),
+        "id" => random_snowflake(),
+        "animated" => true
+      },
+      "party" => %{"id" => random_hex(8), "size" => [5, 10]},
+      "assets" => %{
+        "large_image" => random_hex(8),
+        "large_text" => random_hex(8),
+        "small_image" => random_hex(8),
+        "small_text" => random_hex(8)
+      },
+      "secrets" => %{
+        "join" => random_hex(32),
+        "spectate" => random_hex(32),
+        "match" => random_hex(32)
+      },
+      "instance" => true,
+      "flags" => 0b100110
     }
 
     merge_opts(defaults, opts)

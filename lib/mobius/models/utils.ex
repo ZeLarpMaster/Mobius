@@ -1,6 +1,8 @@
 defmodule Mobius.Models.Utils do
   @moduledoc false
 
+  alias Mobius.Core.Bitflags
+
   @doc """
   Adds a field to the struct with the value given by struct_key in the map
 
@@ -34,4 +36,7 @@ defmodule Mobius.Models.Utils do
   end
 
   def parse_integer(_value), do: nil
+
+  def parse_flags(value, flags) when is_integer(value), do: Bitflags.parse_bitflags(value, flags)
+  def parse_flags(_value, _flags), do: nil
 end
