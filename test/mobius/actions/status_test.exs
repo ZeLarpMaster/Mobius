@@ -26,25 +26,25 @@ defmodule Mobius.Actions.StatusTest do
       payload = Opcode.update_status(status)
       assert_receive {:socket_msg, ^payload}
     end
-  end
 
-  test "asks ratelimiter about update_status ratelimit", ctx do
-    Status.change_status(BotStatus.new())
+    test "asks ratelimiter about update_status ratelimit", ctx do
+      Status.change_status(BotStatus.new())
 
-    expected_bucket = {"shard:#{ctx.shard.number}:update_status", 60_000, 5}
-    assert_receive {:ratelimit_requested, ^expected_bucket}
-  end
+      expected_bucket = {"shard:#{ctx.shard.number}:update_status", 60_000, 5}
+      assert_receive {:ratelimit_requested, ^expected_bucket}
+    end
 
-  test "asks ratelimiter about global ratelimit", ctx do
-    Status.change_status(BotStatus.new())
+    test "asks ratelimiter about global ratelimit", ctx do
+      Status.change_status(BotStatus.new())
 
-    expected_bucket = {"shard:#{ctx.shard.number}:global", 60_000, 115}
-    assert_receive {:ratelimit_requested, ^expected_bucket}
-  end
+      expected_bucket = {"shard:#{ctx.shard.number}:global", 60_000, 115}
+      assert_receive {:ratelimit_requested, ^expected_bucket}
+    end
 
-  test "returns :ratelimited if ratelimited" do
-    CommandsRatelimiter.set_ratelimited(true)
+    test "returns :ratelimited if ratelimited" do
+      CommandsRatelimiter.set_ratelimited(true)
 
-    assert [{:error, :ratelimited}] == Status.change_status(BotStatus.new())
+      assert [{:error, :ratelimited}] == Status.change_status(BotStatus.new())
+    end
   end
 end
