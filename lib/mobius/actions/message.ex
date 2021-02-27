@@ -11,11 +11,17 @@ defmodule Mobius.Actions.Message do
   Send a message in a channel
 
   The params can be:
-    - `content`: The message's content
+    - `content`: The message's content (maximum 2000 chars)
+    - `nonce`: random string or integer to compare with received messages and check its reception
+    - `tts`: true if this message should be read with tts
+    - `embed`: an embed (with type `rich`) with some restrictions
+    - `allowed_mentions`: the mentions allowed in this message (see docs)
+    - `message_reference`: identifies the message being replied to (see docs)
 
   ## Example
 
-      iex> send_message([content: "Some content", ], channel_id)
+      iex> send_message([content: "Some content"], channel_id)
+      {:ok, %Mobius.Models.Message{} = message}
 
   ## Documentation
 
