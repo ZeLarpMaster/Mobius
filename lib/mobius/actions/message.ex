@@ -14,9 +14,9 @@ defmodule Mobius.Actions.Message do
     - `content`: The message's content (maximum 2000 chars)
     - `nonce`: random string or integer to compare with received messages and check its reception
     - `tts`: true if this message should be read with tts
-    - `embed`: an embed (with type `rich`) with some restrictions
-    - `allowed_mentions`: the mentions allowed in this message (see docs)
-    - `message_reference`: identifies the message being replied to (see docs)
+    - `embed`: an embed with type `rich` and some restrictions (see Discord docs)
+    - `allowed_mentions`: the mentions allowed in this message (see Discord docs)
+    - `message_reference`: identifies the message being replied to (see Discord docs)
 
   ## Example
 
