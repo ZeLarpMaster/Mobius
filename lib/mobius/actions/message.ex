@@ -5,7 +5,10 @@ defmodule Mobius.Actions.Message do
 
   alias Mobius.Models.Message
   alias Mobius.Rest
+  alias Mobius.Rest.Client
   alias Mobius.Services.Bot
+
+  @type message_body :: Rest.Message.message_body()
 
   @doc """
   Send a message in a channel
@@ -32,21 +35,22 @@ defmodule Mobius.Actions.Message do
   Relevant documentation:
   https://discord.com/developers/docs/resources/channel#create-message
   """
-  @spec send_message(keyword, Snowflake.t()) :: Rest.Client.result(Message.t())
-  def send_message(params, channel_id) do
+  @spec send_message(message_body(), Snowflake.t()) :: Client.result(Message.t())
+  def send_message(body, channel_id) do
     cond do
-      not Keyword.has_key?(params, :content) and not Keyword.has_key?(params, :embed) ->
+      not Map.has_key?(body, :content) and not Map.has_key?(body, :embed) ->
         {:error, "Must have at least one of content or embed when sending a message"}
 
-      String.length(Keyword.get(params, :content, "")) > 2000 ->
+      String.length(Map.get(body, :content, "")) > 2000 ->
         {:error, "Content is too long (maximum 2000 characters)"}
 
+      # TODO: Validate the embed limits (see https://discord.com/developers/docs/resources/channel#embed-limits)
       # TODO: Make sure the channel exists (requires a cache)
       # TODO: Make sure permissions are right (requires a cache)
       # TODO: Make sure the bot is connected to the gateway
 
       true ->
-        Rest.Message.send_message(Bot.get_client!(), channel_id, params)
+        Rest.Message.send_message(Bot.get_client!(), channel_id, body)
     end
   end
 end
