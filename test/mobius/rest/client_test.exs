@@ -6,7 +6,6 @@ defmodule Mobius.Rest.ClientTest do
 
   alias Mobius.Rest.Client
 
-  setup :create_token
   setup :create_rest_client
 
   describe "parse_response/2" do
@@ -133,9 +132,11 @@ defmodule Mobius.Rest.ClientTest do
       Tesla.get(ctx.client, ctx.url)
       assert_received :called_api
 
-      [{:token, token}] = create_token(%{})
-      [{:client, client}] = create_rest_client(%{token: token})
-      Tesla.get(client, ctx.url)
+      ctx
+      |> create_rest_client()
+      |> Keyword.fetch!(:client)
+      |> Tesla.get(ctx.url)
+
       assert_received :called_api
     end
   end

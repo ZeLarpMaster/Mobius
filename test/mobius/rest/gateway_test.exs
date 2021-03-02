@@ -8,7 +8,6 @@ defmodule Mobius.Rest.GatewayTest do
   alias Mobius.Rest
   alias Mobius.Rest.Client
 
-  setup :create_token
   setup :create_rest_client
 
   describe "get_bot/1" do

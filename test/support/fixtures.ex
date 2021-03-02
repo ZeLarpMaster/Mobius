@@ -51,12 +51,9 @@ defmodule Mobius.Fixtures do
     [session_id: session_id, token: @token]
   end
 
-  def create_token(_context) do
-    [token: random_hex(8)]
-  end
-
-  def create_rest_client(context) do
-    [client: Client.new(token: context.token, max_retries: 0)]
+  def create_rest_client(_context) do
+    token = random_hex(8)
+    [token: token, client: Client.new(token: token, max_retries: 0)]
   end
 
   # Utility functions

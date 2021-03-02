@@ -9,7 +9,7 @@ defmodule Mobius.Services.CommandsRatelimiter.SelfRefillTest do
     # Manually start the service because it won't be started during tests
     start_supervised!({SelfRefill, []})
     # Generate a random bucket name so they don't overlap during tests
-    [bucket: random_hex(8)]
+    [bucket: random_hex(16)]
   end
 
   describe "request_access/1" do
