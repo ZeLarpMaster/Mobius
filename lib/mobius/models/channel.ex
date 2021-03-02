@@ -43,6 +43,12 @@ defmodule Mobius.Models.Channel do
           | :guild_news
           | :guild_store
 
+  @type partial :: %__MODULE__{
+          id: Snowflake.t(),
+          type: type(),
+          name: String.t() | nil
+        }
+
   @type t :: %__MODULE__{
           id: Snowflake.t(),
           type: type(),
