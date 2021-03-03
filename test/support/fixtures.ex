@@ -11,7 +11,8 @@ defmodule Mobius.Fixtures do
   alias Mobius.Stubs
 
   @shard ShardInfo.new(number: 0, count: 1)
-  @token System.get_env("MOBIUS_BOT_TOKEN", "default_token")
+
+  def token, do: System.get_env("MOBIUS_BOT_TOKEN", "default_token")
 
   def reset_services(_context) do
     Mobius.Application.reset_services()
@@ -48,7 +49,7 @@ defmodule Mobius.Fixtures do
 
     Socket.notify_payload(data, @shard)
 
-    [session_id: session_id, token: @token]
+    [session_id: session_id, token: token()]
   end
 
   def create_rest_client(_context) do
@@ -90,7 +91,7 @@ defmodule Mobius.Fixtures do
   end
 
   def assert_receive_identify(intents \\ Intents.all_intents()) do
-    msg = Opcode.identify(@shard, @token, intents)
+    msg = Opcode.identify(@shard, token(), intents)
     assert_receive {:socket_msg, ^msg}, 50
   end
 
