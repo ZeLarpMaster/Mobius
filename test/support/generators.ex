@@ -3,6 +3,27 @@ defmodule Mobius.Generators do
 
   import Mobius.Fixtures
 
+  @spec invite(keyword) :: map
+  def invite(opts \\ []) do
+    defaults = %{
+      "code" => random_hex(16),
+      "guild" => %{},
+      "channel" => channel(),
+      "inviter" => user(),
+      "target_user" => user(),
+      "target_user_type" => 1,
+      "approximate_presence_count" => :rand.uniform(1000),
+      "approximate_member_count" => :rand.uniform(10_000),
+      "uses" => :rand.uniform(100),
+      "max_uses" => :rand.uniform(1000),
+      "max_age" => :rand.uniform(3600),
+      "temporary" => true,
+      "created_at" => DateTime.to_iso8601(DateTime.utc_now())
+    }
+
+    merge_opts(defaults, opts)
+  end
+
   @spec channel(keyword) :: map
   def channel(opts \\ []) do
     defaults = %{

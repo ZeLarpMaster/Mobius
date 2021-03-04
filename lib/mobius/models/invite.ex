@@ -2,6 +2,9 @@ defmodule Mobius.Models.Invite do
   @moduledoc """
   Struct for Discord's Invite
 
+  In Discord's documentation, invite metadata is extended to invites,
+  but the metadata is composed into the invite in this library.
+
   Related documentation:
   https://discord.com/developers/docs/resources/invite#invite-object
   """
@@ -9,6 +12,7 @@ defmodule Mobius.Models.Invite do
   import Mobius.Models.Utils
 
   alias Mobius.Models.Channel
+  alias Mobius.Models.InviteMetadata
   alias Mobius.Models.User
 
   defstruct [
@@ -18,6 +22,7 @@ defmodule Mobius.Models.Invite do
     :inviter,
     :target_user,
     :target_user_type,
+    :metadata,
     :approximate_presence_count,
     :approximate_member_count
   ]
@@ -32,6 +37,7 @@ defmodule Mobius.Models.Invite do
           inviter: User.t() | nil,
           target_user: User.partial() | nil,
           target_user_type: target_type() | nil,
+          metadata: InviteMetadata.t() | nil,
           approximate_presence_count: non_neg_integer() | nil,
           approximate_member_count: non_neg_integer() | nil
         }
@@ -39,7 +45,7 @@ defmodule Mobius.Models.Invite do
   @doc "Parses the given term into a `t:t()` if possible; returns nil otherwise"
   @spec parse(any) :: t() | nil
   def parse(map) when is_map(map) do
-    %__MODULE__{}
+    %__MODULE__{metadata: parse_metadata(map)}
     |> add_field(map, :code)
     |> add_field(map, :guild)
     |> add_field(map, :channel, &Channel.parse/1)
@@ -51,6 +57,16 @@ defmodule Mobius.Models.Invite do
   end
 
   def parse(_), do: nil
+
+  defp parse_metadata(map) do
+    metadata = InviteMetadata.parse(map)
+
+    if metadata == InviteMetadata.parse(%{}) do
+      nil
+    else
+      metadata
+    end
+  end
 
   defp parse_type(1), do: :stream
   defp parse_type(_), do: nil
