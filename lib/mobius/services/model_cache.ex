@@ -41,6 +41,14 @@ defmodule Mobius.Services.ModelCache do
     Enum.to_list(stream)
   end
 
+  @doc "Clears all caches. Only for usage in tests."
+  @spec clear :: :ok
+  def clear do
+    Cachex.clear!(__MODULE__.User)
+    Cachex.clear!(__MODULE__.Member)
+    :ok
+  end
+
   @spec cache_event(Event.name(), any) :: any
   def cache_event(:ready, data), do: cache_user(data["user"])
   def cache_event(:user_update, user), do: cache_user(user)
@@ -54,10 +62,12 @@ defmodule Mobius.Services.ModelCache do
     |> cache_users()
   end
 
-  def cache_event(:guild_member_update, data) do
-    Cachex.get_and_update(__MODULE__.Member, {data["guild_id"], data["user"]["id"]}, fn
-      nil -> {:ignore, nil}
-      member -> {:commit, Map.merge(member, Map.delete(data, "guild_id"))}
+  def cache_event(:guild_member_update, %{"guild_id" => guild_id, "user" => %{"id" => id}} = data) do
+    new_member = Map.delete(data, "guild_id")
+
+    Cachex.get_and_update(__MODULE__.Member, {guild_id, id}, fn
+      nil -> {:commit, new_member}
+      member -> {:commit, Map.merge(member, new_member)}
     end)
   end
 
@@ -72,7 +82,9 @@ defmodule Mobius.Services.ModelCache do
   defp cache_member(member) do
     user = member["user"]
     cache_user(user)
-    Cachex.put(__MODULE__.Member, {member["guild_id"], user["id"]}, member)
+    key = {member["guild_id"], user["id"]}
+
+    Cachex.put(__MODULE__.Member, key, Map.delete(member, "guild_id"))
   end
 
   defp invalidate_member(%{"guild_id" => guild_id, "user" => %{"id" => id}}) do

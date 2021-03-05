@@ -6,7 +6,7 @@ defmodule Mobius.Generators do
   @spec member(keyword) :: map
   def member(opts \\ []) do
     defaults = %{
-      "user" => user(Keyword.get(opts, :user, [])),
+      "user" => user(),
       "nick" => random_hex(8),
       "roles" => [random_snowflake(), random_snowflake(), random_snowflake()],
       "joined_at" => DateTime.to_iso8601(DateTime.utc_now()),
