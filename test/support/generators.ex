@@ -3,6 +3,121 @@ defmodule Mobius.Generators do
 
   import Mobius.Fixtures
 
+  @spec channel(keyword) :: map
+  def channel(opts \\ []) do
+    defaults = %{
+      "id" => random_snowflake(),
+      "type" => 0,
+      "guild_id" => random_snowflake(),
+      "position" => :rand.uniform(20),
+      "permission_overwrites" => [
+        %{
+          "id" => random_snowflake(),
+          "type" => 0,
+          "allow" => "#{:rand.uniform(Bitwise.<<<(1, 30))}",
+          "deny" => "#{:rand.uniform(Bitwise.<<<(1, 30))}"
+        }
+      ],
+      "name" => random_hex(8),
+      "topic" => random_hex(8),
+      "nsfw" => false,
+      "last_message_id" => random_snowflake(),
+      "bitrate" => :rand.uniform(18) * 1000,
+      "user_limit" => :rand.uniform(25),
+      "rate_limit_per_user" => :rand.uniform(60 * 60 * 24),
+      "recipients" => [user()],
+      "icon" => random_hex(16),
+      "owner_id" => random_snowflake(),
+      "application_id" => random_snowflake(),
+      "parent_id" => random_snowflake(),
+      "last_pin_timestamp" => DateTime.to_iso8601(DateTime.utc_now())
+    }
+
+    merge_opts(defaults, opts)
+  end
+
+  @spec message(keyword) :: map
+  def message(opts \\ []) do
+    defaults = %{
+      "id" => random_snowflake(),
+      "channel_id" => random_snowflake(),
+      "guild_id" => random_snowflake(),
+      "author" => user(),
+      "member" => Map.delete(member(), "user"),
+      "content" => random_hex(16),
+      "timestamp" => DateTime.to_iso8601(DateTime.utc_now()),
+      "edited_timestamp" => DateTime.to_iso8601(DateTime.utc_now()),
+      "tts" => false,
+      "mention_everyone" => true,
+      "mentions" => Map.put(user(), "member", member()),
+      "mention_roles" => [random_snowflake()],
+      "mention_channels" => [
+        %{
+          "id" => random_snowflake(),
+          "guild_id" => random_snowflake(),
+          "type" => 0,
+          "name" => random_hex(8)
+        }
+      ],
+      "attachments" => [attachment()],
+      "embeds" => [embed()],
+      "reactions" => [%{"count" => :rand.uniform(5000), "me" => false, "emoji" => emoji()}],
+      "nonce" => random_hex(16),
+      "pinned" => true,
+      "webhook_id" => random_snowflake(),
+      "type" => 0,
+      "activity" => %{"type" => 2, "party_id" => random_hex(16)},
+      "application" => %{
+        "id" => random_snowflake(),
+        "cover_image" => random_hex(32),
+        "description" => random_hex(32),
+        "icon" => random_hex(16),
+        "name" => random_hex(8)
+      },
+      "message_reference" => %{
+        "message_id" => random_snowflake(),
+        "channel_id" => random_snowflake(),
+        "guild_id" => random_snowflake()
+      },
+      "flags" => 0b100,
+      "stickers" => [
+        %{
+          "id" => random_snowflake(),
+          "pack_id" => random_snowflake(),
+          "name" => random_hex(8),
+          "description" => random_hex(16),
+          "tags" => "abc,def",
+          "asset" => random_hex(8),
+          "preview_asset" => random_hex(8),
+          "format_type" => 1
+        }
+      ],
+      "referenced_message" => nil
+    }
+
+    merge_opts(defaults, opts)
+  end
+
+  @spec voice_state(keyword) :: map
+  def voice_state(opts \\ []) do
+    defaults = %{
+      "guild_id" => random_snowflake(),
+      "channel_id" => random_snowflake(),
+      "user_id" => random_snowflake(),
+      "member" => member(),
+      "session_id" => random_hex(16),
+      "deaf" => false,
+      "mute" => false,
+      "self_deaf" => true,
+      "self_mute" => true,
+      "self_stream" => true,
+      "self_video" => false,
+      "suppress" => false
+    }
+
+    merge_opts(defaults, opts)
+  end
+
   @spec member(keyword) :: map
   def member(opts \\ []) do
     defaults = %{
@@ -95,6 +210,82 @@ defmodule Mobius.Generators do
       "managed" => false,
       "mentionable" => true,
       "tags" => %{"integration_id" => random_snowflake()}
+    }
+
+    merge_opts(defaults, opts)
+  end
+
+  @spec embed(keyword) :: map
+  def embed(opts \\ []) do
+    defaults = %{
+      "title" => random_hex(8),
+      "type" => "rich",
+      "description" => random_hex(16),
+      "url" => random_hex(8),
+      "timestamp" => DateTime.to_iso8601(DateTime.utc_now()),
+      "color" => :rand.uniform(256 * 256 * 256),
+      "footer" => %{"text" => random_hex(8)},
+      "image" => %{"url" => random_hex(8)},
+      "thumbnail" => %{"url" => random_hex(8)},
+      "video" => %{"url" => random_hex(8)},
+      "provider" => %{"name" => random_hex(8), "url" => random_hex(8)},
+      "author" => %{"name" => random_hex(8), "url" => random_hex(8), "icon_url" => random_hex(8)},
+      "fields" => [%{"name" => random_hex(8), "value" => random_hex(8), "inline" => true}]
+    }
+
+    merge_opts(defaults, opts)
+  end
+
+  @spec presence(keyword) :: map
+  def presence(opts \\ []) do
+    defaults = %{
+      "user" => partial_user(),
+      "guild_id" => random_snowflake(),
+      "status" => "online",
+      "activities" => [activity()],
+      "client_status" => %{
+        "desktop" => "idle",
+        "mobile" => "dnd",
+        "web" => "offline"
+      }
+    }
+
+    merge_opts(defaults, opts)
+  end
+
+  @spec activity(keyword) :: map
+  def activity(opts \\ []) do
+    defaults = %{
+      "name" => random_hex(8),
+      "type" => 4,
+      "url" => random_hex(16),
+      "created_at" => DateTime.to_unix(DateTime.utc_now(), :millisecond),
+      "timestamps" => %{
+        "start" => DateTime.to_unix(DateTime.utc_now(), :millisecond),
+        "end" => DateTime.to_unix(DateTime.utc_now(), :millisecond)
+      },
+      "application_id" => random_snowflake(),
+      "details" => random_hex(8),
+      "state" => random_hex(16),
+      "emoji" => %{
+        "name" => random_hex(8),
+        "id" => random_snowflake(),
+        "animated" => true
+      },
+      "party" => %{"id" => random_hex(8), "size" => [5, 10]},
+      "assets" => %{
+        "large_image" => random_hex(8),
+        "large_text" => random_hex(8),
+        "small_image" => random_hex(8),
+        "small_text" => random_hex(8)
+      },
+      "secrets" => %{
+        "join" => random_hex(32),
+        "spectate" => random_hex(32),
+        "match" => random_hex(32)
+      },
+      "instance" => true,
+      "flags" => 0b100110
     }
 
     merge_opts(defaults, opts)

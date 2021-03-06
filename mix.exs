@@ -37,9 +37,9 @@ defmodule Mobius.MixProject do
       {:hackney, "~> 1.17"},
       {:fuse, "~> 2.4"},
       {:tesla, "~> 1.4.0"},
-      {:excoveralls, "~> 0.13", only: :test},
+      {:excoveralls, "~> 0.14", only: :test},
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.0", only: [:dev], runtime: false}
+      {:dialyxir, "~> 1.1", only: [:dev], runtime: false}
     ]
   end
 

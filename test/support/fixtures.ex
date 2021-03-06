@@ -12,6 +12,8 @@ defmodule Mobius.Fixtures do
 
   @shard ShardInfo.new(number: 0, count: 1)
 
+  def token, do: System.get_env("MOBIUS_BOT_TOKEN", "default_token")
+
   def reset_services(_context) do
     Mobius.Application.reset_services()
   end
@@ -35,8 +37,7 @@ defmodule Mobius.Fixtures do
   def handshake_shard(context) do
     send_hello()
     assert_receive_heartbeat()
-    token = assert_receive_identify(context[:intents] || Intents.all_intents())
-
+    assert_receive_identify(context[:intents] || Intents.all_intents())
     session_id = random_hex(16)
 
     data = %{
@@ -48,15 +49,12 @@ defmodule Mobius.Fixtures do
 
     Socket.notify_payload(data, @shard)
 
-    [session_id: session_id, token: token]
+    [session_id: session_id, token: token()]
   end
 
-  def create_token(_context) do
-    [token: random_hex(8)]
-  end
-
-  def create_rest_client(context) do
-    [client: Client.new(token: context.token, max_retries: 0)]
+  def create_rest_client(_context) do
+    token = random_hex(8)
+    [token: token, client: Client.new(token: token, max_retries: 0)]
   end
 
   # Utility functions
@@ -93,10 +91,8 @@ defmodule Mobius.Fixtures do
   end
 
   def assert_receive_identify(intents \\ Intents.all_intents()) do
-    token = System.fetch_env!("MOBIUS_BOT_TOKEN")
-    msg = Opcode.identify(@shard, token, intents)
+    msg = Opcode.identify(@shard, token(), intents)
     assert_receive {:socket_msg, ^msg}, 50
-    token
   end
 
   @doc "Simulate the server closing the socket with an arbitrary code"

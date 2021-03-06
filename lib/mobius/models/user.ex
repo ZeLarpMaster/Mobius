@@ -7,7 +7,6 @@ defmodule Mobius.Models.User do
 
   import Mobius.Models.Utils
 
-  alias Mobius.Core.Bitflags
   alias Mobius.Models.Snowflake
 
   defstruct [
@@ -101,9 +100,9 @@ defmodule Mobius.Models.User do
     |> add_field(map, :locale)
     |> add_field(map, :verified)
     |> add_field(map, :email)
-    |> add_field(map, :flags, &parse_flags/1)
+    |> add_field(map, :flags, &parse_flags(&1, @flags))
     |> add_field(map, :premium_type, &parse_premium_type/1)
-    |> add_field(map, :public_flags, &parse_flags/1)
+    |> add_field(map, :public_flags, &parse_flags(&1, @flags))
   end
 
   def parse(_), do: nil
@@ -112,7 +111,4 @@ defmodule Mobius.Models.User do
   defp parse_premium_type(1), do: :nitro_classic
   defp parse_premium_type(2), do: :nitro
   defp parse_premium_type(_), do: nil
-
-  defp parse_flags(flags) when is_integer(flags), do: Bitflags.parse_bitflags(flags, @flags)
-  defp parse_flags(_flags), do: nil
 end

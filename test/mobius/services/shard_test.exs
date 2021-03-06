@@ -3,6 +3,7 @@ defmodule Mobius.Services.ShardTest do
 
   import ExUnit.CaptureLog
   import Mobius.Fixtures
+  import Mobius.TestUtils
 
   alias Mobius.Core.Gateway
   alias Mobius.Core.Intents
@@ -60,6 +61,24 @@ defmodule Mobius.Services.ShardTest do
       assert capture_log(fn ->
                close_socket_from_server(4014, "Disallowed intent(s)")
              end) =~ "You used the intents #{intents}, but at least one of them isn't enabled"
+    end
+
+    test "sleeps before reconnecting after a failed resume", ctx do
+      # Make the bot attempt a resume
+      send_payload(op: :invalid_session, data: true)
+      send_hello()
+      resume = make_resume_payload(ctx, 1)
+      assert_receive {:socket_msg, ^resume}
+
+      # Make the bot fail to resume
+      sleep_time = Application.fetch_env!(:mobius, :resuming_sleep_time_ms)
+      # Because `notify_payload` is synchronous, `send_payload` will be tanking the sleep time
+      # Therefore we are asserting the time it takes to execute to check the sleep time
+      # We also use a tolerance of 25ms to avoid false positives caused by intense cpu usage
+      [op: :invalid_session, data: false]
+      |> send_payload()
+      |> function_time()
+      |> assert_in_delta(sleep_time, 25)
     end
 
     test "resumes on invalid session if possible", ctx do
