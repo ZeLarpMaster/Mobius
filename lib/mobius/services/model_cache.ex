@@ -29,12 +29,19 @@ defmodule Mobius.Services.ModelCache do
     Supervisor.init(children, strategy: :one_for_one)
   end
 
+  @doc """
+  Gets a value from a cache using its key or returns nil if not found
+
+  Models with composite keys (such as members who have a guild id and a user id as a key)
+  have tuple as the key with all the keys in the tuple (ie.: {guild_id, user_id} for members).
+  """
   @spec get(any, cache()) :: any
   def get(key, cache) do
     {:ok, value} = Cachex.get(cache, key)
     value
   end
 
+  @doc "Lists all the values in a given cache"
   @spec list(cache()) :: [any]
   def list(cache) do
     {:ok, stream} = Cachex.stream(cache, Cachex.Query.create(true, :value))
@@ -49,6 +56,12 @@ defmodule Mobius.Services.ModelCache do
     :ok
   end
 
+  @doc """
+  Extracts cacheable data from an event
+
+  For example, `Guild Member Add` receives a guild member as data which contains a user.
+  Both the user and the member are cached.
+  """
   @spec cache_event(Event.name(), any) :: any
   def cache_event(:ready, data), do: cache_user(data["user"])
   def cache_event(:user_update, user), do: cache_user(user)
