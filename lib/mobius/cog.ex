@@ -3,7 +3,7 @@ defmodule Mobius.Cog do
   Defines a cog.
 
   Cogs are small, self-contained services that implement a bot's logic. Cogs
-  have two ways of handling Discord events: `listen/3` and `command/3`.
+  have two ways of handling Discord events: `listen/3` and `command/4`.
 
   `listen/3` instructs the cog to listen to specific events that are sent from
   Discord's API. Events are sent when users (humans or bots) interact with
@@ -11,7 +11,7 @@ defmodule Mobius.Cog do
   sent to users changing their username. For a complete list of events and the
   data associated with them see `Mobius.Core.Event`.
 
-  `command/3` defines a command which can be used by users in text channels
+  `command/4` defines a command which can be used by users in text channels
   where the bot has the permission to read. These commands will execute the code
   specified in the do block of the command with its arguments.
 
@@ -27,11 +27,14 @@ defmodule Mobius.Cog do
 
     # Every time a user enters "repeat word times", repeat the word "word"
     # "times" times
-    command "repeat", word: :string, times: :integer do
-      word
-      |> String.duplicate(times)
-      |> String.trim()
-      |> IO.puts()
+    command "repeat", context, word: :string, times: :integer do
+      reply =
+        word
+        |> String.duplicate(times)
+        |> String.trim()
+        |> IO.puts()
+
+      send_message(%{content: reply}, context.channel_id)
     end
   end
   ```
@@ -62,7 +65,7 @@ defmodule Mobius.Cog do
       Module.register_attribute(__MODULE__, :event_handlers, accumulate: true)
       Module.register_attribute(__MODULE__, :commands, accumulate: true)
 
-      import unquote(__MODULE__), only: [listen: 2, listen: 3, command: 2, command: 3]
+      import unquote(__MODULE__), only: [listen: 2, listen: 3, command: 2, command: 3, command: 4]
 
       @spec start_link(keyword) :: GenServer.on_start()
       def start_link(opts) do
@@ -77,8 +80,8 @@ defmodule Mobius.Cog do
       use GenServer
       alias Mobius.Actions.Events
 
-      listen :message_create, %{"content" => content} do
-        case Command.execute_command(@commands, content) do
+      listen :message_create, message do
+        case Command.execute_command(@commands, message) do
           {:ok, _} ->
             :ok
 
@@ -163,15 +166,20 @@ defmodule Mobius.Cog do
     end
   end
 
-  @doc """
+  @doc ~S"""
   Defines a command to be used by Discord users.
 
   The first parameter defines the name of the command as a single word (no
   spaces).
 
-  The second parameter defines the list of arguments that the command accepts,
+  The second parameter defines the argument where the command context will be received.
+  If omitted, the command context won't be available inside the command's body.
+
+  The third parameter defines the list of arguments that the command accepts,
   along with their type. If a user passes more arguments than are defined by the
   command, the extraneous arguments will be ignored.
+  If omitted, the command will be called regardless of what comes after the name
+  of the command in the message.
 
   ## Command types
 
@@ -187,28 +195,47 @@ defmodule Mobius.Cog do
   corresponding type, Mobius will automatically reply to let the user know what
   the expected type is.
 
-  ## Example
+  ## Examples
   ```elixir
-  command "add", num1: :integer, num2: :integer do
-    num1 + num2
+  command "printline" do
+    IO.puts("\n")
+  end
+
+  command "ping", context do
+    send_message(%{content: "Pong!"}, context.channel_id)
+  end
+
+  command "hello", you: :string do
+    IO.inspect(you, label: "Your name is")
+  end
+
+  command "add", context, num1: :integer, num2: :integer do
+    send_message(%{content: "#{num1 + num2}"}, context.channel_id)
   end
   ```
 
   In a Discord text channel:
   ```
+  user: printline
+  myBot (prints in the terminal):
+  user: ping
+  myBot: Pong!
+  user: hello User
+  myBot (prints in the terminal): Your name is: "User"
   user: add 1 2
   myBot: 3
   user: add 1 hello
   myBot: Invalid type for argument "num2". Expected "integer", got "hello".
   """
-  defmacro command(command_name, args \\ [], do: block) do
-    # TODO: assert that the command name contains no whitespace
+  defmacro command(command_name, context, args, do: block) do
+    # TODO: assert that the command name contains no whitespace
     handler_name = Command.command_handler_name(command_name)
 
+    # +1 to the length of args to leave room for the context
     new_command = %Command{
       name: command_name,
       args: args,
-      handler: Function.capture(__CALLER__.module, handler_name, length(args))
+      handler: Function.capture(__CALLER__.module, handler_name, length(args) + 1)
     }
 
     arg_vars =
@@ -224,6 +251,7 @@ defmodule Mobius.Cog do
             handler_name: handler_name,
             contents: contents,
             arg_vars: arg_vars,
+            context: Macro.escape(context),
             command: Macro.escape(new_command),
             line: __CALLER__.line,
             file: __CALLER__.file
@@ -242,8 +270,27 @@ defmodule Mobius.Cog do
       else
         Module.put_attribute(__MODULE__, :commands, command)
 
-        def unquote(handler_name)(unquote_splicing(arg_vars)), do: unquote(contents)
+        def unquote(handler_name)(unquote(context), unquote_splicing(arg_vars)),
+          do: unquote(contents)
       end
+    end
+  end
+
+  defmacro command(command_name, args, do: block) when is_list(args) do
+    quote do
+      command(unquote(command_name), _, unquote(args), do: unquote(block))
+    end
+  end
+
+  defmacro command(command_name, context, do: block) do
+    quote do
+      command(unquote(command_name), unquote(context), [], do: unquote(block))
+    end
+  end
+
+  defmacro command(command_name, do: block) do
+    quote do
+      command(unquote(command_name), _, [], do: unquote(block))
     end
   end
 

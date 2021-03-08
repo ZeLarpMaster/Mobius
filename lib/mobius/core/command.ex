@@ -2,6 +2,7 @@ defmodule Mobius.Core.Command do
   @moduledoc false
 
   alias Mobius.Core.Command.ArgumentParser
+  alias Mobius.Models.Message
 
   @enforce_keys [:name, :args, :handler]
   defstruct [:name, :args, :handler]
@@ -33,20 +34,20 @@ defmodule Mobius.Core.Command do
   @spec arg_count(t()) :: non_neg_integer()
   def arg_count(%__MODULE__{} = command), do: length(command.args)
 
-  @spec execute_command([t()], binary) :: handle_message_result()
-  def execute_command(commands, message) do
+  @spec execute_command([t()], Message.t()) :: handle_message_result()
+  def execute_command(commands, %{"content" => content} = message) do
     commands
-    |> Enum.find(fn %__MODULE__{} = command -> String.starts_with?(message, command.name) end)
+    |> Enum.find(fn %__MODULE__{} = command -> String.starts_with?(content, command.name) end)
     |> case do
       nil ->
         :not_a_command
 
       %__MODULE__{} = command ->
-        arg_values = split_arguments(message)
+        arg_values = split_arguments(content)
 
         with :ok <- validate_arg_count(command, arg_values),
              {:ok, values} <- parse_arg_values(command, arg_values) do
-          {:ok, apply(command.handler, values)}
+          {:ok, apply(command.handler, [message | values])}
         end
     end
   end
