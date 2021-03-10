@@ -7,6 +7,17 @@ defmodule Mobius.Services.ModelCache do
 
   @type cache :: __MODULE__.User | __MODULE__.Member
 
+  @caches [
+    # __MODULE__.Guild,
+    # __MODULE__.Channel,
+    # __MODULE__.Permissions,
+    # __MODULE__.Role,
+    # __MODULE__.Emoji,
+    # __MODULE__.Message,
+    __MODULE__.User,
+    __MODULE__.Member
+  ]
+
   @spec start_link(keyword) :: Supervisor.on_start()
   def start_link(opts) do
     Supervisor.start_link(__MODULE__, opts, name: __MODULE__)
@@ -14,19 +25,10 @@ defmodule Mobius.Services.ModelCache do
 
   @impl Supervisor
   def init(_opts) do
-    children = [
-      # Start each individual cache
-      # {Cachex, name: __MODULE__.Guild},
-      cache_spec(__MODULE__.Member),
-      cache_spec(__MODULE__.User)
-      # {Cachex, name: __MODULE__.Channel},
-      # {Cachex, name: __MODULE__.Permissions},
-      # {Cachex, name: __MODULE__.Role},
-      # {Cachex, name: __MODULE__.Emoji},
-      # {Cachex, name: __MODULE__.Message}
-    ]
-
-    Supervisor.init(children, strategy: :one_for_one)
+    # Start each individual cache
+    @caches
+    |> Enum.map(&cache_spec/1)
+    |> Supervisor.init(strategy: :one_for_one)
   end
 
   @doc """
@@ -48,11 +50,10 @@ defmodule Mobius.Services.ModelCache do
     Enum.to_list(stream)
   end
 
-  @doc "Clears all caches. Only for usage in tests."
+  @doc "Clears all caches"
   @spec clear :: :ok
   def clear do
-    Cachex.clear!(__MODULE__.User)
-    Cachex.clear!(__MODULE__.Member)
+    Enum.each(@caches, &Cachex.clear!/1)
     :ok
   end
 
