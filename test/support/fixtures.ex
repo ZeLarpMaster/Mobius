@@ -122,10 +122,14 @@ defmodule Mobius.Fixtures do
   end
 
   def send_message_payload(content) do
+    message = %{"content" => content}
+
     send_payload(
       op: :dispatch,
       type: "MESSAGE_CREATE",
-      data: %{"content" => content}
+      data: message
     )
+
+    message
   end
 end

@@ -50,32 +50,39 @@ defmodule Mobius.Core.CommandTest do
           bar: :string,
           baz: :string
         ],
-        handler: &command_handler/3
+        handler: &command_handler/4
       }
 
       [command: command]
     end
 
     test "should return an error when no command matches the message" do
-      assert Command.execute_command([], "hello") == :not_a_command
+      assert Command.execute_command([], %{"content" => "hello"}) == :not_a_command
     end
 
     test "should return an error when the command has missing arguments", %{command: command} do
-      assert Command.execute_command([command], "hello") == {:too_few_args, command, 0}
+      result = Command.execute_command([command], %{"content" => "hello"})
+      assert result == {:too_few_args, command, 0}
     end
 
     test "should return an error when the command has invalid arguments", %{command: command} do
-      assert Command.execute_command([command], "hello foo bar baz") ==
-               {:invalid_args, [{{:foo, :integer}, "foo"}]}
+      result = Command.execute_command([command], %{"content" => "hello foo bar baz"})
+      assert result == {:invalid_args, [{{:foo, :integer}, "foo"}]}
     end
 
     test "should execute the command when the arguments are valid", %{command: command} do
-      Command.execute_command([command], "hello 1 foo bar")
-      assert_receive("command handled")
+      Command.execute_command([command], %{"content" => "hello 1 foo bar"})
+      assert_receive({"command handled", _})
+    end
+
+    test "should receive the message as context when the arguments are valid", ctx do
+      msg = %{"content" => "hello 1 foo bar"}
+      Command.execute_command([ctx.command], msg)
+      assert_receive {"command handled", ^msg}
     end
   end
 
-  defp command_handler(_, _, _) do
-    send(self(), "command handled")
+  defp command_handler(ctx, _, _, _) do
+    send(self(), {"command handled", ctx})
   end
 end

@@ -42,13 +42,14 @@ defmodule Mobius.Rest.Message do
           optional(:fail_if_not_exists) => boolean
         }
 
+  @typedoc "Both `:content` and `:embed` are optional, but at least one of the two must be given"
   @type message_body :: %{
-          content: String.t(),
-          nonce: String.t(),
-          tts: boolean,
-          embed: embed(),
-          allowed_mentions: allowed_mentions(),
-          message_reference: message_reference()
+          optional(:content) => String.t(),
+          optional(:nonce) => String.t(),
+          optional(:tts) => boolean,
+          optional(:embed) => embed(),
+          optional(:allowed_mentions) => allowed_mentions(),
+          optional(:message_reference) => message_reference()
         }
 
   @doc """

@@ -24,7 +24,21 @@ defmodule Mobius.CogTest do
     end
   end
 
+  describe "command/2" do
+    test "should be called when a message starting with command name is received" do
+      send_message_payload("nothing")
+
+      assert_receive :nothing
+    end
+  end
+
   describe "command/3" do
+    test "should be called with the proper context if only a context is expected" do
+      message = send_message_payload("send")
+
+      assert_receive ^message
+    end
+
     test "should be called when messages starting with command name are received" do
       send_message_payload("reply hello")
 
@@ -51,6 +65,14 @@ defmodule Mobius.CogTest do
                Process.sleep(10)
              end) =~
                ~s'Invalid type for argument "num2". Expected "integer", got "hello".'
+    end
+  end
+
+  describe "command/4" do
+    test "should be called with the context and the parsed arguments" do
+      message = send_message_payload("everything 123")
+
+      assert_receive {:everything, ^message, 123}
     end
   end
 end
