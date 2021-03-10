@@ -102,7 +102,7 @@ defmodule Mobius.Services.ModelCacheTest do
     end
 
     test "returns an empty list if nothing cached" do
-      assert [] == ModelCache.list(ModelCache.User)
+      assert [] == Enum.to_list(ModelCache.list(ModelCache.User))
     end
   end
 

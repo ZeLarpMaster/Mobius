@@ -44,10 +44,10 @@ defmodule Mobius.Services.ModelCache do
   end
 
   @doc "Lists all the values in a given cache"
-  @spec list(cache()) :: [any]
+  @spec list(cache()) :: Enumerable.t(any)
   def list(cache) do
     {:ok, stream} = Cachex.stream(cache, Cachex.Query.create(true, :value))
-    Enum.to_list(stream)
+    stream
   end
 
   @doc "Clears all caches"
