@@ -7,6 +7,7 @@ defmodule Mobius.Rest.Client do
   @type errors :: :unauthorized_token | :forbidden | :not_found | :ratelimited | any
   @type error :: {:error, errors()}
   @type result(arg) :: {:ok, arg} | error()
+  @type empty_result :: :ok | error()
 
   @lib_url "https://github.com/ZeLarpMaster/Mobius"
   @api_vsn 8
