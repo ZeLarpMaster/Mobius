@@ -166,7 +166,7 @@ defmodule Mobius.Models.Guild do
     |> add_field(map, :discovery_splash)
     |> add_field(map, :owner)
     |> add_field(map, :owner_id, &Snowflake.parse/1)
-    |> add_field(map, :permissions)
+    |> add_field(map, :permissions, &Permissions.parse/1)
     |> add_field(map, :region)
     |> add_field(map, :afk_channel_id, &Snowflake.parse/1)
     |> add_field(map, :afk_timeout)
