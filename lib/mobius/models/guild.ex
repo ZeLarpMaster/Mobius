@@ -8,7 +8,6 @@ defmodule Mobius.Models.Guild do
 
   import Mobius.Models.Utils
 
-  alias Mobius.Core.Bitflags
   alias Mobius.Models.Channel
   alias Mobius.Models.Emoji
   alias Mobius.Models.Guild.WelcomeScreen
@@ -181,7 +180,7 @@ defmodule Mobius.Models.Guild do
     |> add_field(map, :mfa_level, &parse_mfa_level/1)
     |> add_field(map, :application_id, &Snowflake.parse/1)
     |> add_field(map, :system_channel_id, &Snowflake.parse/1)
-    |> add_field(map, :system_channel_flags, &Bitflags.parse_bitflags(&1, @system_channel_flags))
+    |> add_field(map, :system_channel_flags, &parse_flags(&1, @system_channel_flags))
     |> add_field(map, :rules_channel_id, &Snowflake.parse/1)
     |> add_field(map, :joined_at, &Timestamp.parse/1)
     |> add_field(map, :large)
@@ -224,9 +223,11 @@ defmodule Mobius.Models.Guild do
   defp parse_content_filter(2), do: :all_members
   defp parse_content_filter(_), do: nil
 
-  defp parse_features(features) do
+  defp parse_features(features) when is_list(features) do
     MapSet.new(features, &String.to_atom(String.downcase(&1)))
   end
+
+  defp parse_features(_), do: nil
 
   defp parse_mfa_level(0), do: :none
   defp parse_mfa_level(1), do: :elevated
