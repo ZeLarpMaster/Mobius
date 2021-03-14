@@ -3,10 +3,10 @@ defmodule Mobius.Actions.Reaction do
   Actions related to Discord reactions such as creating, removing and listing reactions.
   """
 
+  alias Mobius.Models.Emoji
+  alias Mobius.Models.Snowflake
   alias Mobius.Rest
   alias Mobius.Services.Bot
-  alias Mobius.Models.Snowflake
-  alias Mobius.Models.Emoji
 
   @doc """
   Add a reaction to a message

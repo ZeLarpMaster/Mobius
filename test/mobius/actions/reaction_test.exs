@@ -5,9 +5,9 @@ defmodule Mobius.Actions.ReactionTest do
   import Tesla.Mock, only: [mock: 1]
 
   alias Mobius.Actions.Reaction
-  alias Mobius.Rest.Client
   alias Mobius.Models.Emoji
   alias Mobius.Models.User
+  alias Mobius.Rest.Client
 
   setup :reset_services
   setup :create_rest_client
@@ -18,7 +18,8 @@ defmodule Mobius.Actions.ReactionTest do
 
   describe "create_reaction/3 with a custom emoji" do
     setup do
-      create_emoji(managed: true)
+      [managed: true]
+      |> create_emoji()
       |> mock_call()
     end
 
@@ -41,7 +42,8 @@ defmodule Mobius.Actions.ReactionTest do
 
   describe "create_reaction/3 with a built-in emoji" do
     setup do
-      create_emoji(managed: false)
+      [managed: false]
+      |> create_emoji()
       |> mock_call()
     end
 
