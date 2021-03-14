@@ -24,6 +24,6 @@ defmodule Mobius.Rest.Reaction do
         ]
       ]
     )
-    |> Client.parse_response(fn _ -> :ok end)
+    |> Client.check_empty_response()
   end
 end

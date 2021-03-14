@@ -55,7 +55,7 @@ defmodule Mobius.Rest.Client do
   @spec base_url() :: String.t()
   def base_url, do: "https://discord.com/api/v#{@api_vsn}"
 
-  @spec check_empty_response(Tesla.Env.result()) :: :ok | error()
+  @spec check_empty_response(Tesla.Env.result()) :: empty_result()
   def check_empty_response(response) do
     case response do
       {:ok, response} -> check_status(response)
