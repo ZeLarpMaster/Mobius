@@ -3,6 +3,75 @@ defmodule Mobius.Generators do
 
   import Mobius.Fixtures
 
+  def guild(opts \\ []) do
+    defaults = %{
+      "id" => random_snowflake(),
+      "name" => random_hex(16),
+      "icon" => random_hex(32),
+      "icon_hash" => random_hex(32),
+      "splash" => random_hex(32),
+      "discovery_splash" => random_hex(32),
+      "owner" => true,
+      "owner_id" => random_snowflake(),
+      "permissions" => "#{:rand.uniform(0x7FFFFFFF)}",
+      "region" => random_hex(8),
+      "afk_channel_id" => random_snowflake(),
+      "afk_timeout" => :rand.uniform(3600),
+      "widget_enabled" => true,
+      "widget_channel_id" => random_snowflake(),
+      "verification_level" => 3,
+      "default_message_notifications" => 1,
+      "explicit_content_filter" => 1,
+      "roles" => [role(), role()],
+      "emojis" => [emoji(), emoji()],
+      "features" => ["COMMUNITY", "WELCOME_SCREEN_ENABLED"],
+      "mfa_level" => 1,
+      "application_id" => random_snowflake(),
+      "system_channel_id" => random_snowflake(),
+      "system_channel_flags" => 0b11,
+      "rules_channel_id" => random_snowflake(),
+      "joined_at" => DateTime.to_iso8601(DateTime.utc_now()),
+      "large" => true,
+      "unavailable" => false,
+      "member_count" => :rand.uniform(15_000),
+      "voice_states" => [voice_state(), voice_state()],
+      "members" => [member(), member()],
+      "channels" => [channel(), channel()],
+      "presences" => [presence(), presence()],
+      "max_presences" => :rand.uniform(1_000),
+      "max_members" => :rand.uniform(300_000),
+      "vanity_url_code" => random_hex(8),
+      "description" => random_hex(32),
+      "banner" => random_hex(32),
+      "premium_tier" => 1,
+      "premium_subscription_count" => :rand.uniform(14),
+      "preferred_locale" => "en",
+      "public_updates_channel_id" => random_snowflake(),
+      "max_video_channel_users" => :rand.uniform(250),
+      "approximate_member_count" => :rand.uniform(150_000),
+      "approximate_presence_count" => :rand.uniform(500),
+      "welcome_screen" => %{
+        "description" => random_hex(16),
+        "welcome_channels" => [
+          %{
+            "channel_id" => random_snowflake(),
+            "description" => random_hex(8),
+            "emoji_id" => random_snowflake(),
+            "emoji_name" => random_hex(8)
+          },
+          %{
+            "channel_id" => random_snowflake(),
+            "description" => random_hex(8),
+            "emoji_id" => random_snowflake(),
+            "emoji_name" => random_hex(8)
+          }
+        ]
+      }
+    }
+
+    merge_opts(defaults, opts)
+  end
+
   @spec invite(keyword) :: map
   def invite(opts \\ []) do
     defaults = %{
