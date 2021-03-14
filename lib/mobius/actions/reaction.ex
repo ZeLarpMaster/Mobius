@@ -2,13 +2,15 @@ defmodule Mobius.Actions.Reaction do
   alias Mobius.Rest
   alias Mobius.Services.Bot
   alias Mobius.Models.Snowflake
+  alias Mobius.Models.Emoji
 
   @doc """
-  Add a reaction to a message with a custom emoji
+  Add a reaction to a message
 
   ## Example
 
-      iex> create_reaction(channel_id, message_id, "party_parrot", custom_emoji_id)
+      iex> emoji = %Emoji{name: "👌", require_colon: false, managed: false, animated: false, available: true}
+      ...> create_reaction(emoji, channel_id, message_id)
       :ok
 
   ## Documentation
@@ -16,34 +18,36 @@ defmodule Mobius.Actions.Reaction do
   Relevant documentation:
   https://discord.com/developers/docs/resources/channel#create-reaction
   """
-  @spec create_reaction(Snowflake.t(), Snowflake.t(), String.t(), Snowflake.t()) ::
-          Client.empty_result()
-  def create_reaction(channel_id, message_id, custom_emoji_name, custom_emoji_id) do
-    Rest.Reaction.create_reaction(
-      Bot.get_client!(),
-      channel_id,
-      message_id,
-      "#{custom_emoji_name}:#{custom_emoji_id}"
-    )
+  @spec create_reaction(Emoji.t(), Snowflake.t(), Snowflake.t()) ::
+          Client.empty_result() | {:error, String.t()}
+  def create_reaction(%Emoji{} = emoji, channel_id, message_id) do
+    with string when is_binary(string) <- get_emoji_string(emoji) do
+      Rest.Reaction.create_reaction(
+        Bot.get_client!(),
+        channel_id,
+        message_id,
+        string
+      )
+    end
   end
 
-  @doc """
-  Add a reaction to a message with a Unicode emoji
+  defp get_emoji_string(%Emoji{managed: true, id: nil}) do
+    {:error, "Custom emojis require an ID"}
+  end
 
-  The emoji should be passed as its literal Unicode representation.
+  defp get_emoji_string(%Emoji{managed: true, name: nil}) do
+    {:error, "Custom emojis require a name"}
+  end
 
-  ## Example
+  defp get_emoji_string(%Emoji{managed: true} = emoji) do
+    "#{emoji.name}:#{emoji.id}"
+  end
 
-      iex> create_reaction(channel_id, message_id, "👌")
-      :ok
+  defp get_emoji_string(%Emoji{managed: false, name: nil}) do
+    {:error, "Built-in emojis require a name"}
+  end
 
-  ## Documentation
-
-  Relevant documentation:
-  https://discord.com/developers/docs/resources/channel#create-reaction
-  """
-  @spec create_reaction(Snowflake.t(), Snowflake.t(), String.t()) :: Client.empty_result()
-  def create_reaction(channel_id, message_id, unicode_emoji) do
-    Rest.Reaction.create_reaction(Bot.get_client!(), channel_id, message_id, unicode_emoji)
+  defp get_emoji_string(%Emoji{managed: false} = emoji) do
+    emoji.name
   end
 end

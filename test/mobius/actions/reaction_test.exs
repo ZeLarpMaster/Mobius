@@ -6,6 +6,8 @@ defmodule Mobius.Actions.ReactionTest do
 
   alias Mobius.Actions.Reaction
   alias Mobius.Rest.Client
+  alias Mobius.Models.Emoji
+  alias Mobius.Models.User
 
   setup :reset_services
   setup :create_rest_client
@@ -14,50 +16,80 @@ defmodule Mobius.Actions.ReactionTest do
   setup :get_shard
   setup :handshake_shard
 
-  describe "create_reaction/3" do
+  describe "create_reaction/3 with a custom emoji" do
     setup do
-      message_id = random_snowflake()
-      channel_id = random_snowflake()
-      emoji = "👌"
-
-      url =
-        Client.base_url() <>
-          "/channels/#{channel_id}/messages/#{message_id}/reactions/#{emoji}/@me"
-
-      mock(fn %{method: :put, url: ^url} -> empty_response() end)
-
-      [message_id: message_id, channel_id: channel_id, emoji: emoji]
+      create_emoji(managed: true)
+      |> mock_call()
     end
 
     test "returns :ok if successful", ctx do
-      :ok = Reaction.create_reaction(ctx.channel_id, ctx.message_id, ctx.emoji)
+      :ok = Reaction.create_reaction(ctx.emoji, ctx.channel_id, ctx.message_id)
+    end
+
+    test "returns an error if no id is provided", ctx do
+      emoji = %Emoji{ctx.emoji | id: nil}
+      {:error, error} = Reaction.create_reaction(emoji, ctx.channel_id, ctx.message_id)
+      assert error =~ "Custom emojis require an ID"
+    end
+
+    test "returns an error if no name is provided", ctx do
+      emoji = %Emoji{ctx.emoji | name: nil}
+      {:error, error} = Reaction.create_reaction(emoji, ctx.channel_id, ctx.message_id)
+      assert error =~ "Custom emojis require a name"
     end
   end
 
-  describe "create_reaction/4" do
+  describe "create_reaction/3 with a built-in emoji" do
     setup do
-      message_id = random_snowflake()
-      channel_id = random_snowflake()
-      emoji_name = "party-parrot"
-      emoji_id = random_snowflake()
-
-      url =
-        Client.base_url() <>
-          "/channels/#{channel_id}/messages/#{message_id}/reactions/#{emoji_name}:#{emoji_id}/@me"
-
-      mock(fn %{method: :put, url: ^url} -> empty_response() end)
-
-      [message_id: message_id, channel_id: channel_id, emoji_name: emoji_name, emoji_id: emoji_id]
+      create_emoji(managed: false)
+      |> mock_call()
     end
 
     test "returns :ok if successful", ctx do
-      assert :ok ==
-               Reaction.create_reaction(
-                 ctx.channel_id,
-                 ctx.message_id,
-                 ctx.emoji_name,
-                 ctx.emoji_id
-               )
+      :ok = Reaction.create_reaction(ctx.emoji, ctx.channel_id, ctx.message_id)
     end
+
+    test "returns an error if no name is provided", ctx do
+      emoji = %Emoji{ctx.emoji | name: nil}
+      {:error, error} = Reaction.create_reaction(emoji, ctx.channel_id, ctx.message_id)
+      assert error =~ "Built-in emojis require a name"
+    end
+  end
+
+  defp mock_call(emoji) do
+    message_id = random_snowflake()
+    channel_id = random_snowflake()
+
+    emoji_string =
+      case emoji do
+        %Emoji{managed: true} -> "#{emoji.name}:#{emoji.id}"
+        %Emoji{managed: false} -> emoji.name
+      end
+
+    url =
+      Client.base_url() <>
+        "/channels/#{channel_id}/messages/#{message_id}/reactions/#{emoji_string}/@me"
+
+    mock(fn %{method: :put, url: ^url} -> empty_response() end)
+
+    [message_id: message_id, channel_id: channel_id, emoji: emoji]
+  end
+
+  defp create_emoji(opts) do
+    %Emoji{
+      id: random_snowflake(),
+      name: "party_parrot",
+      roles: nil,
+      user: %User{
+        id: random_snowflake(),
+        username: "Bob",
+        discriminator: "123456",
+        avatar: nil
+      },
+      require_colons: true,
+      managed: Keyword.get(opts, :managed),
+      animated: false,
+      available: true
+    }
   end
 end
