@@ -1,4 +1,8 @@
 defmodule Mobius.Actions.Reaction do
+  @moduledoc """
+  Actions related to Discord reactions such as creating, removing and listing reactions.
+  """
+
   alias Mobius.Rest
   alias Mobius.Services.Bot
   alias Mobius.Models.Snowflake
@@ -9,8 +13,8 @@ defmodule Mobius.Actions.Reaction do
 
   ## Example
 
-      iex> emoji = %Emoji{name: "👌", require_colon: false, managed: false, animated: false, available: true}
-      ...> create_reaction(emoji, channel_id, message_id)
+      iex> emoji = %Mobius.Models.Emoji{name: "👌", require_colons: false, managed: false, animated: false, available: true}
+      ...> Mobius.Actions.Reaction.create_reaction(emoji, channel_id, message_id)
       :ok
 
   ## Documentation
