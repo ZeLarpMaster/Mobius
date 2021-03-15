@@ -2,6 +2,7 @@ defmodule Mobius.Services.EventPipeline do
   @moduledoc false
 
   alias Mobius.Core.Event
+  alias Mobius.Services.ModelCache
   alias Mobius.Services.PubSub
 
   @pubsub_topic "events"
@@ -24,6 +25,7 @@ defmodule Mobius.Services.EventPipeline do
       # Ignore unrecognized events
       if parsed_name != nil do
         parsed_data = Event.parse_data(parsed_name, data)
+        ModelCache.cache_event(parsed_name, parsed_data)
         PubSub.publish(@pubsub_topic, parsed_name, parsed_data)
       end
     end)
