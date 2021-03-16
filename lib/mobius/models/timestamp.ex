@@ -26,4 +26,27 @@ defmodule Mobius.Models.Timestamp do
   end
 
   def parse(_), do: nil
+
+  @doc """
+  Parses a unix timestamp into a `t:DateTime.t()` or return nil if it was invalid
+
+  ## Examples
+
+      iex> parse_unix(123456789)
+      ~U[]
+      iex> parse_unix("invalid")
+      nil
+      iex> parse_unix(%{})
+      nil
+      iex> parse_unix("123456789")
+      nil
+  """
+  def parse_unix(stamp) when is_integer(stamp) do
+    case DateTime.from_unix(stamp, :second) do
+      {:error, _} -> nil
+      {:ok, datetime} -> datetime
+    end
+  end
+
+  def parse_unix(_), do: nil
 end

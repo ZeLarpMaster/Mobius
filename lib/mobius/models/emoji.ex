@@ -2,6 +2,10 @@ defmodule Mobius.Models.Emoji do
   @moduledoc """
   Struct for Discord's Custom Emoji
 
+  All fields are `nil`-able and may or may not be provided depending on the source of the data.
+  For example, a unicode emoji in a reaction will only have the `name` field or a custom emoji
+  which was later deleted will only have the `id` field. See the Discord docs for more detail.
+
   Related documentation:
   https://discord.com/developers/docs/resources/emoji#emoji-object
   """
@@ -26,11 +30,11 @@ defmodule Mobius.Models.Emoji do
           id: Snowflake.t() | nil,
           name: String.t() | nil,
           roles: [Snowflake.t()] | nil,
-          user: User.partial(),
-          require_colons: boolean,
-          managed: boolean,
-          animated: boolean,
-          available: boolean
+          user: User.partial() | nil,
+          require_colons: boolean | nil,
+          managed: boolean | nil,
+          animated: boolean | nil,
+          available: boolean | nil
         }
 
   @doc "Parses the given term into a `t:t()` if possible; returns nil otherwise"

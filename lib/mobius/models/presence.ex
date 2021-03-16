@@ -41,17 +41,17 @@ defmodule Mobius.Models.Presence do
 
   def parse(_), do: nil
 
-  defp parse_status("idle"), do: :idle
-  defp parse_status("dnd"), do: :dnd
-  defp parse_status("online"), do: :online
-  defp parse_status("offline"), do: :offline
-  defp parse_status(_), do: nil
+  def parse_status("idle"), do: :idle
+  def parse_status("dnd"), do: :dnd
+  def parse_status("online"), do: :online
+  def parse_status("offline"), do: :offline
+  def parse_status(_), do: nil
 
-  defp parse_activities(activities), do: parse_list(activities, &Activity.parse/1)
+  def parse_activities(activities), do: parse_list(activities, &Activity.parse/1)
 
-  defp parse_statuses(statuses) when is_map(statuses) do
+  def parse_statuses(statuses) when is_map(statuses) do
     Map.new(statuses, fn {k, v} -> {k, parse_status(v)} end)
   end
 
-  defp parse_statuses(_), do: nil
+  def parse_statuses(_), do: nil
 end
