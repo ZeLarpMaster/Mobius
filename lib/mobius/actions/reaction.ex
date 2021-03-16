@@ -25,7 +25,9 @@ defmodule Mobius.Actions.Reaction do
   @spec create_reaction(Emoji.t(), Snowflake.t(), Snowflake.t()) ::
           Client.empty_result() | {:error, String.t()}
   def create_reaction(%Emoji{} = emoji, channel_id, message_id) do
-    with string when is_binary(string) <- get_emoji_string(emoji) do
+    # TODO check for required permissions
+
+    with string when is_binary(string) <- Emoji.get_identifier(emoji) do
       Rest.Reaction.create_reaction(
         Bot.get_client!(),
         channel_id,
@@ -33,25 +35,5 @@ defmodule Mobius.Actions.Reaction do
         string
       )
     end
-  end
-
-  defp get_emoji_string(%Emoji{managed: true, id: nil}) do
-    {:error, "Custom emojis require an ID"}
-  end
-
-  defp get_emoji_string(%Emoji{managed: true, name: nil}) do
-    {:error, "Custom emojis require a name"}
-  end
-
-  defp get_emoji_string(%Emoji{managed: true} = emoji) do
-    "#{emoji.name}:#{emoji.id}"
-  end
-
-  defp get_emoji_string(%Emoji{managed: false, name: nil}) do
-    {:error, "Built-in emojis require a name"}
-  end
-
-  defp get_emoji_string(%Emoji{managed: false} = emoji) do
-    emoji.name
   end
 end
