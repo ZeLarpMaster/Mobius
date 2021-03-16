@@ -13,7 +13,7 @@ defmodule Mobius.Actions.Reaction do
 
   ## Example
 
-      iex> emoji = %Mobius.Models.Emoji{name: "👌", require_colons: false, managed: false, animated: false, available: true}
+      iex> emoji = %Mobius.Models.Emoji{name: "👌"}
       ...> Mobius.Actions.Reaction.create_reaction(emoji, channel_id, message_id)
       :ok
 
@@ -23,7 +23,7 @@ defmodule Mobius.Actions.Reaction do
   https://discord.com/developers/docs/resources/channel#create-reaction
   """
   @spec create_reaction(Emoji.t(), Snowflake.t(), Snowflake.t()) ::
-          Client.empty_result() | {:error, String.t()}
+          Client.empty_result()
   def create_reaction(%Emoji{} = emoji, channel_id, message_id) do
     # TODO check for required permissions
 

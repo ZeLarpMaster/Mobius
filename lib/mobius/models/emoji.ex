@@ -57,11 +57,11 @@ defmodule Mobius.Models.Emoji do
 
   ## Example
 
-      iex> emoji = %Mobius.Models.Emoji{name: "👌", require_colons: false, managed: false, animated: false, available: true}
+      iex> emoji = %Mobius.Models.Emoji{name: "👌"}
       ...> Mobius.Models.Emoji.get_identifier(emoji)
       "👌"
 
-      iex> emoji = %Mobius.Models.Emoji{id: 123456, name: "👌", require_colons: false, managed: false, animated: false, available: true}
+      iex> emoji = %Mobius.Models.Emoji{id: 123456, name: "👌"}
       ...> Mobius.Models.Emoji.get_identifier(emoji)
       "👌:123456"
   """
