@@ -1,5 +1,6 @@
 defmodule Mobius.Models.EmojiTest do
   use ExUnit.Case, async: true
+  doctest Mobius.Models.Emoji
 
   import Mobius.Generators
   import Mobius.TestUtils
