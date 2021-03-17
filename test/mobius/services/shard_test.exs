@@ -48,7 +48,6 @@ defmodule Mobius.Services.ShardTest do
       # See Mobius.Core.SocketCodes for the list of codes
       close_socket_from_server(4013, "Invalid intent(s)")
 
-      # TODO: Make via/1 public?
       pid = GenServer.whereis({:via, Registry, {Mobius.Registry.Shard, ctx.shard}})
       assert pid == nil
     end
