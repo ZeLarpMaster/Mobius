@@ -3,6 +3,7 @@ defmodule Mobius.Actions.Events do
   Functions related to events
   """
 
+  alias Mobius.Services.Bot
   alias Mobius.Services.EventPipeline
   alias Mobius.Validations.EventValidator
   alias Mobius.Validations.Utils
@@ -33,8 +34,7 @@ defmodule Mobius.Actions.Events do
   """
   @spec subscribe([any]) :: Utils.output()
   def subscribe(events \\ []) do
-    with :ok <- EventValidator.validate_names(events) do
-      # TODO: Validate intents
+    with :ok <- EventValidator.validate_events(events, Bot.get_intents!()) do
       EventPipeline.subscribe(events)
     end
   end
