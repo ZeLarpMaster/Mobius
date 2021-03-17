@@ -321,7 +321,9 @@ defmodule Mobius.Core.Event do
 
   def parse_data(name, _) when name in @valid_names, do: nil
 
-  defp add_field(map, values, key, parser \\ fn x -> x end) do
+  defp add_field(map, values, key, parser \\ fn x -> x end)
+
+  defp add_field(map, values, key, parser) when is_map(values) do
     value =
       values
       |> Map.get(Atom.to_string(key))
@@ -329,6 +331,8 @@ defmodule Mobius.Core.Event do
 
     Map.put(map, key, value)
   end
+
+  defp add_field(map, _, _, _), do: map
 
   defp parse_emojis(data), do: Models.Utils.parse_list(data, &Models.Emoji.parse/1)
   defp parse_snowflakes(data), do: Models.Utils.parse_list(data, &Models.Snowflake.parse/1)

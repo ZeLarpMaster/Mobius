@@ -1,8 +1,6 @@
 defmodule Mobius.Core.EventTest do
   use ExUnit.Case, async: true
 
-  import Mobius.Fixtures
-
   alias Mobius.Core.Event
 
   describe "parse_name/1" do
@@ -46,11 +44,6 @@ defmodule Mobius.Core.EventTest do
   describe "parse_data/2" do
     test "raises a FunctionClauseError if the event name is invalid" do
       assert_raise FunctionClauseError, fn -> Event.parse_data(:this_isnt_an_event, nil) end
-    end
-
-    test "returns data unchanged" do
-      random = random_hex(16)
-      assert random == Event.parse_data(:ready, random)
     end
   end
 end

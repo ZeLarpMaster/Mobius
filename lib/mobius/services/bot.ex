@@ -8,7 +8,6 @@ defmodule Mobius.Services.Bot do
   alias Mobius.Core.ShardList
   alias Mobius.Rest
   alias Mobius.Services.ETSShelf
-  alias Mobius.Services.EventPipeline
   alias Mobius.Services.Shard
 
   require Logger
@@ -89,10 +88,6 @@ defmodule Mobius.Services.Bot do
   def handle_info({:shard_ready, shard}, state) do
     Logger.debug("Shard #{inspect(shard)} is ready!")
     ShardList.update_shard_ready(@shards_table, shard)
-
-    if ShardList.are_all_shards_ready?(@shards_table) do
-      EventPipeline.notify_event("READY", nil)
-    end
 
     {:noreply, state}
   end

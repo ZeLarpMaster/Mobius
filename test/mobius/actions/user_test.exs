@@ -20,6 +20,8 @@ defmodule Mobius.Actions.UserTest do
       cached = user()
       send_payload(op: :dispatch, type: "USER_UPDATE", data: cached)
 
+      Process.sleep(50)
+
       assert cached == User.get_cached_user(cached["id"])
     end
   end

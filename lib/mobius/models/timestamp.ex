@@ -32,8 +32,8 @@ defmodule Mobius.Models.Timestamp do
 
   ## Examples
 
-      iex> parse_unix(123456789)
-      ~U[]
+      iex> parse_unix(1615950426)
+      ~U[2021-03-17 03:07:06Z]
       iex> parse_unix("invalid")
       nil
       iex> parse_unix(%{})

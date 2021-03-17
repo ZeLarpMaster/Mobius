@@ -35,7 +35,7 @@ defmodule Mobius.Core.Command do
   def arg_count(%__MODULE__{} = command), do: length(command.args)
 
   @spec execute_command([t()], Message.t()) :: handle_message_result()
-  def execute_command(commands, %{"content" => content} = message) do
+  def execute_command(commands, %Message{content: content} = message) do
     commands
     |> Enum.find(fn %__MODULE__{} = command -> String.starts_with?(content, command.name) end)
     |> case do
