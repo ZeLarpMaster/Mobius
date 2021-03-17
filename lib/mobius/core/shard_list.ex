@@ -16,13 +16,14 @@ defmodule Mobius.Core.ShardList do
     List.flatten(shards)
   end
 
-  @doc "True if all shards have state `:ready`"
-  @spec are_all_shards_ready?(:ets.tab()) :: boolean
-  def are_all_shards_ready?(table) do
+  @doc "True if any shards have state `:ready`"
+  @spec is_any_shard_ready?(:ets.tab()) :: boolean
+  def is_any_shard_ready?(table) do
     # The match spec was generated with the following line in iex:
-    # :ets.fun2ms(fn {_, state} when state != :ready -> state end)
-    spec = [{{:_, :"$1"}, [{:"/=", :"$1", :ready}], [:"$1"]}]
-    :ets.select(table, spec) == []
+    # :ets.fun2ms(fn {_, state} when state == :ready -> state end)
+    spec = [{{:_, :"$1"}, [{:==, :"$1", :ready}], [:"$1"]}]
+    # Will be true if something matching the spec was found
+    :ets.select(table, spec, 1) != :"$end_of_table"
   end
 
   @doc "Adds a shard to the list with state `:starting`"
