@@ -5,6 +5,7 @@ defmodule Mobius.Models.InviteTest do
   import Mobius.TestUtils
 
   alias Mobius.Models.Channel
+  alias Mobius.Models.Guild
   alias Mobius.Models.Invite
   alias Mobius.Models.InviteMetadata
   alias Mobius.Models.User
@@ -44,7 +45,7 @@ defmodule Mobius.Models.InviteTest do
       map
       |> Invite.parse()
       |> assert_field(:code, map["code"])
-      |> assert_field(:guild, map["guild"])
+      |> assert_field(:guild, Guild.parse(map["guild"]))
       |> assert_field(:channel, Channel.parse(map["channel"]))
       |> assert_field(:inviter, User.parse(map["inviter"]))
       |> assert_field(:target_user, User.parse(map["target_user"]))
