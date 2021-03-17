@@ -1,11 +1,11 @@
 import Config
 
 config :ex_unit,
-  assert_receive_timeout: 50,
-  refute_receive_timeout: 50
+  assert_receive_timeout: 75,
+  refute_receive_timeout: 75
 
 config :mobius,
-  resuming_sleep_time_ms: 50,
+  resuming_sleep_time_ms: 75,
   ratelimiter_impl: Mobius.Stubs.CommandsRatelimiter,
   connection_ratelimiter_impl: Mobius.Stubs.ConnectionRatelimiter,
   socket_impl: Mobius.Stubs.Socket,
