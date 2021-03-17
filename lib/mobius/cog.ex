@@ -169,8 +169,8 @@ defmodule Mobius.Cog do
   @doc ~S"""
   Defines a command to be used by Discord users.
 
-  The first parameter defines the name of the command as a single word (no
-  spaces).
+  The first parameter defines the name of the command as a single word
+  (only lowercase alphanumeric characters and underscores are allowed).
 
   The second parameter defines the argument where the command context will be received.
   If omitted, the command context won't be available inside the command's body.
@@ -228,7 +228,12 @@ defmodule Mobius.Cog do
   myBot: Invalid type for argument "num2". Expected "integer", got "hello".
   """
   defmacro command(command_name, context, args, do: block) do
-    # TODO: assert that the command name contains no whitespace
+    if not Regex.match?(~r/^[a-z0-9_]+$/, command_name) do
+      raise CompileError,
+        description:
+          "Command names must only contain lowercase alphanumeric characters or underscores"
+    end
+
     handler_name = Command.command_handler_name(command_name)
 
     # +1 to the length of args to leave room for the context

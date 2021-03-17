@@ -30,6 +30,16 @@ defmodule Mobius.CogTest do
 
       assert_receive :nothing
     end
+
+    test "raises when the command name has invalid characters" do
+      assert_raise CompileError, ~r/must only contain/, fn ->
+        defmodule InvalidCog do
+          use Mobius.Cog
+
+          command "hello world", do: nil
+        end
+      end
+    end
   end
 
   describe "command/3" do
