@@ -228,7 +228,7 @@ defmodule Mobius.Cog do
   myBot: Invalid type for argument "num2". Expected "integer", got "hello".
   """
   defmacro command(command_name, context, args, do: block) do
-    if not Regex.match?(~r/^[a-z0-9_]+$/, command_name) do
+    if not Regex.match?(~r/^[[:lower:][:digit:]_]+$/, command_name) do
       raise CompileError,
         description:
           "Command names must only contain lowercase alphanumeric characters or underscores"
