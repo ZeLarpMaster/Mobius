@@ -3,6 +3,8 @@ defmodule Mobius.Core.ShardList do
 
   alias Mobius.Core.ShardInfo
 
+  require Ex2ms
+
   @doc "Options for the ETS table creation"
   @spec table_options() :: [atom]
   def table_options do
@@ -16,13 +18,16 @@ defmodule Mobius.Core.ShardList do
     List.flatten(shards)
   end
 
-  @doc "True if all shards have state `:ready`"
-  @spec are_all_shards_ready?(:ets.tab()) :: boolean
-  def are_all_shards_ready?(table) do
-    # The match spec was generated with the following line in iex:
-    # :ets.fun2ms(fn {_, state} when state != :ready -> state end)
-    spec = [{{:_, :"$1"}, [{:"/=", :"$1", :ready}], [:"$1"]}]
-    :ets.select(table, spec) == []
+  @doc "True if any shards have state `:ready`"
+  @spec is_any_shard_ready?(:ets.tab()) :: boolean
+  def is_any_shard_ready?(table) do
+    spec =
+      Ex2ms.fun do
+        {_, state} when state == :ready -> state
+      end
+
+    # Will be true if something matching the spec was found
+    :ets.select(table, spec, 1) != :"$end_of_table"
   end
 
   @doc "Adds a shard to the list with state `:starting`"

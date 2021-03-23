@@ -14,9 +14,15 @@ defmodule Mobius.Actions.MessageTest do
   setup :stub_socket
   setup :stub_ratelimiter
   setup :get_shard
-  setup :handshake_shard
 
-  describe "send_message/2" do
+  test "send_message/2 when the bot isn't ready" do
+    {:error, error} = Message.send_message(%{content: random_hex(8)}, random_snowflake())
+    assert error =~ "must be ready"
+  end
+
+  describe "send_message/2 when the bot is ready" do
+    setup :handshake_shard
+
     setup do
       channel_id = random_snowflake()
       raw = message(channel_id: channel_id)

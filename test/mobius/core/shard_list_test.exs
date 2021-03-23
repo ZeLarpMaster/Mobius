@@ -23,15 +23,16 @@ defmodule Mobius.Core.ShardListTest do
     end
   end
 
-  describe "are_all_shards_ready?/1" do
-    test "returns false if one or more shards aren't ready", ctx do
-      assert false == ShardList.are_all_shards_ready?(ctx.table)
+  describe "is_any_shard_ready?/1" do
+    test "returns false if no shard is ready", ctx do
+      assert false == ShardList.is_any_shard_ready?(ctx.table),
+             "shards: #{inspect(:ets.tab2list(ctx.table))}"
     end
 
-    test "returns true if all shards are ready", ctx do
-      Enum.each(ctx.shards, &ShardList.update_shard_ready(ctx.table, &1))
+    test "returns true if one or more shards are ready", ctx do
+      ShardList.update_shard_ready(ctx.table, hd(ctx.shards))
 
-      assert true == ShardList.are_all_shards_ready?(ctx.table)
+      assert true == ShardList.is_any_shard_ready?(ctx.table)
     end
   end
 end
