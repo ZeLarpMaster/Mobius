@@ -124,6 +124,10 @@ defmodule Mobius.Core.Event do
     Models.User.parse(data)
   end
 
+  def parse_data(:presence_update, data) do
+    Models.Presence.parse(data)
+  end
+
   def parse_data(:voice_state_update, data) do
     Models.VoiceState.parse(data)
   end
@@ -133,7 +137,7 @@ defmodule Mobius.Core.Event do
     |> add_field(data, :v)
     |> add_field(data, :user, &Models.User.parse/1)
     |> add_field(data, :private_channels)
-    |> add_field(data, :guilds, &Models.Guild.parse/1)
+    |> add_field(data, :guilds, &parse_guilds/1)
     |> add_field(data, :session_id)
     |> add_field(data, :shard, &ShardInfo.from_list/1)
     |> add_field(data, :application, &Models.Application.parse/1)
@@ -178,17 +182,6 @@ defmodule Mobius.Core.Event do
     |> add_field(data, :joined_at, &Models.Timestamp.parse/1)
     |> add_field(data, :premium_since, &Models.Timestamp.parse/1)
     |> add_field(data, :pending)
-  end
-
-  def parse_data(:guild_members_chunk, data) do
-    %{}
-    |> add_field(data, :guild_id, &Models.Snowflake.parse/1)
-    |> add_field(data, :members, &parse_members/1)
-    |> add_field(data, :chunk_index)
-    |> add_field(data, :chunk_count)
-    |> add_field(data, :not_found)
-    |> add_field(data, :presences, &parse_presences/1)
-    |> add_field(data, :nonce)
   end
 
   def parse_data(name, data) when name in [:guild_role_create, :guild_role_update] do
@@ -273,15 +266,6 @@ defmodule Mobius.Core.Event do
     |> add_field(data, :emoji, &Models.Emoji.parse/1)
   end
 
-  def parse_data(:presence_update, data) do
-    %{}
-    |> add_field(data, :user, &Models.User.parse/1)
-    |> add_field(data, :guild_id, &Models.Snowflake.parse/1)
-    |> add_field(data, :status, &Models.Presence.parse_status/1)
-    |> add_field(data, :activities, &Models.Presence.parse_activities/1)
-    |> add_field(data, :client_status, &Models.Presence.parse_statuses/1)
-  end
-
   def parse_data(:typing_start, data) do
     %{}
     |> add_field(data, :channel_id, &Models.Snowflake.parse/1)
@@ -334,8 +318,7 @@ defmodule Mobius.Core.Event do
 
   defp add_field(map, _, _, _), do: map
 
+  defp parse_guilds(data), do: Models.Utils.parse_list(data, &Models.Guild.parse/1)
   defp parse_emojis(data), do: Models.Utils.parse_list(data, &Models.Emoji.parse/1)
   defp parse_snowflakes(data), do: Models.Utils.parse_list(data, &Models.Snowflake.parse/1)
-  defp parse_members(data), do: Models.Utils.parse_list(data, &Models.Member.parse/1)
-  defp parse_presences(data), do: Models.Utils.parse_list(data, &Models.Presence.parse/1)
 end
