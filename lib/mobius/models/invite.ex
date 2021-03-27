@@ -12,6 +12,7 @@ defmodule Mobius.Models.Invite do
   import Mobius.Models.Utils
 
   alias Mobius.Models.Channel
+  alias Mobius.Models.Guild
   alias Mobius.Models.InviteMetadata
   alias Mobius.Models.User
 
@@ -31,8 +32,7 @@ defmodule Mobius.Models.Invite do
 
   @type t :: %__MODULE__{
           code: String.t(),
-          # TODO: Guild.t()
-          guild: map | nil,
+          guild: Guild.t() | nil,
           channel: Channel.partial(),
           inviter: User.t() | nil,
           target_user: User.partial() | nil,
@@ -47,7 +47,7 @@ defmodule Mobius.Models.Invite do
   def parse(map) when is_map(map) do
     %__MODULE__{metadata: parse_metadata(map)}
     |> add_field(map, :code)
-    |> add_field(map, :guild)
+    |> add_field(map, :guild, &Guild.parse/1)
     |> add_field(map, :channel, &Channel.parse/1)
     |> add_field(map, :inviter, &User.parse/1)
     |> add_field(map, :target_user, &User.parse/1)

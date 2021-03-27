@@ -29,6 +29,12 @@ defmodule Mobius.Services.Bot do
     ShardList.list_shards(@shards_table)
   end
 
+  @doc "Returns true if any of the shards are ready. Returns false otherwise"
+  @spec ready?() :: boolean
+  def ready? do
+    ShardList.is_any_shard_ready?(@shards_table)
+  end
+
   @doc """
   Returns the current `Mobius.Core.Intents` of the bot
 

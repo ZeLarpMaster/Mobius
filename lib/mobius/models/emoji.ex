@@ -53,5 +53,30 @@ defmodule Mobius.Models.Emoji do
 
   def parse(_), do: nil
 
+  @doc """
+  Returns the unique identifier of the emoji.
+
+  For built-in/Unicode emojis, this is the name, which will be the emoji itself.
+  For custom emojis, this is a string with the format "emoji_name:emoji_id".
+
+  ## Example
+
+      iex> emoji = %Mobius.Models.Emoji{name: "👌"}
+      ...> Mobius.Models.Emoji.get_identifier(emoji)
+      "👌"
+
+      iex> emoji = %Mobius.Models.Emoji{id: 123456, name: "👌"}
+      ...> Mobius.Models.Emoji.get_identifier(emoji)
+      "👌:123456"
+  """
+  @spec get_identifier(t()) :: String.t()
+  def get_identifier(%__MODULE__{id: nil} = emoji) do
+    emoji.name
+  end
+
+  def get_identifier(%__MODULE__{} = emoji) do
+    "#{emoji.name}:#{emoji.id}"
+  end
+
   defp parse_roles(list), do: parse_list(list, &Snowflake.parse/1)
 end

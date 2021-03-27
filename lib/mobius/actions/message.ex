@@ -47,7 +47,9 @@ defmodule Mobius.Actions.Message do
       # TODO: Validate the embed limits (see https://discord.com/developers/docs/resources/channel#embed-limits)
       # TODO: Make sure the channel exists (requires a cache)
       # TODO: Make sure permissions are right (requires a cache)
-      # TODO: Make sure the bot is connected to the gateway
+
+      not Bot.ready?() ->
+        {:error, "The bot must be ready before sending messages"}
 
       true ->
         Rest.Message.send_message(Bot.get_client!(), channel_id, body)
