@@ -27,7 +27,7 @@ defmodule Mobius.Actions.MessageTest do
 
     test "returns an error if neither content or embed is given", ctx do
       {:error, error} = Message.send_message(%{}, ctx.channel_id)
-      assert error =~ "at least one of content or embed"
+      assert error =~ "at least one of content, embed or file"
     end
 
     test "returns an error if content is longer than 2000 chars", ctx do

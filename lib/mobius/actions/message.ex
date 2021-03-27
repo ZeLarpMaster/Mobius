@@ -56,7 +56,7 @@ defmodule Mobius.Actions.Message do
   @spec send_message(message_body(), Snowflake.t()) :: Client.result(Message.t())
   def send_message(body, channel_id) do
     cond do
-      Enum.any?([:content, :embed, :file], &Map.has_key?(body, &1)) ->
+      not Enum.any?([:content, :embed, :file], &Map.has_key?(body, &1)) ->
         {:error, "Must have at least one of content, embed or file when sending a message"}
 
       String.length(Map.get(body, :content, "")) > 2000 ->
