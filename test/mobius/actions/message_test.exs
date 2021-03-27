@@ -25,7 +25,7 @@ defmodule Mobius.Actions.MessageTest do
       [channel_id: channel_id, raw_message: raw]
     end
 
-    test "returns an error if neither content or embed is given", ctx do
+    test "returns an error if none of content, embed or file is given", ctx do
       {:error, error} = Message.send_message(%{}, ctx.channel_id)
       assert error =~ "at least one of content, embed or file"
     end
