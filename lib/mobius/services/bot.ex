@@ -60,6 +60,20 @@ defmodule Mobius.Services.Bot do
   end
 
   @doc """
+  Returns the current global command prefix of the bot
+
+  This command prefix is the default prefix for guilds which didn't set one
+  and for commands sent to the bot in private messages.
+
+  This may raise a `KeyError` if this service isn't started yet
+  """
+  def get_global_prefix! do
+    __MODULE__
+    |> :persistent_term.get(%{})
+    |> Map.fetch!(:global_prefix)
+  end
+
+  @doc """
   Notifies Bot about the shard being ready
 
   This function is meant for internal use by the shards and nothing else
@@ -82,7 +96,11 @@ defmodule Mobius.Services.Bot do
     # Both are regrouped in one term as recommended in the :persistent_term's best practices:
     # > Prefer creating a few large persistent terms to creating many small persistent terms
     # https://erlang.org/doc/man/persistent_term.html#best-practices-for-using-persistent-terms
-    :persistent_term.put(__MODULE__, %{client: client, intents: intents})
+    :persistent_term.put(__MODULE__, %{
+      client: client,
+      intents: intents,
+      global_prefix: "!"
+    })
 
     client
     |> start_shards(token, intents)

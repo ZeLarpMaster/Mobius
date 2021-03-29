@@ -79,9 +79,10 @@ defmodule Mobius.Cog do
     quote location: :keep do
       use GenServer
       alias Mobius.Actions.Events
+      alias Mobius.Services.Bot
 
       listen :message_create, message do
-        case Command.execute_command(@commands, message) do
+        case Command.execute_command(@commands, Bot.get_global_prefix!(), message) do
           {:ok, _} ->
             :ok
 

@@ -34,10 +34,12 @@ defmodule Mobius.Core.Command do
   @spec arg_count(t()) :: non_neg_integer()
   def arg_count(%__MODULE__{} = command), do: length(command.args)
 
-  @spec execute_command([t()], Message.t()) :: handle_message_result()
-  def execute_command(commands, %{"content" => content} = message) do
+  @spec execute_command([t()], String.t(), Message.t()) :: handle_message_result()
+  def execute_command(commands, prefix, %{"content" => content} = message) do
     commands
-    |> Enum.find(fn %__MODULE__{} = command -> String.starts_with?(content, command.name) end)
+    |> Enum.find(fn %__MODULE__{} = command ->
+      String.starts_with?(content, prefix <> command.name)
+    end)
     |> case do
       nil ->
         :not_a_command
