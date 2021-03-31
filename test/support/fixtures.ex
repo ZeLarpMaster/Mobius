@@ -6,6 +6,7 @@ defmodule Mobius.Fixtures do
   alias Mobius.Core.Intents
   alias Mobius.Core.Opcode
   alias Mobius.Core.ShardInfo
+  alias Mobius.Models.Message
   alias Mobius.Rest.Client
   alias Mobius.Services.Socket
   alias Mobius.Stubs
@@ -134,6 +135,6 @@ defmodule Mobius.Fixtures do
       data: message
     )
 
-    message
+    Message.parse(message)
   end
 end
