@@ -26,7 +26,7 @@ defmodule Mobius.CogTest do
 
   describe "command/2" do
     test "should be called when a message starting with command name is received" do
-      send_message_payload("nothing")
+      send_command_payload("nothing")
 
       assert_receive :nothing
     end
@@ -44,26 +44,26 @@ defmodule Mobius.CogTest do
 
   describe "command/3" do
     test "should be called with the proper context if only a context is expected" do
-      message = send_message_payload("send")
+      message = send_command_payload("send")
 
       assert_receive ^message
     end
 
     test "should be called when messages starting with command name are received" do
-      send_message_payload("reply hello")
+      send_command_payload("reply hello")
 
       assert_receive "hello"
     end
 
     test "should parse integer arguments" do
-      send_message_payload("add 1 2")
+      send_command_payload("add 1 2")
 
       assert_receive 3
     end
 
     test "should notify of missing arguments" do
       assert capture_log(fn ->
-               send_message_payload("add 1")
+               send_command_payload("add 1")
                Process.sleep(10)
              end) =~
                "Too few arguments for command \"add\". Expected 2 arguments, got 1."
@@ -71,7 +71,7 @@ defmodule Mobius.CogTest do
 
     test "should notify of invalid arguments" do
       assert capture_log(fn ->
-               send_message_payload("add 2 hello")
+               send_command_payload("add 2 hello")
                Process.sleep(10)
              end) =~
                ~s'Invalid type for argument "num2". Expected "integer", got "hello".'
@@ -80,7 +80,7 @@ defmodule Mobius.CogTest do
 
   describe "command/4" do
     test "should be called with the context and the parsed arguments" do
-      message = send_message_payload("everything 123")
+      message = send_command_payload("everything 123")
 
       assert_receive {:everything, ^message, 123}
     end

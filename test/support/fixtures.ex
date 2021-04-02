@@ -7,6 +7,7 @@ defmodule Mobius.Fixtures do
   alias Mobius.Core.Opcode
   alias Mobius.Core.ShardInfo
   alias Mobius.Rest.Client
+  alias Mobius.Services.Bot
   alias Mobius.Services.Socket
   alias Mobius.Stubs
 
@@ -123,6 +124,11 @@ defmodule Mobius.Fixtures do
 
   def empty_response do
     {204, [], nil}
+  end
+
+  def send_command_payload(content) do
+    prefix = Bot.get_global_prefix!()
+    send_message_payload(prefix <> content)
   end
 
   def send_message_payload(content) do
