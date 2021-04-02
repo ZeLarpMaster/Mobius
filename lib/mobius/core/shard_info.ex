@@ -37,6 +37,18 @@ defmodule Mobius.Core.ShardInfo do
   @spec to_list(t()) :: [integer]
   def to_list(%__MODULE__{} = info), do: [info.number, info.count]
 
+  @doc """
+  Convert a tuple list into a ShardInfo struct
+
+      iex> info = new(number: 3, count: 10)
+      iex> info == from_list(to_list(info))
+      true
+      iex> info == from_list([3, 10])
+      true
+  """
+  @spec from_list([integer]) :: t()
+  def from_list([num, count]), do: new(number: num, count: count)
+
   defimpl Inspect do
     import Inspect.Algebra
 

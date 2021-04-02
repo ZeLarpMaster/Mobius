@@ -40,13 +40,19 @@ defmodule Mobius.TestUtils do
   @doc """
   Asserts that a struct's field contains the expected value and returns the struct
 
+  Works identically for maps
+
   ## Examples
 
       iex> my_struct = %MyStruct{field: "value"}
       iex> assert_field(my_struct, :field, "value") == my_struct
       true
+
+      iex> my_map = %{field: "value"}
+      iex> assert_field(my_map, :field, "value") == my_map
+      true
   """
-  @spec assert_field(arg, atom, any) :: arg when arg: struct
+  @spec assert_field(arg, atom, any) :: arg when arg: struct | map
   def assert_field(struct, field, expected_value) do
     assert Map.fetch!(struct, field) == expected_value
     struct

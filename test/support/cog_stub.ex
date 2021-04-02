@@ -3,7 +3,9 @@ defmodule Mobius.Stubs.Cog do
 
   use Mobius.Cog
 
-  listen :message_create, %{"content" => content} do
+  alias Mobius.Models.Message
+
+  listen :message_create, %Message{content: content} do
     send_to_test(content)
   end
 

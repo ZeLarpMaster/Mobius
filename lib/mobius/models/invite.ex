@@ -58,6 +58,9 @@ defmodule Mobius.Models.Invite do
 
   def parse(_), do: nil
 
+  def parse_type(1), do: :stream
+  def parse_type(_), do: nil
+
   defp parse_metadata(map) do
     metadata = InviteMetadata.parse(map)
 
@@ -67,7 +70,4 @@ defmodule Mobius.Models.Invite do
       metadata
     end
   end
-
-  defp parse_type(1), do: :stream
-  defp parse_type(_), do: nil
 end
