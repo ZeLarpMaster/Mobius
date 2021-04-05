@@ -5,7 +5,7 @@ defmodule Mobius.Core.Command do
   alias Mobius.Models.Message
 
   @enforce_keys [:name, :args, :handler]
-  defstruct [:name, :args, :handler]
+  defstruct name: nil, args: nil, handler: nil, description: ""
 
   @type t :: %__MODULE__{
           name: String.t(),

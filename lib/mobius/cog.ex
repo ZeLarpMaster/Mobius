@@ -55,6 +55,16 @@ defmodule Mobius.Cog do
 
   alias Mobius.Core.Command
 
+  @enforce_keys [:name, :module]
+  defstruct name: nil, module: nil, description: "", commands: []
+
+  @type t :: %__MODULE__{
+          module: module(),
+          name: String.t(),
+          description: String.t(),
+          commands: [Command.t()]
+        }
+
   @doc false
   defmacro __using__(_call) do
     quote location: :keep do
@@ -130,6 +140,15 @@ defmodule Mobius.Cog do
         |> Enum.each(fn {_event_name, handler} -> apply(handler, [data]) end)
 
         {:noreply, state}
+      end
+
+      def __cog__ do
+        %Mobius.Cog{
+          module: __MODULE__,
+          name: __MODULE__ |> Module.split() |> List.last(),
+          description: inspect(@moduledoc),
+          commands: @commands
+        }
       end
     end
   end
@@ -240,6 +259,8 @@ defmodule Mobius.Cog do
     # +1 to the length of args to leave room for the context
     new_command = %Command{
       name: command_name,
+      # TODO: Fix this always being nil --> need to move everything here into the quote
+      description: Module.get_attribute(__CALLER__.module, :doc),
       args: args,
       handler: Function.capture(__CALLER__.module, handler_name, length(args) + 1)
     }

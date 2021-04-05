@@ -3,7 +3,9 @@ defmodule Mobius.Services.CogLoader do
 
   use GenServer
 
-  @initial_cogs [Mobius.Cogs.PingPong]
+  alias Mobius.Cog
+
+  @initial_cogs [Mobius.Cogs.Help, Mobius.Cogs.PingPong]
 
   @spec start_link(keyword()) :: GenServer.on_start()
   def start_link(opts) do
@@ -15,11 +17,25 @@ defmodule Mobius.Services.CogLoader do
     GenServer.call(__MODULE__, {:load_cog, cog})
   end
 
+  @spec list_cogs() :: [Cog.t()]
+  def list_cogs do
+    cogs = GenServer.call(__MODULE__, :list_cogs)
+
+    cogs
+    |> Enum.filter(&function_exported?(&1, :__cog__, 0))
+    |> Enum.map(& &1.__cog__())
+  end
+
   @impl true
   def init(_init_arg) do
     Enum.each(@initial_cogs, &start_cog/1)
 
     {:ok, %{cogs: @initial_cogs}}
+  end
+
+  @impl true
+  def handle_call(:list_cogs, _from, state) do
+    {:reply, state.cogs, state}
   end
 
   @impl true
