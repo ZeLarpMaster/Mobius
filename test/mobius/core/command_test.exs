@@ -42,7 +42,7 @@ defmodule Mobius.Core.CommandTest do
     end
   end
 
-  describe "execute_command/2" do
+  describe "execute_command/3" do
     setup do
       command = %Command{
         name: "hello",
@@ -58,27 +58,35 @@ defmodule Mobius.Core.CommandTest do
     end
 
     test "should return an error when no command matches the message" do
-      assert Command.execute_command([], message("hello")) == :not_a_command
+      assert Command.execute_command([], "!", message("hello")) == :not_a_command
+    end
+
+    test "should return an error when there's no prefix in the message", %{command: command} do
+      assert Command.execute_command([command], "!", message("hello")) == :not_a_command
+    end
+
+    test "should return an error when there's the wrong command prefix", %{command: command} do
+      assert Command.execute_command([command], "!", message("?hello")) == :not_a_command
     end
 
     test "should return an error when the command has missing arguments", %{command: command} do
-      result = Command.execute_command([command], message("hello"))
+      result = Command.execute_command([command], "!", message("!hello"))
       assert result == {:too_few_args, command, 0}
     end
 
     test "should return an error when the command has invalid arguments", %{command: command} do
-      result = Command.execute_command([command], message("hello foo bar baz"))
+      result = Command.execute_command([command], "!", message("!hello foo bar baz"))
       assert result == {:invalid_args, [{{:foo, :integer}, "foo"}]}
     end
 
     test "should execute the command when the arguments are valid", %{command: command} do
-      Command.execute_command([command], message("hello 1 foo bar"))
+      Command.execute_command([command], "!", message("!hello 1 foo bar"))
       assert_receive({"command handled", _})
     end
 
     test "should receive the message as context when the arguments are valid", ctx do
-      msg = message("hello 1 foo bar")
-      Command.execute_command([ctx.command], msg)
+      msg = message("!hello 1 foo bar")
+      Command.execute_command([ctx.command], "!", msg)
       assert_receive {"command handled", ^msg}
     end
   end
