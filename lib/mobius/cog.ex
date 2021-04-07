@@ -254,48 +254,42 @@ defmodule Mobius.Cog do
           "Command names must only contain lowercase alphanumeric characters or underscores"
     end
 
-    handler_name = Command.command_handler_name(command_name)
-
-    # +1 to the length of args to leave room for the context
-    new_command = %Command{
-      name: command_name,
-      # TODO: Fix this always being nil --> need to move everything here into the quote
-      description: Module.get_attribute(__CALLER__.module, :doc),
-      args: args,
-      handler: Function.capture(__CALLER__.module, handler_name, length(args) + 1)
-    }
-
-    arg_vars =
-      new_command
-      |> Command.arg_names()
-      |> Enum.map(&String.to_existing_atom/1)
-      |> Enum.map(&Macro.var(&1, nil))
-      |> Macro.escape()
-
-    contents = Macro.escape(block, unquote: true)
-
     quote bind_quoted: [
-            handler_name: handler_name,
-            contents: contents,
-            arg_vars: arg_vars,
+            contents: Macro.escape(block, unquote: true),
             context: Macro.escape(context),
-            command: Macro.escape(new_command),
+            args: args,
+            command_name: command_name,
+            module: __CALLER__.module,
             line: __CALLER__.line,
             file: __CALLER__.file
           ] do
-      existing_commands = Module.get_attribute(__MODULE__, :commands)
+      handler_name = Command.command_handler_name(command_name)
 
       if Module.defines?(__MODULE__, {handler_name, 0}) do
         reraise(
           %CompileError{
             line: line,
             file: file,
-            description: "Command \"#{command.name}\" already exists."
+            description: "Command \"#{command_name}\" already exists."
           },
           []
         )
       else
-        Module.put_attribute(__MODULE__, :commands, command)
+        # +1 to the length of args to leave room for the context
+        new_command = %Command{
+          name: command_name,
+          description: Mobius.Cog.get_doc(module),
+          args: args,
+          handler: Function.capture(module, handler_name, length(args) + 1)
+        }
+
+        arg_vars =
+          new_command
+          |> Command.arg_names()
+          |> Enum.map(&String.to_existing_atom/1)
+          |> Enum.map(&Macro.var(&1, nil))
+
+        Module.put_attribute(__MODULE__, :commands, new_command)
 
         def unquote(handler_name)(unquote(context), unquote_splicing(arg_vars)),
           do: unquote(contents)
@@ -326,5 +320,14 @@ defmodule Mobius.Cog do
     handler_id = Enum.count(event_handlers, &(elem(&1, 0) === event_name))
 
     :"__mobius_event_#{event_name}_#{handler_id}__"
+  end
+
+  @doc false
+  def get_doc(module) do
+    case Module.get_attribute(module, :doc) do
+      {_line, false} -> false
+      {_line, doc} -> doc
+      _ -> nil
+    end
   end
 end
