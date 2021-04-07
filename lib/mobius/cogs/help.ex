@@ -19,15 +19,19 @@ defmodule Mobius.Cogs.Help do
   """
 
   @doc "This command"
-  command "help", context do
+  command "help", context, part: :string do
     cogs = CogLoader.list_cogs()
 
+    send_message(%{content: format_cogs(cogs)}, context.channel_id)
+  end
+
+  defp format_cogs(cogs) do
     cogs_list =
       cogs
       |> Enum.map(&format_cog/1)
       |> Enum.join("\n")
 
-    send_message(%{content: "#{@header}```#{cogs_list}```#{@footer}"}, context.channel_id)
+    "#{@header}```#{cogs_list}```#{@footer}"
   end
 
   defp format_cog(%Mobius.Cog{name: name, commands: commands}) do
