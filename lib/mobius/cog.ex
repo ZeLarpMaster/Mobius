@@ -245,10 +245,8 @@ defmodule Mobius.Cog do
     }
 
     arg_vars =
-      new_command
-      |> Command.arg_names()
-      |> Enum.map(&String.to_existing_atom/1)
-      |> Enum.map(&Macro.var(&1, nil))
+      args
+      |> Enum.map(fn {variable, type} -> {type, Macro.var(variable, nil)} end)
       |> Macro.escape()
 
     contents = Macro.escape(block, unquote: true)
@@ -264,21 +262,10 @@ defmodule Mobius.Cog do
           ] do
       existing_commands = Module.get_attribute(__MODULE__, :commands)
 
-      if Module.defines?(__MODULE__, {handler_name, 0}) do
-        reraise(
-          %CompileError{
-            line: line,
-            file: file,
-            description: "Command \"#{command.name}\" already exists."
-          },
-          []
-        )
-      else
-        Module.put_attribute(__MODULE__, :commands, command)
+      Module.put_attribute(__MODULE__, :commands, command)
 
-        def unquote(handler_name)(unquote(context), unquote_splicing(arg_vars)),
-          do: unquote(contents)
-      end
+      def unquote(handler_name)(unquote(context), unquote_splicing(arg_vars)),
+        do: unquote(contents)
     end
   end
 

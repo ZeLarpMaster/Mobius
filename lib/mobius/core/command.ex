@@ -77,7 +77,7 @@ defmodule Mobius.Core.Command do
     if errors != [] do
       {:invalid_args, Enum.map(errors, fn {arg, value, _} -> {arg, value} end)}
     else
-      {:ok, Enum.map(valids, fn {_, _, val} -> val end)}
+      {:ok, Enum.map(valids, fn {{_name, type}, _, val} -> {type, val} end)}
     end
   end
 
