@@ -244,17 +244,12 @@ defmodule Mobius.Cog do
       handler: Function.capture(__CALLER__.module, handler_name, length(args) + 1)
     }
 
-    arg_vars =
-      args
-      |> Enum.map(fn {variable, type} -> {type, Macro.var(variable, nil)} end)
-      |> Macro.escape()
-
-    contents = Macro.escape(block, unquote: true)
+    arg_vars = Enum.map(args, fn {variable, type} -> {type, Macro.var(variable, nil)} end)
 
     quote bind_quoted: [
             handler_name: handler_name,
-            contents: contents,
-            arg_vars: arg_vars,
+            contents: Macro.escape(block, unquote: true),
+            arg_vars: Macro.escape(arg_vars),
             context: Macro.escape(context),
             command: Macro.escape(new_command),
             line: __CALLER__.line,
