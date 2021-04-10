@@ -50,23 +50,22 @@ defmodule Mobius.CogTest do
     end
 
     test "should be called when messages starting with command name are received" do
-      send_command_payload("reply hello")
+      send_command_payload("add hello")
 
-      assert_receive "hello"
+      assert_receive {:unsupported, "hello"}
     end
 
-    test "should parse integer arguments" do
-      send_command_payload("add 1 2")
-
-      assert_receive 3
+    test "should call the clause with matching types" do
+      send_command_payload("add 5")
+      assert_receive 5
     end
 
-    test "should notify of missing arguments" do
+    test "should notify of wrong number of arguments if no clause matches" do
       assert capture_log(fn ->
-               send_command_payload("add 1")
+               send_command_payload("add")
                Process.sleep(10)
              end) =~
-               "Too few arguments for command \"add\". Expected 2 arguments, got 1."
+               "Wrong number of arguments for command \"add\". Expected 1 arguments, got 0."
     end
 
     test "should notify of invalid arguments" do
@@ -79,10 +78,10 @@ defmodule Mobius.CogTest do
   end
 
   describe "command/4" do
-    test "should be called with the context and the parsed arguments" do
+    test "executes the first matching clause from top to bottom" do
       message = send_command_payload("everything 123")
 
-      assert_receive {:everything, ^message, 123}
+      assert_receive {:everything, ^message, "123"}
     end
   end
 end

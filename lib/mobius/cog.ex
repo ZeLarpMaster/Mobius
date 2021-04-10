@@ -81,14 +81,16 @@ defmodule Mobius.Cog do
       alias Mobius.Actions.Events
       alias Mobius.Services.Bot
 
+      @computed_commands Enum.reverse(@commands)
+
       listen :message_create, message do
-        case Command.execute_command(@commands, Bot.get_global_prefix!(), message) do
+        case Command.execute_command(@computed_commands, Bot.get_global_prefix!(), message) do
           {:ok, _} ->
             :ok
 
           {:too_few_args, command, received} ->
             Logger.info(
-              "Too few arguments for command \"#{command.name}\". Expected #{
+              "Wrong number of arguments for command \"#{command.name}\". Expected #{
                 Command.arg_count(command)
               } arguments, got #{received}."
             )
@@ -244,19 +246,12 @@ defmodule Mobius.Cog do
       handler: Function.capture(__CALLER__.module, handler_name, length(args) + 1)
     }
 
-    arg_vars =
-      new_command
-      |> Command.arg_names()
-      |> Enum.map(&String.to_existing_atom/1)
-      |> Enum.map(&Macro.var(&1, nil))
-      |> Macro.escape()
-
-    contents = Macro.escape(block, unquote: true)
+    arg_vars = Enum.map(args, fn {variable, type} -> {type, Macro.var(variable, nil)} end)
 
     quote bind_quoted: [
             handler_name: handler_name,
-            contents: contents,
-            arg_vars: arg_vars,
+            contents: Macro.escape(block, unquote: true),
+            arg_vars: Macro.escape(arg_vars),
             context: Macro.escape(context),
             command: Macro.escape(new_command),
             line: __CALLER__.line,
@@ -264,21 +259,10 @@ defmodule Mobius.Cog do
           ] do
       existing_commands = Module.get_attribute(__MODULE__, :commands)
 
-      if Module.defines?(__MODULE__, {handler_name, 0}) do
-        reraise(
-          %CompileError{
-            line: line,
-            file: file,
-            description: "Command \"#{command.name}\" already exists."
-          },
-          []
-        )
-      else
-        Module.put_attribute(__MODULE__, :commands, command)
+      Module.put_attribute(__MODULE__, :commands, command)
 
-        def unquote(handler_name)(unquote(context), unquote_splicing(arg_vars)),
-          do: unquote(contents)
-      end
+      def unquote(handler_name)(unquote(context), unquote_splicing(arg_vars)),
+        do: unquote(contents)
     end
   end
 
