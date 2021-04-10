@@ -81,8 +81,10 @@ defmodule Mobius.Cog do
       alias Mobius.Actions.Events
       alias Mobius.Services.Bot
 
+      @computed_commands Enum.reverse(@commands)
+
       listen :message_create, message do
-        case Command.execute_command(@commands, Bot.get_global_prefix!(), message) do
+        case Command.execute_command(@computed_commands, Bot.get_global_prefix!(), message) do
           {:ok, _} ->
             :ok
 
