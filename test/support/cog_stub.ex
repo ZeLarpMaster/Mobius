@@ -17,15 +17,15 @@ defmodule Mobius.Stubs.Cog do
     send_to_test(context)
   end
 
-  command "reply", value: :integer do
-    send_to_test(value + 10)
+  command "add", value: :integer do
+    send_to_test(value)
   end
 
-  command "reply", message: :string do
-    send_to_test(message)
+  command "add", message: :string do
+    send_to_test({:unsupported, message})
   end
 
-  command "reply", num1: :integer, num2: :integer do
+  command "add", num1: :integer, num2: :integer do
     send_to_test(num1 + num2)
   end
 
