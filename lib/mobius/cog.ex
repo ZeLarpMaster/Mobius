@@ -88,7 +88,7 @@ defmodule Mobius.Cog do
 
           {:too_few_args, command, received} ->
             Logger.info(
-              "Too few arguments for command \"#{command.name}\". Expected #{
+              "Wrong number of arguments for command \"#{command.name}\". Expected #{
                 Command.arg_count(command)
               } arguments, got #{received}."
             )

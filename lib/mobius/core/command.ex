@@ -36,32 +36,44 @@ defmodule Mobius.Core.Command do
 
   @spec execute_command([t()], String.t(), Message.t()) :: handle_message_result()
   def execute_command(commands, prefix, %Message{content: content} = message) do
-    commands
-    |> Enum.find(fn %__MODULE__{} = command ->
-      String.starts_with?(content, prefix <> command.name)
-    end)
-    |> case do
-      nil ->
-        :not_a_command
+    arg_values = split_arguments(content)
 
-      %__MODULE__{} = command ->
-        arg_values = split_arguments(content)
-
-        with :ok <- validate_arg_count(command, arg_values),
-             {:ok, values} <- parse_arg_values(command, arg_values) do
-          {:ok, apply(command.handler, [message | values])}
+    Enum.reduce_while(commands, :not_a_command, fn %__MODULE__{} = command, acc ->
+      new =
+        cond do
+          not String.starts_with?(content, prefix <> command.name) -> :not_a_command
+          arg_count(command) != length(arg_values) -> {:too_few_args, command, length(arg_values)}
+          true -> try_command(command, arg_values, message)
         end
+
+      decide_by_priority(acc, new)
+    end)
+  end
+
+  defp decide_by_priority(old, new) do
+    # Overwrite the accumulator depending on a priority list:
+    # :ok (which halts the reduce) > :invalid_args > :too_few_args > :not_a_command
+    # All the :cont are to let other clauses have their chance
+    # However if one of the clauses has the right amount of args, but wrong types, that's the
+    #   error we want to return ultimately if no other clause matches those arguments
+    # Same logic applies for :too_few_args, if one clause is the right command with the wrong
+    #   amount of args, but no other clause matches the command, that's the error we want
+    # Finally, if none of the commands matches, we return :not_a_command
+    case {old, new} do
+      {{:ok, _} = value, _} -> {:halt, value}
+      {_, {:ok, _} = value} -> {:halt, value}
+      {{:invalid_args, _} = value, _} -> {:cont, value}
+      {_, {:invalid_args, _} = value} -> {:cont, value}
+      {{:too_few_args, _, _} = value, _} -> {:cont, value}
+      {_, {:too_few_args, _, _} = value} -> {:cont, value}
+      {:not_a_command, _} -> {:cont, :not_a_command}
+      {_, :not_a_command} -> {:cont, :not_a_command}
     end
   end
 
-  defp validate_arg_count(%__MODULE__{} = command, values) do
-    expected_count = arg_count(command)
-    actual_count = length(values)
-
-    if actual_count < expected_count do
-      {:too_few_args, command, actual_count}
-    else
-      :ok
+  defp try_command(command, arg_values, %Message{} = message) do
+    with {:ok, values} <- parse_arg_values(command, arg_values) do
+      {:ok, apply(command.handler, [message | values])}
     end
   end
 

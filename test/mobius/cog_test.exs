@@ -61,12 +61,12 @@ defmodule Mobius.CogTest do
       assert_receive 3
     end
 
-    test "should notify of missing arguments" do
+    test "should notify of wrong number of arguments" do
       assert capture_log(fn ->
                send_command_payload("add 1")
                Process.sleep(10)
              end) =~
-               "Too few arguments for command \"add\". Expected 2 arguments, got 1."
+               "Wrong number of arguments for command \"add\". Expected 2 arguments, got 1."
     end
 
     test "should notify of invalid arguments" do
