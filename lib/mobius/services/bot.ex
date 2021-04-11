@@ -12,6 +12,8 @@ defmodule Mobius.Services.Bot do
 
   require Logger
 
+  @default_prefix Application.compile_env(:mobius, :default_global_prefix, "!")
+
   @shards_table :mobius_shards
 
   @typep state :: %{
@@ -99,7 +101,7 @@ defmodule Mobius.Services.Bot do
     :persistent_term.put(__MODULE__, %{
       client: client,
       intents: intents,
-      global_prefix: "!"
+      global_prefix: @default_prefix
     })
 
     client
