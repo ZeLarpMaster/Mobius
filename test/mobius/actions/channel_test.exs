@@ -14,15 +14,9 @@ defmodule Mobius.Actions.ChannelTest do
   setup :stub_socket
   setup :stub_ratelimiter
   setup :get_shard
+  setup :handshake_shard
 
-  test "get/1 when the bot isn't ready" do
-    {:error, error} = Channel.get(random_snowflake())
-    assert error =~ "must be ready"
-  end
-
-  describe "get/1 when the bot is ready" do
-    setup :handshake_shard
-
+  describe "get/1" do
     setup do
       channel_id = random_snowflake()
       raw = channel(id: channel_id)

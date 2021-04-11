@@ -24,10 +24,6 @@ defmodule Mobius.Actions.Channel do
   """
   @spec get(Snowflake.t()) :: Client.result(Channel.t())
   def get(channel_id) do
-    if Bot.ready?() do
-      Rest.Channel.get(Bot.get_client!(), channel_id)
-    else
-      {:error, "The bot must be ready before getting channels"}
-    end
+    Rest.Channel.get(Bot.get_client!(), channel_id)
   end
 end
