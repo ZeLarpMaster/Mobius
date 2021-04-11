@@ -81,28 +81,26 @@ defmodule Mobius.Cog do
       alias Mobius.Actions.Events
       alias Mobius.Services.Bot
 
-      @computed_commands Enum.reverse(@commands)
+      @computed_commands Command.preprocess_commands(@commands)
+
+      defp __commands__, do: @computed_commands
 
       listen :message_create, message do
-        case Command.execute_command(@computed_commands, Bot.get_global_prefix!(), message) do
+        case Command.execute_command(__commands__(), Bot.get_global_prefix!(), message) do
           {:ok, _} ->
             :ok
 
-          {:too_few_args, command, received} ->
+          {:too_few_args, arities, received} ->
             Logger.info(
-              "Wrong number of arguments for command \"#{command.name}\". Expected #{
-                Command.arg_count(command)
+              "Wrong number of arguments. Expected one of #{
+                Enum.join(Enum.map(arities, &Integer.to_string/1), ", ")
               } arguments, got #{received}."
             )
 
-          {:invalid_args, errors} ->
-            Enum.each(errors, fn {{arg_name, arg_type}, value} ->
-              Logger.info(
-                ~s(Invalid type for argument "#{arg_name}". Expected "#{Atom.to_string(arg_type)}", got "#{
-                  value
-                }".)
-              )
-            end)
+          {:invalid_args, [clause | _clauses]} ->
+            Logger.info(
+              ~s(Type mismatch for the command "#{clause.name}" with #{Command.arg_count(clause)} arguments)
+            )
 
           :not_a_command ->
             :ok

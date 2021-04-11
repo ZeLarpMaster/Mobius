@@ -65,7 +65,7 @@ defmodule Mobius.CogTest do
                send_command_payload("add")
                Process.sleep(10)
              end) =~
-               "Wrong number of arguments for command \"add\". Expected 1 arguments, got 0."
+               "Wrong number of arguments. Expected one of 1, 2 arguments, got 0."
     end
 
     test "should notify of invalid arguments" do
@@ -73,7 +73,7 @@ defmodule Mobius.CogTest do
                send_command_payload("add 2 hello")
                Process.sleep(10)
              end) =~
-               ~s'Invalid type for argument "num2". Expected "integer", got "hello".'
+               ~s'Type mismatch for the command "add" with 2 arguments'
     end
   end
 
