@@ -19,7 +19,7 @@ defmodule Mobius.Rest.ChannelTest do
       url = Client.base_url() <> "/channels/#{channel_id}"
       mock(fn %{method: :get, url: ^url} -> json(raw) end)
 
-      assert {:ok, Models.Channel.parse(raw)} == Rest.Channel.get(ctx.client, channel_id)
+      assert {:ok, Models.Channel.parse(raw)} == Rest.Channel.get_channel(ctx.client, channel_id)
     end
   end
 end

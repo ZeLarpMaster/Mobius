@@ -16,7 +16,7 @@ defmodule Mobius.Actions.ChannelTest do
   setup :get_shard
   setup :handshake_shard
 
-  describe "get/1" do
+  describe "get_channel/1" do
     setup do
       channel_id = random_snowflake()
       raw = channel(id: channel_id)
@@ -26,7 +26,7 @@ defmodule Mobius.Actions.ChannelTest do
     end
 
     test "returns the channel is successful", ctx do
-      {:ok, channel} = Channel.get(ctx.channel_id)
+      {:ok, channel} = Channel.get_channel(ctx.channel_id)
       assert channel == Models.Channel.parse(ctx.raw_channel)
     end
   end

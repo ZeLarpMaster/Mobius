@@ -22,8 +22,8 @@ defmodule Mobius.Actions.Channel do
   Relevant documentation:
   https://discord.com/developers/docs/resources/channel#get-channel
   """
-  @spec get(Snowflake.t()) :: Client.result(Channel.t())
-  def get(channel_id) do
-    Rest.Channel.get(Bot.get_client!(), channel_id)
+  @spec get_channel(Snowflake.t()) :: Client.result(Channel.t())
+  def get_channel(channel_id) do
+    Rest.Channel.get_channel(Bot.get_client!(), channel_id)
   end
 end
