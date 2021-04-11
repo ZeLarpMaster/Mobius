@@ -84,6 +84,11 @@ defmodule Mobius.Core.CommandTest do
       assert_receive({"command handled", _})
     end
 
+    test "should execute the command when the prefix has a space", ctx do
+      Command.execute_command(ctx.commands, "sudo ", message("sudo hello 1 foo bar"))
+      assert_receive({"command handled", _})
+    end
+
     test "should receive the message as context when the arguments are valid", ctx do
       msg = message("!hello 1 foo bar")
       Command.execute_command(ctx.commands, "!", msg)
