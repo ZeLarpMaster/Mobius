@@ -4,6 +4,7 @@ defmodule Mobius.Actions.Channel do
   """
 
   alias Mobius.Models.Channel
+  alias Mobius.Models.Snowflake
   alias Mobius.Rest
   alias Mobius.Rest.Client
   alias Mobius.Services.Bot
@@ -23,8 +24,6 @@ defmodule Mobius.Actions.Channel do
   """
   @spec get(Snowflake.t()) :: Client.result(Channel.t())
   def get(channel_id) do
-    # TODO: Make sure the channel exists (requires a cache)
-
     if Bot.ready?() do
       Rest.Channel.get(Bot.get_client!(), channel_id)
     else
