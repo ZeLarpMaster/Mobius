@@ -79,6 +79,42 @@ defmodule Mobius.Services.ModelCacheTest do
     end
   end
 
+  describe "guild cache" do
+    test "caches on guild create" do
+      cached = guild()
+      ModelCache.cache_event(:guild_create, cached)
+
+      assert cached == ModelCache.get(cached["id"], ModelCache.Guild)
+    end
+
+    test "caches on guild update if not cached" do
+      cached = guild()
+      ModelCache.cache_event(:guild_update, cached)
+
+      assert cached == ModelCache.get(cached["id"], ModelCache.Guild)
+    end
+
+    test "caches on guild update if already cached" do
+      original = guild()
+      cached = guild(id: original["id"])
+
+      ModelCache.cache_event(:guild_create, original)
+      ModelCache.cache_event(:guild_update, cached)
+
+      # Make sure we aren't incredibly unlucky otherwise the other assert makes no sense
+      assert original != cached
+      assert cached == ModelCache.get(original["id"], ModelCache.Guild)
+    end
+
+    test "invalidates on guild delete" do
+      cached = guild()
+      ModelCache.cache_event(:guild_create, cached)
+      ModelCache.cache_event(:guild_delete, cached)
+
+      assert nil == ModelCache.get(cached["id"], ModelCache.Guild)
+    end
+  end
+
   describe "get/2" do
     test "returns the cached value if cached" do
       cached = user()
