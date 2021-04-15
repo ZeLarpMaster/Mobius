@@ -83,17 +83,15 @@ defmodule Mobius.Cog do
 
       @computed_commands Command.preprocess_commands(@commands)
 
-      defp __commands__, do: @computed_commands
-
       listen :message_create, message do
-        case Command.execute_command(__commands__(), Bot.get_global_prefix!(), message) do
+        case Command.execute_command(@computed_commands, Bot.get_global_prefix!(), message) do
           {:ok, _} ->
             :ok
 
           {:too_few_args, arities, received} ->
             Logger.info(
               "Wrong number of arguments. Expected one of #{
-                Enum.join(Enum.map(arities, &Integer.to_string/1), ", ")
+                arities |> Enum.map(&Integer.to_string/1) |> Enum.join(", ")
               } arguments, got #{received}."
             )
 

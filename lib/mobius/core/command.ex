@@ -56,8 +56,7 @@ defmodule Mobius.Core.Command do
     commands
     |> Enum.reverse()
     |> Enum.group_by(fn %__MODULE__{name: name} -> name end)
-    |> Enum.map(fn {name, commands} -> {name, Enum.group_by(commands, &arg_count/1)} end)
-    |> Map.new()
+    |> Map.new(fn {name, commands} -> {name, Enum.group_by(commands, &arg_count/1)} end)
   end
 
   defp get_command(commands, name) do
