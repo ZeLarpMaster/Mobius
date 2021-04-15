@@ -55,6 +55,16 @@ defmodule Mobius.Cog do
 
   alias Mobius.Core.Command
 
+  @enforce_keys [:name, :module]
+  defstruct name: nil, module: nil, description: "", commands: []
+
+  @type t :: %__MODULE__{
+          module: module(),
+          name: String.t(),
+          description: String.t(),
+          commands: Command.processed()
+        }
+
   @doc false
   defmacro __using__(_call) do
     quote location: :keep do
@@ -82,6 +92,16 @@ defmodule Mobius.Cog do
       alias Mobius.Services.Bot
 
       @computed_commands Command.preprocess_commands(@commands)
+
+      @doc false
+      def __cog__ do
+        %Mobius.Cog{
+          module: __MODULE__,
+          name: __MODULE__ |> Module.split() |> List.last(),
+          description: @moduledoc,
+          commands: @computed_commands
+        }
+      end
 
       listen :message_create, message do
         case Command.execute_command(@computed_commands, Bot.get_global_prefix!(), message) do
@@ -114,14 +134,14 @@ defmodule Mobius.Cog do
 
         Events.subscribe(event_names)
 
-        Logger.debug("Cog \"#{__MODULE__}\" subscribed to events #{inspect(event_names)}")
+        Logger.debug("Cog \"#{__cog__().name}\" subscribed to events #{inspect(event_names)}")
 
         {:ok, nil}
       end
 
       @impl true
       def handle_info({event_name, data}, state) when is_atom(event_name) and is_map(data) do
-        Logger.debug("Cog \"#{__MODULE__}\" received event #{inspect(event_name)}")
+        Logger.debug("Cog \"#{__cog__().name}\" received event #{inspect(event_name)}")
 
         @event_handlers
         |> Enum.filter(&match?({^event_name, _handler}, &1))
@@ -161,6 +181,7 @@ defmodule Mobius.Cog do
         {event_name, Function.capture(__MODULE__, name, 1)}
       )
 
+      @doc false
       def unquote(name)(unquote(payload)), do: unquote(contents)
     end
   end
@@ -233,30 +254,28 @@ defmodule Mobius.Cog do
           "Command names must only contain lowercase alphanumeric characters or underscores"
     end
 
-    handler_name = Command.command_handler_name(command_name)
-
-    # +1 to the length of args to leave room for the context
-    new_command = %Command{
-      name: command_name,
-      args: args,
-      handler: Function.capture(__CALLER__.module, handler_name, length(args) + 1)
-    }
-
-    arg_vars = Enum.map(args, fn {variable, type} -> {type, Macro.var(variable, nil)} end)
-
     quote bind_quoted: [
-            handler_name: handler_name,
+            command_name: command_name,
             contents: Macro.escape(block, unquote: true),
-            arg_vars: Macro.escape(arg_vars),
+            args: Macro.escape(args),
             context: Macro.escape(context),
-            command: Macro.escape(new_command),
-            line: __CALLER__.line,
-            file: __CALLER__.file
+            module: __CALLER__.module
           ] do
-      existing_commands = Module.get_attribute(__MODULE__, :commands)
+      handler_name = Command.command_handler_name(command_name)
 
-      Module.put_attribute(__MODULE__, :commands, command)
+      # +1 to the length of args to leave room for the context
+      new_command = %Command{
+        name: command_name,
+        description: Mobius.Cog.pop_doc(module),
+        args: args,
+        handler: Function.capture(module, handler_name, length(args) + 1)
+      }
 
+      arg_vars = Enum.map(args, fn {variable, type} -> {type, Macro.var(variable, nil)} end)
+
+      Module.put_attribute(__MODULE__, :commands, new_command)
+
+      @doc false
       def unquote(handler_name)(unquote(context), unquote_splicing(arg_vars)),
         do: unquote(contents)
     end
@@ -285,5 +304,18 @@ defmodule Mobius.Cog do
     handler_id = Enum.count(event_handlers, &(elem(&1, 0) === event_name))
 
     :"__mobius_event_#{event_name}_#{handler_id}__"
+  end
+
+  @doc false
+  def pop_doc(module) do
+    doc =
+      case Module.get_attribute(module, :doc) do
+        {_line, false} -> false
+        {_line, doc} -> doc
+        _ -> nil
+      end
+
+    Module.delete_attribute(module, :doc)
+    doc
   end
 end
