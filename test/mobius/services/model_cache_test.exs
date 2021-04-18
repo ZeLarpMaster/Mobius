@@ -59,14 +59,12 @@ defmodule Mobius.Services.ModelCacheTest do
     test "updates the cache on member update if already cached" do
       member_data = member()
       original = Map.put(member_data, "guild_id", random_snowflake())
-      new_member = member(user: user(id: original["user"]["id"]))
+      new_member = Map.put(member_data, "nick", member_data["nick"] <> "_new")
       cached = Map.put(new_member, "guild_id", original["guild_id"])
 
       ModelCache.cache_event(:guild_member_add, original)
       ModelCache.cache_event(:guild_member_update, cached)
 
-      # Make sure we aren't incredibly unlucky otherwise the other assert makes no sense
-      assert member_data != new_member
       assert new_member == ModelCache.get(member_key(cached), ModelCache.Member)
     end
 
@@ -96,14 +94,12 @@ defmodule Mobius.Services.ModelCacheTest do
 
     test "caches on guild update if already cached" do
       original = guild()
-      cached = guild(id: original["id"])
+      different = Map.put(original, "name", original["name"] <> "_new")
 
       ModelCache.cache_event(:guild_create, original)
-      ModelCache.cache_event(:guild_update, cached)
+      ModelCache.cache_event(:guild_update, different)
 
-      # Make sure we aren't incredibly unlucky otherwise the other assert makes no sense
-      assert original != cached
-      assert cached == ModelCache.get(original["id"], ModelCache.Guild)
+      assert different == ModelCache.get(original["id"], ModelCache.Guild)
     end
 
     test "invalidates on guild delete" do
