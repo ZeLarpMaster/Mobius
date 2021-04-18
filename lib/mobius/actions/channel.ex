@@ -3,11 +3,15 @@ defmodule Mobius.Actions.Channel do
   Actions related to Discord channels such as fetching, modifying and deleting channels
   """
 
+  import Mobius.Actions.Utils
+
   alias Mobius.Models.Channel
   alias Mobius.Models.Snowflake
   alias Mobius.Rest
   alias Mobius.Rest.Client
   alias Mobius.Services.Bot
+
+  @type edit_channel_body :: Rest.Channel.edit_channel_body()
 
   @doc """
   Fetch a channel
@@ -26,4 +30,31 @@ defmodule Mobius.Actions.Channel do
   def get_channel(channel_id) do
     Rest.Channel.get_channel(Bot.get_client!(), channel_id)
   end
+
+  @spec edit_channel(pos_integer, edit_channel_body()) :: Client.result(Channel.t())
+  def edit_channel(channel_id, params) do
+    # TODO validate allow param fields based on channel type
+    # TODO validate permissions
+
+    validators = [
+      string_length_validator(:name, 2, 100),
+      &validate_channel_type/1,
+      string_length_validator(:topic, 0, 1024),
+      integer_range_validator(:rate_limit_per_user, 0, 21_600),
+      integer_range_validator(:bitrate, 8000, 96_000),
+      integer_range_validator(:user_limit, 0, 99)
+    ]
+
+    case validate_params(params, validators) do
+      :ok -> Rest.Channel.edit_channel(Bot.get_client!(), channel_id, params)
+      {:error, errors} -> {:error, errors}
+    end
+  end
+
+  defp validate_channel_type(%{type: type}) when type in [:guild_text, :guild_news], do: :ok
+
+  defp validate_channel_type(%{type: _type}),
+    do: {:error, "Channel type can only be converted to text or news"}
+
+  defp validate_channel_type(_params), do: :ok
 end
