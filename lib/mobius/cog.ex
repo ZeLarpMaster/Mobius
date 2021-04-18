@@ -56,7 +56,7 @@ defmodule Mobius.Cog do
   alias Mobius.Core.Command
 
   @enforce_keys [:name, :module]
-  defstruct name: nil, module: nil, description: "", commands: []
+  defstruct [:name, :module, description: "", commands: []]
 
   @type t :: %__MODULE__{
           module: module(),
