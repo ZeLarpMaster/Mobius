@@ -53,17 +53,8 @@ defmodule Mobius.Cog do
   `handle_info/2` match a different pattern.
   """
 
+  alias Mobius.Core.Cog
   alias Mobius.Core.Command
-
-  @enforce_keys [:name, :module]
-  defstruct [:name, :module, description: "", commands: []]
-
-  @type t :: %__MODULE__{
-          module: module(),
-          name: String.t(),
-          description: String.t(),
-          commands: Command.processed()
-        }
 
   @doc false
   defmacro __using__(_call) do
@@ -95,7 +86,7 @@ defmodule Mobius.Cog do
 
       @doc false
       def __cog__ do
-        %Mobius.Cog{
+        %Cog{
           module: __MODULE__,
           name: __MODULE__ |> Module.split() |> List.last(),
           description: @moduledoc,
