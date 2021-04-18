@@ -59,14 +59,12 @@ defmodule Mobius.Services.ModelCacheTest do
     test "updates the cache on member update if already cached" do
       member_data = member()
       original = Map.put(member_data, "guild_id", random_snowflake())
-      new_member = member(user: user(id: original["user"]["id"]))
+      new_member = Map.put(member_data, "nick", member_data["nick"] <> "_new")
       cached = Map.put(new_member, "guild_id", original["guild_id"])
 
       ModelCache.cache_event(:guild_member_add, original)
       ModelCache.cache_event(:guild_member_update, cached)
 
-      # Make sure we aren't incredibly unlucky otherwise the other assert makes no sense
-      assert member_data != new_member
       assert new_member == ModelCache.get(member_key(cached), ModelCache.Member)
     end
 
@@ -76,6 +74,40 @@ defmodule Mobius.Services.ModelCacheTest do
       ModelCache.cache_event(:guild_member_remove, cached)
 
       assert nil == ModelCache.get(member_key(cached), ModelCache.Member)
+    end
+  end
+
+  describe "guild cache" do
+    test "caches on guild create" do
+      cached = guild()
+      ModelCache.cache_event(:guild_create, cached)
+
+      assert cached == ModelCache.get(cached["id"], ModelCache.Guild)
+    end
+
+    test "caches on guild update if not cached" do
+      cached = guild()
+      ModelCache.cache_event(:guild_update, cached)
+
+      assert cached == ModelCache.get(cached["id"], ModelCache.Guild)
+    end
+
+    test "caches on guild update if already cached" do
+      original = guild()
+      different = Map.put(original, "name", original["name"] <> "_new")
+
+      ModelCache.cache_event(:guild_create, original)
+      ModelCache.cache_event(:guild_update, different)
+
+      assert different == ModelCache.get(original["id"], ModelCache.Guild)
+    end
+
+    test "invalidates on guild delete" do
+      cached = guild()
+      ModelCache.cache_event(:guild_create, cached)
+      ModelCache.cache_event(:guild_delete, cached)
+
+      assert nil == ModelCache.get(cached["id"], ModelCache.Guild)
     end
   end
 
