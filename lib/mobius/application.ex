@@ -19,6 +19,7 @@ defmodule Mobius.Application do
       dynamic_supervisor(Mobius.Supervisor.Shard),
       dynamic_supervisor(Mobius.Supervisor.Socket),
       dynamic_supervisor(Mobius.Supervisor.CogLoader),
+      dynamic_supervisor(Mobius.Supervisor.Config),
       {Mobius.Services.RestRatelimiter, []},
       {Mobius.Services.PubSub, []},
       {Mobius.Services.EventPipeline, []},
