@@ -15,7 +15,7 @@ defmodule Mobius.Actions.Guild do
   As stated in the
   [Discord documentation](https://discord.com/developers/docs/reference#consistency),
   events may never be sent to a client (this library).
-  This means the cache may not contain things it should contain
+  This means the cache may not contain everything you expect it to
   or may be out of date if an update event isn't sent (or received).
 
   If being up to date is very important to you,
