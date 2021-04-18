@@ -90,7 +90,7 @@ defmodule Mobius.CogTest do
       use Mobius.Cog
     end
 
-    test "should have nil as a description" do
+    test "should not have a description" do
       assert nil == UndocumentedCog.__cog__().description
     end
   end
