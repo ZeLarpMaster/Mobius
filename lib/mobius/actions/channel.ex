@@ -31,7 +31,7 @@ defmodule Mobius.Actions.Channel do
     Rest.Channel.get_channel(Bot.get_client!(), channel_id)
   end
 
-  @spec edit_channel(pos_integer, edit_channel_body()) :: Client.result(Channel.t())
+  @spec edit_channel(Snowflake.t(), edit_channel_body()) :: Client.result(Channel.t())
   def edit_channel(channel_id, params) do
     # TODO validate allow param fields based on channel type
     # TODO validate permissions
