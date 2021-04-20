@@ -5,10 +5,11 @@ defmodule Mobius.Core.Command do
   alias Mobius.Models.Message
 
   @enforce_keys [:name, :args, :handler]
-  defstruct [:name, :args, :handler]
+  defstruct [:name, :args, :handler, description: ""]
 
   @type t :: %__MODULE__{
           name: String.t(),
+          description: String.t() | false | nil,
           args: keyword(ArgumentParser.arg_type()),
           handler: function()
         }

@@ -84,4 +84,50 @@ defmodule Mobius.CogTest do
       assert_receive {:everything, ^message, "123"}
     end
   end
+
+  describe "undocumented cog" do
+    defmodule UndocumentedCog do
+      use Mobius.Cog
+    end
+
+    test "should not have a description" do
+      assert nil == UndocumentedCog.__cog__().description
+    end
+  end
+
+  describe "documented cog" do
+    defmodule DocumentedCog do
+      @moduledoc "This cog is documented"
+      use Mobius.Cog
+
+      @doc "Fun command"
+      command "fun", do: nil
+
+      @doc false
+      command "hidden", do: nil
+
+      command "nodoc", do: nil
+    end
+
+    test "should keep track of the cog's doc" do
+      assert "This cog is documented" == DocumentedCog.__cog__().description
+    end
+
+    test "should keep track of command doc" do
+      assert "Fun command" == get_command(DocumentedCog, "fun").description
+    end
+
+    test "should have false as command description if @doc false is given" do
+      assert false == get_command(DocumentedCog, "hidden").description
+    end
+
+    test "should have nil as command description if no doc is given" do
+      assert nil == get_command(DocumentedCog, "nodoc").description
+    end
+  end
+
+  defp get_command(cog, command_name) do
+    cog_info = cog.__cog__()
+    hd(cog_info.commands[command_name][0])
+  end
 end
