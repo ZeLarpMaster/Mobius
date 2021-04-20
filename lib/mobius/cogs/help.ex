@@ -5,8 +5,9 @@ defmodule Mobius.Cogs.Help do
 
   import Mobius.Actions.Message
 
-  alias Mobius.Core.Command
   # Unsafe to use for 3rd party cogs
+  alias Mobius.Core.Cog
+  alias Mobius.Core.Command
   alias Mobius.Services.CogLoader
 
   @header """
@@ -19,7 +20,7 @@ defmodule Mobius.Cogs.Help do
   """
 
   @doc "This command"
-  command "help", context, part: :string do
+  command "help", context do
     cogs = CogLoader.list_cogs()
 
     send_message(%{content: format_cogs(cogs)}, context.channel_id)
@@ -34,7 +35,7 @@ defmodule Mobius.Cogs.Help do
     "#{@header}```#{cogs_list}```#{@footer}"
   end
 
-  defp format_cog(%Mobius.Cog{name: name, commands: commands}) do
+  defp format_cog(%Cog{name: name, commands: commands}) do
     commands_list =
       commands
       |> Enum.filter(fn %Command{description: description} -> description != false end)

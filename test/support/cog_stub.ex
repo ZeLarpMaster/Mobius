@@ -17,16 +17,24 @@ defmodule Mobius.Stubs.Cog do
     send_to_test(context)
   end
 
-  command "reply", message: :string do
-    send_to_test(message)
+  command "add", value: :integer do
+    send_to_test(value)
+  end
+
+  command "add", message: :string do
+    send_to_test({:unsupported, message})
   end
 
   command "add", num1: :integer, num2: :integer do
     send_to_test(num1 + num2)
   end
 
-  command "everything", context, value: :integer do
+  command "everything", context, value: :string do
     send_to_test({:everything, context, value})
+  end
+
+  command "everything", value: :integer do
+    send_to_test({:unexpected_everything, value})
   end
 
   defp send_to_test(message) do

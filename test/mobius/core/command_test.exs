@@ -54,39 +54,44 @@ defmodule Mobius.Core.CommandTest do
         handler: &command_handler/4
       }
 
-      [command: command]
+      [command: command, commands: Command.preprocess_commands([command])]
     end
 
-    test "should return an error when no command matches the message" do
-      assert Command.execute_command([], "!", message("hello")) == :not_a_command
+    test "should return an error when no command matches the message", ctx do
+      assert Command.execute_command(ctx.commands, "!", message("!hi")) == :not_a_command
     end
 
-    test "should return an error when there's no prefix in the message", %{command: command} do
-      assert Command.execute_command([command], "!", message("hello")) == :not_a_command
+    test "should return an error when there's no prefix in the message", ctx do
+      assert Command.execute_command(ctx.commands, "!", message("hello")) == :not_a_command
     end
 
-    test "should return an error when there's the wrong command prefix", %{command: command} do
-      assert Command.execute_command([command], "!", message("?hello")) == :not_a_command
+    test "should return an error when there's the wrong command prefix", ctx do
+      assert Command.execute_command(ctx.commands, "!", message("?hello")) == :not_a_command
     end
 
-    test "should return an error when the command has missing arguments", %{command: command} do
-      result = Command.execute_command([command], "!", message("!hello"))
-      assert result == {:too_few_args, command, 0}
+    test "should return an error when the command has missing arguments", ctx do
+      result = Command.execute_command(ctx.commands, "!", message("!hello"))
+      assert result == {:too_few_args, [3], 0}
     end
 
-    test "should return an error when the command has invalid arguments", %{command: command} do
-      result = Command.execute_command([command], "!", message("!hello foo bar baz"))
-      assert result == {:invalid_args, [{{:foo, :integer}, "foo"}]}
+    test "should return an error when the command has invalid arguments", ctx do
+      result = Command.execute_command(ctx.commands, "!", message("!hello foo bar baz"))
+      assert result == {:invalid_args, [ctx.command]}
     end
 
-    test "should execute the command when the arguments are valid", %{command: command} do
-      Command.execute_command([command], "!", message("!hello 1 foo bar"))
+    test "should execute the command when the arguments are valid", ctx do
+      Command.execute_command(ctx.commands, "!", message("!hello 1 foo bar"))
+      assert_receive({"command handled", _})
+    end
+
+    test "should execute the command when the prefix has a space", ctx do
+      Command.execute_command(ctx.commands, "sudo ", message("sudo hello 1 foo bar"))
       assert_receive({"command handled", _})
     end
 
     test "should receive the message as context when the arguments are valid", ctx do
       msg = message("!hello 1 foo bar")
-      Command.execute_command([ctx.command], "!", msg)
+      Command.execute_command(ctx.commands, "!", msg)
       assert_receive {"command handled", ^msg}
     end
   end

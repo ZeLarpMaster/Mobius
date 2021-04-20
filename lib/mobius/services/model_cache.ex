@@ -5,10 +5,10 @@ defmodule Mobius.Services.ModelCache do
 
   alias Mobius.Core.Event
 
-  @type cache :: __MODULE__.User | __MODULE__.Member
+  @type cache :: __MODULE__.User | __MODULE__.Member | __MODULE__.Guild
 
   @caches [
-    # __MODULE__.Guild,
+    __MODULE__.Guild,
     # __MODULE__.Channel,
     # __MODULE__.Permissions,
     # __MODULE__.Role,
@@ -68,24 +68,30 @@ defmodule Mobius.Services.ModelCache do
   def cache_event(:user_update, user), do: cache_user(user)
   def cache_event(:guild_member_add, member), do: cache_member(member)
   def cache_event(:guild_member_remove, data), do: invalidate_member(data)
+  def cache_event(:guild_update, guild), do: update_cache(__MODULE__.Guild, guild["id"], guild)
+  def cache_event(:guild_delete, guild), do: invalidate_guild(guild)
 
   def cache_event(:guild_create, guild) do
+    cache_guild(guild)
+
     guild
     |> Map.get("members", [])
     |> Enum.map(fn member -> member["user"] end)
     |> cache_users()
   end
 
-  def cache_event(:guild_member_update, %{"guild_id" => guild_id, "user" => %{"id" => id}} = data) do
-    new_member = Map.delete(data, "guild_id")
-
-    Cachex.get_and_update(__MODULE__.Member, {guild_id, id}, fn
-      nil -> {:commit, new_member}
-      member -> {:commit, Map.merge(member, new_member)}
-    end)
+  def cache_event(:guild_member_update, member) do
+    update_cache(
+      __MODULE__.Member,
+      {member["guild_id"], member["user"]["id"]},
+      Map.delete(member, "guild_id")
+    )
   end
 
   def cache_event(_event, _data), do: nil
+
+  defp cache_guild(guild), do: Cachex.put(__MODULE__.Guild, guild["id"], guild)
+  defp invalidate_guild(%{"id" => id}), do: Cachex.del(__MODULE__.Guild, id)
 
   defp cache_user(user), do: Cachex.put(__MODULE__.User, user["id"], user)
 
@@ -103,6 +109,13 @@ defmodule Mobius.Services.ModelCache do
 
   defp invalidate_member(%{"guild_id" => guild_id, "user" => %{"id" => id}}) do
     Cachex.del(__MODULE__.Member, {guild_id, id})
+  end
+
+  defp update_cache(cache, key, new_value) do
+    Cachex.get_and_update(cache, key, fn
+      nil -> {:commit, new_value}
+      old_value -> {:commit, Map.merge(old_value, new_value)}
+    end)
   end
 
   defp cache_spec(name), do: Supervisor.child_spec({Cachex, name: name}, id: name)
