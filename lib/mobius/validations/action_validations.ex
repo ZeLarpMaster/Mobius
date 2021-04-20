@@ -1,4 +1,4 @@
-defmodule Mobius.Actions.Utils do
+defmodule Mobius.Validations.ActionValidations do
   @moduledoc false
 
   @type validator :: (map() -> :ok | {:error, String.t()})

@@ -1,16 +1,16 @@
-defmodule Mobius.Actions.UtilsTest do
+defmodule Mobius.Validations.ActionValidationsTest do
   use ExUnit.Case, async: true
 
   import Mobius.Fixtures
   import Mobius.TestUtils
 
-  alias Mobius.Actions.Utils
+  alias Mobius.Validations.ActionValidations
 
   describe "string_length_validator/3" do
     setup do
       min = 2
       max = 4
-      validator = Utils.string_length_validator(:foo, min, max)
+      validator = ActionValidations.string_length_validator(:foo, min, max)
 
       [min: min, max: max, validator: validator]
     end
@@ -44,7 +44,7 @@ defmodule Mobius.Actions.UtilsTest do
     setup do
       min = 2
       max = 4
-      validator = Utils.integer_range_validator(:foo, min, max)
+      validator = ActionValidations.integer_range_validator(:foo, min, max)
 
       [min: min, max: max, validator: validator]
     end
@@ -79,13 +79,13 @@ defmodule Mobius.Actions.UtilsTest do
       validator1 = fn _ -> {:error, "error 1"} end
       validator2 = fn _ -> {:error, "error 2"} end
 
-      {:error, errors} = Utils.validate_params(%{}, [validator1, validator2])
+      {:error, errors} = ActionValidations.validate_params(%{}, [validator1, validator2])
 
       assert_list_unordered(errors, ["error 1", "error 2"])
     end
 
     test "returns :ok if no validator returns an error" do
-      assert :ok = Utils.validate_params(%{}, [])
+      assert :ok = ActionValidations.validate_params(%{}, [])
     end
   end
 end

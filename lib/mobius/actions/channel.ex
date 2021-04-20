@@ -3,7 +3,7 @@ defmodule Mobius.Actions.Channel do
   Actions related to Discord channels such as fetching, modifying and deleting channels
   """
 
-  import Mobius.Actions.Utils
+  import Mobius.Validations.ActionValidations
 
   alias Mobius.Models.Channel
   alias Mobius.Models.Snowflake
