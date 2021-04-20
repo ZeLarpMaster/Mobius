@@ -14,11 +14,8 @@ defmodule Mobius.Core.Command do
           handler: function()
         }
 
-  @type processed :: %{
-          String.t() => %{
-            non_neg_integer() => [t()]
-          }
-        }
+  @type command_arities :: %{non_neg_integer() => [t()]}
+  @type processed :: %{String.t() => command_arities()}
 
   @type handle_message_result ::
           {:ok, any()}
