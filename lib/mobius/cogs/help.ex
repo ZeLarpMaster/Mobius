@@ -66,11 +66,7 @@ defmodule Mobius.Cogs.Help do
   end
 
   defp format_specific_cog(%Cog{} = cog) do
-    commands =
-      cog
-      |> list_command_names()
-      |> Enum.map(fn name -> "    " <> name end)
-      |> Enum.join("\n")
+    commands = list_cog_commands(cog)
 
     "#{cog.description}\n```Commands:\n#{commands}```#{@cog_footer}"
   end
@@ -89,7 +85,7 @@ defmodule Mobius.Cogs.Help do
       |> Enum.map(fn {name, type} -> " {#{name} (#{type})}" end)
       |> Enum.join()
 
-    "`[p]#{clause.name}#{args}`\n#{clause.description}"
+    "**`[p]#{clause.name}#{args}`**\n#{clause.description}"
   end
 
   defp format_cogs(cogs) do
@@ -103,11 +99,7 @@ defmodule Mobius.Cogs.Help do
   end
 
   defp format_cog(%Cog{name: name} = cog) do
-    commands_list =
-      cog
-      |> list_command_names()
-      |> Enum.map(fn name -> "    " <> name end)
-      |> Enum.join("\n")
+    commands_list = list_cog_commands(cog)
 
     if commands_list == "" do
       "#{name}:\n    has no commands"
@@ -116,11 +108,18 @@ defmodule Mobius.Cogs.Help do
     end
   end
 
-  defp list_command_names(%Cog{commands: commands}) do
+  defp list_cog_commands(%Cog{commands: commands}) do
     commands
-    |> Enum.map(&elem(&1, 0))
-    |> Enum.uniq()
-    |> Enum.sort()
+    |> Enum.sort_by(&elem(&1, 0))
+    |> Enum.map(fn {name, arities} -> "    #{name}    #{find_command_description(arities)}" end)
+    |> Enum.join("\n")
+  end
+
+  defp find_command_description(arities) do
+    arities
+    |> Enum.min_by(&elem(&1, 0))
+    |> elem(1)
+    |> Enum.find_value("", fn %Command{description: description} -> description end)
   end
 
   defp find_cog(cog_name, cogs) do
