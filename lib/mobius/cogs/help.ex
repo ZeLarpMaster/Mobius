@@ -5,6 +5,7 @@ defmodule Mobius.Cogs.Help do
 
   import Mobius.Actions.Message
 
+  alias Mobius.CogUtils
   # Unsafe to use for 3rd party cogs
   alias Mobius.Core.Cog
   alias Mobius.Core.Command
@@ -13,10 +14,6 @@ defmodule Mobius.Cogs.Help do
   @header """
   Type `[p]help Cog` for help about a specific cog
   Type `[p]help command` for help about a specific command
-  """
-
-  @footer """
-  Made with Mobius, a general purpose bot written in Elixir
   """
 
   @cog_footer """
@@ -67,8 +64,9 @@ defmodule Mobius.Cogs.Help do
 
   defp format_specific_cog(%Cog{} = cog) do
     commands = list_cog_commands(cog)
+    command_list = CogUtils.format_categories_list([{"Commands", commands}])
 
-    "#{cog.description}\n```Commands:\n#{commands}```#{@cog_footer}"
+    "#{cog.description}\n```#{command_list}```#{@cog_footer}"
   end
 
   defp format_specific_command(arities) do
@@ -92,27 +90,16 @@ defmodule Mobius.Cogs.Help do
     cogs_list =
       cogs
       |> Enum.filter(fn %Cog{description: description} -> description != false end)
-      |> Enum.map(&format_cog/1)
-      |> Enum.join("\n")
+      |> Enum.map(fn %Cog{name: name} = cog -> {name, list_cog_commands(cog)} end)
+      |> CogUtils.format_categories_list("has no commands")
 
-    "#{@header}```#{cogs_list}```#{@footer}"
-  end
-
-  defp format_cog(%Cog{name: name} = cog) do
-    commands_list = list_cog_commands(cog)
-
-    if commands_list == "" do
-      "#{name}:\n    has no commands"
-    else
-      "#{name}:\n#{commands_list}"
-    end
+    "#{@header}```#{cogs_list}```"
   end
 
   defp list_cog_commands(%Cog{commands: commands}) do
     commands
     |> Enum.sort_by(&elem(&1, 0))
-    |> Enum.map(fn {name, arities} -> "    #{name}    #{find_command_description(arities)}" end)
-    |> Enum.join("\n")
+    |> Enum.map(fn {name, arities} -> {name, find_command_description(arities)} end)
   end
 
   defp find_command_description(arities) do
