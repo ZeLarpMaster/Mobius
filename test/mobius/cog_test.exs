@@ -85,6 +85,11 @@ defmodule Mobius.CogTest do
     end
   end
 
+  describe "command/2-4 return" do
+    test "should send a message if the command returns {:reply, msg}"
+    test "should raise an error if the command returns something unsupported"
+  end
+
   describe "undocumented cog" do
     defmodule UndocumentedCog do
       use Mobius.Cog

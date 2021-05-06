@@ -53,6 +53,8 @@ defmodule Mobius.Cog do
   `handle_info/2` match a different pattern.
   """
 
+  import Mobius.Actions.Message
+
   alias Mobius.Core.Cog
   alias Mobius.Core.Command
 
@@ -96,8 +98,8 @@ defmodule Mobius.Cog do
 
       listen :message_create, message do
         case Command.execute_command(@computed_commands, Bot.get_global_prefix!(), message) do
-          {:ok, _} ->
-            :ok
+          {:ok, value} ->
+            Mobius.Cog.handle_return(value, message)
 
           {:too_few_args, arities, received} ->
             Logger.info(
@@ -289,6 +291,10 @@ defmodule Mobius.Cog do
       command(unquote(command_name), _, [], do: unquote(block))
     end
   end
+
+  @doc false
+  def handle_return(:ok, _context), do: :ok
+  def handle_return({:reply, body}, context), do: send_message(body, context.channel_id)
 
   @doc false
   def __event_handler_name__(event_name, event_handlers) do

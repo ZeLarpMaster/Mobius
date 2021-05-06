@@ -37,6 +37,10 @@ defmodule Mobius.Stubs.Cog do
     send_to_test({:unexpected_everything, value})
   end
 
+  command "invalid_return" do
+    :unsupported_return
+  end
+
   defp send_to_test(message) do
     send(:cog_test_process, message)
   end
