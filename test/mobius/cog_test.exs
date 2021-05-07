@@ -1,6 +1,7 @@
 defmodule Mobius.CogTest do
   use ExUnit.Case
 
+  import Mobius.CogTestUtils
   import Mobius.Fixtures
   import ExUnit.CaptureLog
 
@@ -86,8 +87,21 @@ defmodule Mobius.CogTest do
   end
 
   describe "command/2-4 return" do
-    test "should send a message if the command returns {:reply, msg}"
-    test "should raise an error if the command returns something unsupported"
+    setup :setup_rest_api_mock
+
+    test "should send a message if the command returns {:reply, msg}" do
+      send_command_payload("reply")
+
+      assert_message_sent(%{content: "The answer"})
+    end
+
+    test "should raise an error if the command returns something unsupported" do
+      assert capture_log(fn ->
+               send_command_payload("unsupported")
+               # Give time for the log to appear
+               Process.sleep(10)
+             end) =~ "Invalid return: :unsupported_return"
+    end
   end
 
   describe "undocumented cog" do

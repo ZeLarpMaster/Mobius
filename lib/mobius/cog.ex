@@ -58,6 +58,8 @@ defmodule Mobius.Cog do
   alias Mobius.Core.Cog
   alias Mobius.Core.Command
 
+  require Logger
+
   @doc false
   defmacro __using__(_call) do
     quote location: :keep do
@@ -295,6 +297,7 @@ defmodule Mobius.Cog do
   @doc false
   def handle_return(:ok, _context), do: :ok
   def handle_return({:reply, body}, context), do: send_message(body, context.channel_id)
+  def handle_return(value, _context), do: Logger.warn("Invalid return: #{inspect(value)}")
 
   @doc false
   def __event_handler_name__(event_name, event_handlers) do
