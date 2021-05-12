@@ -95,9 +95,12 @@ defmodule Mobius.CogTest do
     end
 
     test "should raise an error if the command returns something unsupported" do
-      send_command_payload("unsupported")
+      assert capture_log(fn ->
+               send_command_payload("unsupported")
 
-      assert_cog_died(Mobius.Stubs.Cog)
+               assert_cog_died(Mobius.Stubs.Cog)
+             end) =~
+               "(FunctionClauseError) no function clause matching in Mobius.Cog.handle_return/2"
     end
   end
 
