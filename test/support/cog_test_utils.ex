@@ -25,7 +25,7 @@ defmodule Mobius.CogTestUtils do
   @spec assert_message_sent(Message.message_body()) :: :ok
   def assert_message_sent(message) do
     json_message = Jason.encode!(message)
-    %Tesla.Env{url: url} = assert_receive %Tesla.Env{body: ^json_message}
+    %Tesla.Env{url: url} = assert_receive %Tesla.Env{body: ^json_message, method: :post}
     # This only works if the channel_id used to send the message was `nil`
     assert String.ends_with?(url, "/channels/:channel_id/messages")
     :ok
