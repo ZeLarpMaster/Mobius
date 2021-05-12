@@ -297,7 +297,6 @@ defmodule Mobius.Cog do
   @doc false
   def handle_return(:ok, _context), do: :ok
   def handle_return({:reply, body}, context), do: send_message(body, context.channel_id)
-  def handle_return(value, _context), do: Logger.warn("Invalid return: #{inspect(value)}")
 
   @doc false
   def __event_handler_name__(event_name, event_handlers) do

@@ -12,8 +12,7 @@ defmodule Mobius.CogTest do
 
   setup do
     Process.register(self(), :cog_test_process)
-    start_supervised!(Mobius.Stubs.Cog)
-
+    start_cog(Mobius.Stubs.Cog)
     :ok
   end
 
@@ -96,11 +95,9 @@ defmodule Mobius.CogTest do
     end
 
     test "should raise an error if the command returns something unsupported" do
-      assert capture_log(fn ->
-               send_command_payload("unsupported")
-               # Give time for the log to appear
-               Process.sleep(10)
-             end) =~ "Invalid return: :unsupported_return"
+      send_command_payload("unsupported")
+
+      assert_cog_died(Mobius.Stubs.Cog)
     end
   end
 
