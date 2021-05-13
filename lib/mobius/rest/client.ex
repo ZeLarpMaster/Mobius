@@ -22,7 +22,7 @@ defmodule Mobius.Rest.Client do
     headers = [
       {"User-Agent",
        "DiscordBot" <>
-         " (#{@lib_url}, #{Application.spec(:mobius, :vsn)}" <>
+         " (#{@lib_url}, #{Application.spec(:mobius, :vsn)})" <>
          " Elixir/#{System.version()}"},
       {"Authorization", "Bot #{token}"}
     ]
