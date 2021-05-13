@@ -1,6 +1,7 @@
 defmodule Mobius.CogTest do
   use ExUnit.Case
 
+  import Mobius.CogTestUtils
   import Mobius.Fixtures
   import ExUnit.CaptureLog
 
@@ -11,8 +12,7 @@ defmodule Mobius.CogTest do
 
   setup do
     Process.register(self(), :cog_test_process)
-    start_supervised!(Mobius.Stubs.Cog)
-
+    start_cog(Mobius.Stubs.Cog)
     :ok
   end
 
@@ -82,6 +82,25 @@ defmodule Mobius.CogTest do
       message = send_command_payload("everything 123")
 
       assert_receive {:everything, ^message, "123"}
+    end
+  end
+
+  describe "command/2-4 return" do
+    setup :setup_rest_api_mock
+
+    test "should send a message if the command returns {:reply, msg}" do
+      send_command_payload("reply")
+
+      assert_message_sent(%{content: "The answer"})
+    end
+
+    test "should raise an error if the command returns something unsupported" do
+      assert capture_log(fn ->
+               send_command_payload("unsupported")
+
+               assert_cog_died(Mobius.Stubs.Cog)
+             end) =~
+               "(FunctionClauseError) no function clause matching in Mobius.Cog.handle_return/2"
     end
   end
 

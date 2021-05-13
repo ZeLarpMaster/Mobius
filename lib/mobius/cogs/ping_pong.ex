@@ -3,10 +3,8 @@ defmodule Mobius.Cogs.PingPong do
 
   use Mobius.Cog
 
-  import Mobius.Actions.Message
-
   @doc ~s(Replies with "Pong!")
-  command "ping", context do
-    send_message(%{content: "Pong!"}, context.channel_id)
+  command "ping" do
+    {:reply, %{content: "Pong!"}}
   end
 end

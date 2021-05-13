@@ -37,6 +37,14 @@ defmodule Mobius.Stubs.Cog do
     send_to_test({:unexpected_everything, value})
   end
 
+  command "unsupported" do
+    :unsupported_return
+  end
+
+  command "reply" do
+    {:reply, %{content: "The answer"}}
+  end
+
   defp send_to_test(message) do
     send(:cog_test_process, message)
   end
