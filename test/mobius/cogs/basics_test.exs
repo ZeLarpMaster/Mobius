@@ -1,4 +1,4 @@
-defmodule Mobius.Cogs.PingPongTest do
+defmodule Mobius.Cogs.BasicsTest do
   use ExUnit.Case
 
   import Mobius.Fixtures
@@ -8,12 +8,6 @@ defmodule Mobius.Cogs.PingPongTest do
   setup :reset_services
   setup :stub_socket
   setup :handshake_shard
-
-  setup do
-    Process.register(self(), :cog_test_process)
-
-    :ok
-  end
 
   describe "command \"ping\"" do
     test "should reply \"pong\"" do
