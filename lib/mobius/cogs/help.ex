@@ -3,15 +3,13 @@ defmodule Mobius.Cogs.Help do
 
   use Mobius.Cog
 
-  import Mobius.Actions.Message
-
   alias Mobius.CogUtils
   # Unsafe to use for 3rd party cogs
   alias Mobius.Core.Cog
   alias Mobius.Core.Command
   alias Mobius.Services.CogLoader
 
-  @header """
+  @help_footer """
   Type `[p]help Cog` for help about a specific cog
   Type `[p]help command` for help about a specific command
   """
@@ -25,10 +23,10 @@ defmodule Mobius.Cogs.Help do
   """
 
   @doc "This command"
-  command "help", context do
+  command "help" do
     CogLoader.list_cogs()
     |> format_cogs()
-    |> reply(context.channel_id)
+    |> reply()
   end
 
   @doc """
@@ -37,13 +35,13 @@ defmodule Mobius.Cogs.Help do
   The name is case sensitive to distinguish between cog names and command names.
   For example `[p]help Help` shows the cog, but `[p]help help` shows the command.
   """
-  command "help", context, cog_or_command_name: :string do
+  command "help", cog_or_command_name: :string do
     cogs = CogLoader.list_cogs()
 
     cog_or_command_name
     |> try_cog(cogs)
     |> try_command(cog_or_command_name, cogs)
-    |> reply(context.channel_id)
+    |> reply()
   end
 
   defp try_cog(part, cogs) do
@@ -93,7 +91,7 @@ defmodule Mobius.Cogs.Help do
       |> Enum.map(fn %Cog{name: name} = cog -> {name, list_cog_commands(cog)} end)
       |> CogUtils.format_categories_list("has no commands")
 
-    "#{@header}```#{cogs_list}```"
+    "```#{cogs_list}```#{@help_footer}"
   end
 
   defp list_cog_commands(%Cog{commands: commands}) do
@@ -117,9 +115,9 @@ defmodule Mobius.Cogs.Help do
     Enum.find_value(cogs, fn %Cog{commands: commands} -> Map.get(commands, command_name) end)
   end
 
-  defp reply(nil, channel_id), do: reply(@not_found, channel_id)
+  defp reply(nil), do: {:reply, %{content: @not_found}}
 
-  defp reply(content, channel_id) do
-    send_message(%{content: content, allowed_mentions: %{parse: []}}, channel_id)
+  defp reply(content) do
+    {:reply, %{content: content, allowed_mentions: %{parse: []}}}
   end
 end

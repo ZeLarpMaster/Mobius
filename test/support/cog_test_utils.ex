@@ -6,6 +6,7 @@ defmodule Mobius.CogTestUtils do
   import ExUnit.Callbacks
 
   alias Mobius.Actions.Message
+  alias Mobius.Rest.Client
 
   @doc "Starts a cog in the test supervision tree using `start_supervised!/2`"
   @spec start_cog(module()) :: :ok
@@ -38,19 +39,16 @@ defmodule Mobius.CogTestUtils do
     end)
   end
 
-  @doc """
-  Asserts that a message was sent with the given expected body
+  @doc "Asserts that a message was sent returns the body of the request"
+  @spec assert_message_sent(Message.message_body()) :: any
+  defmacro assert_message_sent(expectation) do
+    quote do
+      # This only works if the channel_id used to send the message was `nil`
+      url = Client.base_url() <> "/channels/:channel_id/messages"
 
-  The ordering of properties in the expected body matters.
-  `%{content: "Content", tts: false}` won't match a message sent with
-  `%{tts: false, content: "Content"}`
-  """
-  @spec assert_message_sent(Message.message_body()) :: :ok
-  def assert_message_sent(message) do
-    json_message = Jason.encode!(message)
-    %Tesla.Env{url: url} = assert_receive %Tesla.Env{body: ^json_message, method: :post}
-    # This only works if the channel_id used to send the message was `nil`
-    assert String.ends_with?(url, "/channels/:channel_id/messages")
-    :ok
+      %Tesla.Env{opts: opts} = assert_receive %Tesla.Env{method: :post, url: ^url}
+      body = Keyword.fetch!(opts, :req_body)
+      assert unquote(expectation) = body
+    end
   end
 end
