@@ -189,12 +189,20 @@ defmodule Mobius.Cog do
 
   The second parameter defines the argument where the command context will be received.
   If omitted, the command context won't be available inside the command's body.
+  The context is of type `t:Mobius.Core.Command.context/0` and contains information about the
+  command invocation such as the message which triggered the command.
 
   The third parameter defines the list of arguments that the command accepts,
   along with their type. If a user passes more arguments than are defined by the
   command, the extraneous arguments will be ignored.
   If omitted, the command will be called regardless of what comes after the name
   of the command in the message.
+
+  ## Return values
+  Commands support the following return values:
+
+  * `:ok` which does nothing
+  * `{:reply, Mobius.Actions.Message.message_body()}` sends the message in the channel where the command was invoked
 
   ## Command types
 
@@ -218,14 +226,16 @@ defmodule Mobius.Cog do
 
   command "ping", context do
     send_message(%{content: "Pong!"}, context.channel_id)
+    :ok
   end
 
   command "hello", you: :string do
-    IO.inspect(you, label: "Your name is")
+    {:reply, %{content: "Your name is #{you}"}}
   end
 
   command "add", context, num1: :integer, num2: :integer do
     send_message(%{content: "#{num1 + num2}"}, context.channel_id)
+    :ok
   end
   ```
 
@@ -236,7 +246,7 @@ defmodule Mobius.Cog do
   user: ping
   myBot: Pong!
   user: hello User
-  myBot (prints in the terminal): Your name is: "User"
+  myBot: Your name is: "User"
   user: add 1 2
   myBot: 3
   user: add 1 hello
