@@ -41,7 +41,9 @@ defmodule Mobius.Models.Permissions do
     :manage_nicknames,
     :manage_roles,
     :manage_webhooks,
-    :manage_emojis
+    :manage_emojis,
+    :use_slash_commands,
+    :request_to_speak
   ]
 
   @type permission ::
@@ -76,6 +78,8 @@ defmodule Mobius.Models.Permissions do
           | :manage_roles
           | :manage_webhooks
           | :manage_emojis
+          | :use_slash_commands
+          | :request_to_speak
 
   @type t :: MapSet.t(permission())
 

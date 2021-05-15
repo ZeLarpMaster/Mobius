@@ -42,7 +42,8 @@ defmodule Mobius.Actions.Channel do
       string_length_validator(:topic, 0, 1024),
       integer_range_validator(:rate_limit_per_user, 0, 21_600),
       integer_range_validator(:bitrate, 8000, 96_000),
-      integer_range_validator(:user_limit, 0, 99)
+      integer_range_validator(:user_limit, 0, 99),
+      &validate_video_quality_mode/1
     ]
 
     case validate_params(params, validators) do
@@ -57,4 +58,12 @@ defmodule Mobius.Actions.Channel do
     do: {:error, "Channel type can only be converted to text or news"}
 
   defp validate_channel_type(_params), do: :ok
+
+  defp validate_video_quality_mode(map) do
+    case map do
+      %{video_quality_mode: mode} when mode in [:auto, :full, nil] -> :ok
+      %{video_quality_mode: _} -> {:error, "Video quality mode can only be auto, full, or nil"}
+      _ -> :ok
+    end
+  end
 end
