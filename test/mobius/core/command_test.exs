@@ -98,7 +98,7 @@ defmodule Mobius.Core.CommandTest do
 
   defp message(content), do: %Message{content: content}
 
-  defp command_handler(ctx, _, _, _) do
-    send(self(), {"command handled", ctx})
+  defp command_handler(%{message: message}, _, _, _) do
+    send(self(), {"command handled", message})
   end
 end

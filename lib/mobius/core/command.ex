@@ -7,6 +7,10 @@ defmodule Mobius.Core.Command do
   @enforce_keys [:name, :args, :handler]
   defstruct [:name, :args, :handler, description: ""]
 
+  @type context :: %{
+          message: Message.t()
+        }
+
   @type t :: %__MODULE__{
           name: String.t(),
           description: String.t() | false | nil,
@@ -48,7 +52,8 @@ defmodule Mobius.Core.Command do
          {:ok, groups} <- get_command(commands, name),
          {:ok, clauses} <- get_clauses(groups, length(arg_values)),
          {:ok, command, values} <- find_clause(clauses, arg_values) do
-      {:ok, apply(command.handler, [message | values])}
+      context = %{message: message}
+      {:ok, apply(command.handler, [context | values])}
     end
   end
 
