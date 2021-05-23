@@ -3,7 +3,7 @@ defmodule Mobius.Services.CogLoader do
 
   use GenServer
 
-  @initial_cogs [Mobius.Cogs.PingPong]
+  @initial_cogs [Mobius.Cogs.Basics]
 
   @spec start_link(keyword()) :: GenServer.on_start()
   def start_link(opts) do
