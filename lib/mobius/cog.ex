@@ -105,9 +105,7 @@ defmodule Mobius.Cog do
 
           {:too_few_args, arities, received} ->
             Logger.info(
-              "Wrong number of arguments. Expected one of #{
-                arities |> Enum.map(&Integer.to_string/1) |> Enum.join(", ")
-              } arguments, got #{received}."
+              "Wrong number of arguments. Expected one of #{arities |> Enum.map(&Integer.to_string/1) |> Enum.join(", ")} arguments, got #{received}."
             )
 
           {:invalid_args, [clause | _clauses]} ->

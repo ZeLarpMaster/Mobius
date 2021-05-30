@@ -101,8 +101,6 @@ defmodule Mobius.Actions.ChannelTest do
   defp assert_has_error(errors, expected_error)
        when is_list(errors) and is_binary(expected_error) do
     assert Enum.any?(errors, fn error -> error =~ expected_error end),
-           "Error message not found. Expected #{inspect(expected_error)}, received #{
-             inspect(errors)
-           }."
+           "Error message not found. Expected #{inspect(expected_error)}, received #{inspect(errors)}."
   end
 end

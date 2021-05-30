@@ -25,8 +25,11 @@ defmodule Mobius.Cogs.Help do
   @doc "This command"
   command "help" do
     CogLoader.list_cogs()
-    |> format_cogs()
-    |> reply()
+    |> format_cog_list()
+    |> case do
+      nil -> {:reply, %{content: @not_found}}
+      content -> {:reply, %{content: content, allowed_mentions: %{parse: []}}}
+    end
   end
 
   @doc """
@@ -38,44 +41,44 @@ defmodule Mobius.Cogs.Help do
   command "help", cog_or_command_name: :string do
     cogs = CogLoader.list_cogs()
 
-    cog_or_command_name
-    |> try_cog(cogs)
-    |> try_command(cog_or_command_name, cogs)
-    |> reply()
+    with nil <- try_cog(cog_or_command_name, cogs),
+         nil <- try_command(cog_or_command_name, cogs) do
+      {:reply, %{content: @not_found}}
+    else
+      content -> {:reply, %{content: content, allowed_mentions: %{parse: []}}}
+    end
   end
 
   defp try_cog(part, cogs) do
     case find_cog(part, cogs) do
-      %Cog{} = cog -> format_specific_cog(cog)
+      %Cog{} = cog -> format_cog(cog)
       _ -> nil
     end
   end
 
-  defp try_command(content, _part, _cogs) when is_binary(content), do: content
-
-  defp try_command(nil, part, cogs) do
+  defp try_command(part, cogs) do
     case find_command(part, cogs) do
-      arities when is_map(arities) -> format_specific_command(arities)
+      arities when is_map(arities) -> format_command(arities)
       _ -> nil
     end
   end
 
-  defp format_specific_cog(%Cog{} = cog) do
+  defp format_cog(%Cog{} = cog) do
     commands = list_cog_commands(cog)
-    command_list = CogUtils.format_categories_list([{"Commands", commands}])
+    formatted_commands = CogUtils.format_categories_list([{"Commands", commands}])
 
-    "#{cog.description}\n```#{command_list}```#{@cog_footer}"
+    "#{cog.description}\n```#{formatted_commands}```#{@cog_footer}"
   end
 
-  defp format_specific_command(arities) do
+  defp format_command(arities) do
     arities
     |> Enum.flat_map(fn {_arity, clauses} -> clauses end)
     |> Enum.sort_by(&Command.arg_count/1)
-    |> Enum.map(&format_specific_clause/1)
+    |> Enum.map(&format_clause/1)
     |> Enum.join("\n\n")
   end
 
-  defp format_specific_clause(%Command{} = clause) do
+  defp format_clause(%Command{} = clause) do
     args =
       clause.args
       |> Enum.map(fn {name, type} -> " {#{name} (#{type})}" end)
@@ -84,7 +87,7 @@ defmodule Mobius.Cogs.Help do
     "**`[p]#{clause.name}#{args}`**\n#{clause.description}"
   end
 
-  defp format_cogs(cogs) do
+  defp format_cog_list(cogs) do
     cogs_list =
       cogs
       |> Enum.filter(fn %Cog{description: description} -> description != false end)
@@ -96,15 +99,14 @@ defmodule Mobius.Cogs.Help do
 
   defp list_cog_commands(%Cog{commands: commands}) do
     commands
-    |> Enum.sort_by(&elem(&1, 0))
+    |> Enum.sort_by(fn {name, _clauses} -> name end)
     |> Enum.map(fn {name, arities} -> {name, find_command_description(arities)} end)
   end
 
   defp find_command_description(arities) do
-    arities
-    |> Enum.min_by(&elem(&1, 0))
-    |> elem(1)
-    |> Enum.find_value("", fn %Command{description: description} -> description end)
+    {_arity, commands} = Enum.min_by(arities, fn {arity, _commands} -> arity end)
+
+    Enum.find_value(commands, "", fn %Command{description: description} -> description end)
   end
 
   defp find_cog(cog_name, cogs) do
@@ -113,11 +115,5 @@ defmodule Mobius.Cogs.Help do
 
   defp find_command(command_name, cogs) do
     Enum.find_value(cogs, fn %Cog{commands: commands} -> Map.get(commands, command_name) end)
-  end
-
-  defp reply(nil), do: {:reply, %{content: @not_found}}
-
-  defp reply(content) do
-    {:reply, %{content: content, allowed_mentions: %{parse: []}}}
   end
 end

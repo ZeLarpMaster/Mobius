@@ -3,7 +3,9 @@ defmodule Mobius.CogUtils do
   A module of utilities for cogs such as formatting tables
   """
 
-  @type categories :: [{String.t(), [{String.t(), String.t()}]}]
+  @type category_entry :: {String.t(), String.t()}
+  @type category :: {String.t(), [category_entry()]}
+  @type categories :: [category()]
 
   @doc ~S"""
   Formats a list of tuples such that the spacing aligns the 2nd element of the inner tuple
@@ -12,14 +14,26 @@ defmodule Mobius.CogUtils do
 
       iex> data = [{"Cat1", [{"abc", "description"}, {"defghi", "something"}]}]
       iex> format_categories_list(data)
-      "Cat1:\n  abc       description\n  defghi    something"
+      ~S"
+      Cat1:
+        abc       description
+        defghi    something
+      " |> String.trim()
 
       iex> data = [{"Cat1", [{"abc", "description"}]}, {"Cat2", [{"defghi", "something"}]}]
       iex> format_categories_list(data)
-      "Cat1:\n  abc       description\nCat2:\n  defghi    something"
+      ~S"
+      Cat1:
+        abc       description
+      Cat2:
+        defghi    something
+      " |> String.trim()
 
       iex> format_categories_list([{"Cat1", []}], "empty category")
-      "Cat1:\n  empty category"
+      ~S"
+      Cat1:
+        empty category
+      " |> String.trim()
 
       iex> format_categories_list([])
       ""

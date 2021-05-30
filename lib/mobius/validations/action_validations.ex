@@ -17,9 +17,7 @@ defmodule Mobius.Validations.ActionValidations do
           :ok
         else
           {:error,
-           "Expected #{key} to contain between #{min} and #{max} characters, got #{value} with #{
-             string_length
-           } characters"}
+           "Expected #{key} to contain between #{min} and #{max} characters, got #{value} with #{string_length} characters"}
         end
 
       _ ->

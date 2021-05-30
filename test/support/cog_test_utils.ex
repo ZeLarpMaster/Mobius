@@ -39,7 +39,18 @@ defmodule Mobius.CogTestUtils do
     end)
   end
 
-  @doc "Asserts that a message was sent returns the body of the request"
+  @doc """
+  Asserts and matches on the body of a message send request
+
+  ## Usage
+
+    iex> assert_message_sent(%{content: "My message"})
+
+    iex> assert_message_sent(%{content: content})
+    iex> assert content =~ "the middle of the message"
+
+    iex> assert_message_sent(%{tts: true})
+  """
   @spec assert_message_sent(Message.message_body()) :: any
   defmacro assert_message_sent(expectation) do
     quote do
