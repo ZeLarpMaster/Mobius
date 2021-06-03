@@ -1,6 +1,8 @@
 defmodule Mobius.Core.Cog do
   @moduledoc false
 
+  alias Mobius.Core.Command
+
   @enforce_keys [:name, :module, :description, :commands]
   defstruct [:name, :module, :description, :commands]
 
