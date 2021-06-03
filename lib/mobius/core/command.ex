@@ -57,6 +57,19 @@ defmodule Mobius.Core.Command do
     |> Map.new(fn {name, commands} -> {name, Enum.group_by(commands, &arg_count/1)} end)
   end
 
+  @doc """
+  Returns a description for a command based on its `t:command_arities/0`
+
+  It returns the description of the first clause which has a description out of the clauses
+  with the lowest arity
+  """
+  @spec find_command_description(command_arities()) :: String.t()
+  def find_command_description(arities) do
+    {_arity, commands} = Enum.min_by(arities, fn {arity, _commands} -> arity end)
+
+    Enum.find_value(commands, "", fn %__MODULE__{description: description} -> description end)
+  end
+
   defp get_command(commands, name) do
     case Map.fetch(commands, name) do
       :error -> :not_a_command

@@ -100,13 +100,7 @@ defmodule Mobius.Cogs.Help do
   defp list_cog_commands(%Cog{commands: commands}) do
     commands
     |> Enum.sort_by(fn {name, _clauses} -> name end)
-    |> Enum.map(fn {name, arities} -> {name, find_command_description(arities)} end)
-  end
-
-  defp find_command_description(arities) do
-    {_arity, commands} = Enum.min_by(arities, fn {arity, _commands} -> arity end)
-
-    Enum.find_value(commands, "", fn %Command{description: description} -> description end)
+    |> Enum.map(fn {name, arities} -> {name, Command.find_command_description(arities)} end)
   end
 
   defp find_cog(cog_name, cogs) do
