@@ -61,7 +61,7 @@ defmodule Mobius.Core.Command do
   Returns a description for a command based on its `t:command_arities/0`
 
   It returns the description of the first clause which has a description out of the clauses
-  with the lowest arity
+  with the lowest arity.
   """
   @spec find_command_description(command_arities()) :: String.t()
   def find_command_description(arities) do
