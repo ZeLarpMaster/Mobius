@@ -18,7 +18,7 @@ defmodule Mobius.Actions.Channel do
 
   ## Example
 
-      iex> get(132456789)
+      iex> get_channel(132456789)
       {:ok, %Mobius.Models.Channel{} = channel}
 
   ## Documentation
@@ -51,6 +51,19 @@ defmodule Mobius.Actions.Channel do
     end
   end
 
+  @doc """
+  Delete a channel
+
+  ## Example
+
+      iex> delete_channel(132456789)
+      {:ok, %Mobius.Models.Channel{} = channel}
+
+  ## Documentation
+
+  Relevant documentation:
+  https://discord.com/developers/docs/resources/channel#deleteclose-channel
+  """
   @spec delete_channel(Snowflake.t()) :: Client.result(Channel.t())
   # TODO validate permissions
   def delete_channel(channel_id), do: Rest.Channel.delete_channel(Bot.get_client!(), channel_id)
