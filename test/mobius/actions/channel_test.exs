@@ -98,6 +98,21 @@ defmodule Mobius.Actions.ChannelTest do
     end
   end
 
+  describe "delete_channel/1" do
+    setup do
+      channel_id = random_snowflake()
+      raw = channel(id: channel_id)
+      url = Client.base_url() <> "/channels/#{channel_id}"
+      mock(fn %{method: :delete, url: ^url} -> json(raw) end)
+      [channel_id: channel_id, raw_channel: raw]
+    end
+
+    test "returns the channel if successful", ctx do
+      {:ok, channel} = Channel.delete_channel(ctx.channel_id)
+      assert channel == Models.Channel.parse(ctx.raw_channel)
+    end
+  end
+
   defp assert_has_error(errors, expected_error)
        when is_list(errors) and is_binary(expected_error) do
     assert Enum.any?(errors, fn error -> error =~ expected_error end),

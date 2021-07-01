@@ -32,4 +32,11 @@ defmodule Mobius.Rest.Channel do
     |> Tesla.patch("/channels/:channel_id", params, opts: [path_params: [channel_id: channel_id]])
     |> Client.parse_response(&Channel.parse/1)
   end
+
+  @spec delete_channel(Client.t(), Snowflake.t()) :: Client.result(Channel.t())
+  def delete_channel(client, channel_id) do
+    client
+    |> Tesla.delete("/channels/:channel_id", opts: [path_params: [channel_id: channel_id]])
+    |> Client.parse_response(&Channel.parse/1)
+  end
 end
