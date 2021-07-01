@@ -51,6 +51,10 @@ defmodule Mobius.Actions.Channel do
     end
   end
 
+  @spec delete_channel(Snowflake.t()) :: Client.result(Channel.t())
+  # TODO validate permissions
+  def delete_channel(channel_id), do: Rest.Channel.delete_channel(Bot.get_client!(), channel_id)
+
   defp validate_channel_type(%{type: type}) when type in [:guild_text, :guild_news], do: :ok
 
   defp validate_channel_type(%{type: _type}),
