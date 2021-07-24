@@ -3,6 +3,7 @@ defmodule Mobius.Actions.MessageTest do
 
   import Mobius.Fixtures
   import Mobius.Generators
+  import Mobius.TestUtils
   import Tesla.Mock, only: [mock: 1]
 
   alias Mobius.Actions.Message
@@ -44,6 +45,31 @@ defmodule Mobius.Actions.MessageTest do
     test "returns the message if successful", ctx do
       {:ok, message} = Message.send_message(%{content: random_hex(2000)}, ctx.channel_id)
       assert message == Models.Message.parse(ctx.raw_message)
+    end
+  end
+
+  describe "list_messages/2" do
+    setup :handshake_shard
+
+    setup do
+      channel_id = random_snowflake()
+      raw = message(channel_id: channel_id)
+      url = Client.base_url() <> "/channels/#{channel_id}/messages"
+      mock(fn %{method: :get, url: ^url} -> json([raw]) end)
+      [channel_id: channel_id, raw_message: raw]
+    end
+
+    test "returns an error if limit is not inside valid range", ctx do
+      {:error, errors} = Message.list_messages(ctx.channel_id, %{limit: 0})
+      assert_has_error(errors, "Expected limit to be between 1 and 100")
+
+      {:error, errors} = Message.list_messages(ctx.channel_id, %{limit: 101})
+      assert_has_error(errors, "Expected limit to be between 1 and 100")
+    end
+
+    test "returns the list of messages", ctx do
+      {:ok, messages} = Message.list_messages(ctx.channel_id, %{})
+      assert messages == [Models.Message.parse(ctx.raw_message)]
     end
   end
 end

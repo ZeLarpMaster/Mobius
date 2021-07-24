@@ -3,6 +3,8 @@ defmodule Mobius.Actions.Message do
   Actions related to Discord messages such as sending, editing, and deleting messages
   """
 
+  import Mobius.Validations.ActionValidations
+
   alias Mobius.Models.Message
   alias Mobius.Rest
   alias Mobius.Rest.Client
@@ -71,6 +73,18 @@ defmodule Mobius.Actions.Message do
 
       true ->
         Rest.Message.send_message(Bot.get_client!(), channel_id, body)
+    end
+  end
+
+  def list_messages(channel_id, params) do
+    # TODO: Validate permissions
+    # TODO: Make sure the cannel exists (requires a cache)
+
+    validators = [integer_range_validator(:limit, 1, 100)]
+
+    case validate_params(params, validators) do
+      :ok -> Rest.Message.list_messages(Bot.get_client!(), channel_id, params)
+      {:error, errors} -> {:error, errors}
     end
   end
 end
