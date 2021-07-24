@@ -43,6 +43,25 @@ defmodule Mobius.Validations.ActionValidations do
     end
   end
 
+  def snowkflake_validator(key) do
+    get_error_message = fn val -> "Expected #{key} to be a snowflake, got #{inspect(val)}" end
+
+    fn
+      %{^key => val} when not is_binary(val) ->
+        {:error, get_error_message.(val)}
+
+      %{^key => val} ->
+        if Integer.parse(val) == :error do
+          {:error, get_error_message.(val)}
+        else
+          :ok
+        end
+
+      _ ->
+        :ok
+    end
+  end
+
   @spec validate_params(map(), [validator()]) :: :ok | {:error, [String.t()]}
   def validate_params(params, validators) do
     errors =

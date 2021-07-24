@@ -67,6 +67,30 @@ defmodule Mobius.Actions.MessageTest do
       assert_has_error(errors, "Expected limit to be between 1 and 100")
     end
 
+    test "returns an error if around is not a snowflake", ctx do
+      {:error, errors} = Message.list_messages(ctx.channel_id, %{around: 10})
+      assert_has_error(errors, "Expected around to be a snowflake")
+
+      {:error, errors} = Message.list_messages(ctx.channel_id, %{around: "a"})
+      assert_has_error(errors, "Expected around to be a snowflake")
+    end
+
+    test "returns an error if before is not a snowflake", ctx do
+      {:error, errors} = Message.list_messages(ctx.channel_id, %{before: 10})
+      assert_has_error(errors, "Expected before to be a snowflake")
+
+      {:error, errors} = Message.list_messages(ctx.channel_id, %{before: "a"})
+      assert_has_error(errors, "Expected before to be a snowflake")
+    end
+
+    test "returns an error if after is not a snowflake", ctx do
+      {:error, errors} = Message.list_messages(ctx.channel_id, %{after: 10})
+      assert_has_error(errors, "Expected after to be a snowflake")
+
+      {:error, errors} = Message.list_messages(ctx.channel_id, %{after: "a"})
+      assert_has_error(errors, "Expected after to be a snowflake")
+    end
+
     test "returns the list of messages", ctx do
       {:ok, messages} = Message.list_messages(ctx.channel_id, %{})
       assert messages == [Models.Message.parse(ctx.raw_message)]

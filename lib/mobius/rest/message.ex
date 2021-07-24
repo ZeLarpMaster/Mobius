@@ -95,9 +95,7 @@ defmodule Mobius.Rest.Message do
   end
 
   def list_messages(client, channel_id, params) do
-    query =
-      params
-      |> Keyword.new()
+    query = Keyword.new(params)
 
     client
     |> Tesla.get("/channels/:channel_id/messages",

@@ -80,7 +80,12 @@ defmodule Mobius.Actions.Message do
     # TODO: Validate permissions
     # TODO: Make sure the cannel exists (requires a cache)
 
-    validators = [integer_range_validator(:limit, 1, 100)]
+    validators = [
+      integer_range_validator(:limit, 1, 100),
+      snowkflake_validator(:around),
+      snowkflake_validator(:before),
+      snowkflake_validator(:after)
+    ]
 
     case validate_params(params, validators) do
       :ok -> Rest.Message.list_messages(Bot.get_client!(), channel_id, params)
