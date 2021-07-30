@@ -5,10 +5,16 @@ defmodule Mobius.Actions.Message do
 
   import Mobius.Validations.ActionValidations
 
+  alias Mobius.Actions
   alias Mobius.Models.Message
+  alias Mobius.Models.Snowflake
   alias Mobius.Rest
   alias Mobius.Rest.Client
   alias Mobius.Services.Bot
+
+  require Actions
+
+  Actions.setup_actions(Mobius.Endpoint.Message.endpoints())
 
   @type file :: Rest.Message.file()
   @type message_body :: Rest.Message.message_body()
@@ -73,23 +79,6 @@ defmodule Mobius.Actions.Message do
 
       true ->
         Rest.Message.send_message(Bot.get_client!(), channel_id, body)
-    end
-  end
-
-  def list_messages(channel_id, params) do
-    # TODO: Validate permissions
-    # TODO: Make sure the cannel exists (requires a cache)
-
-    validators = [
-      integer_range_validator(:limit, 1, 100),
-      snowflake_validator(:around),
-      snowflake_validator(:before),
-      snowflake_validator(:after)
-    ]
-
-    case validate_params(params, validators) do
-      :ok -> Rest.Message.list_messages(Bot.get_client!(), channel_id, params)
-      {:error, errors} -> {:error, errors}
     end
   end
 end
