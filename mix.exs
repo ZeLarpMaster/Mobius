@@ -30,7 +30,7 @@ defmodule Mobius.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:cachex, "~> 3.3"},
+      {:cachex, "~> 3.4"},
       {:gun, "~> 1.3"},
       {:castore, "~> 0.1"},
       {:jason, ">= 1.2.2"},
