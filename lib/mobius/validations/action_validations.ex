@@ -43,7 +43,7 @@ defmodule Mobius.Validations.ActionValidations do
     end
   end
 
-  def snowkflake_validator(key) do
+  def snowflake_validator(key) do
     get_error_message = fn val -> "Expected #{key} to be a snowflake, got #{inspect(val)}" end
 
     fn
