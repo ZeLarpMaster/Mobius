@@ -82,9 +82,9 @@ defmodule Mobius.Actions.Message do
 
     validators = [
       integer_range_validator(:limit, 1, 100),
-      snowkflake_validator(:around),
-      snowkflake_validator(:before),
-      snowkflake_validator(:after)
+      snowflake_validator(:around),
+      snowflake_validator(:before),
+      snowflake_validator(:after)
     ]
 
     case validate_params(params, validators) do
