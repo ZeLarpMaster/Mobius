@@ -57,4 +57,24 @@ defmodule Mobius.TestUtils do
     assert Map.fetch!(struct, field) == expected_value
     struct
   end
+
+  @doc """
+  Asserts the a list of errors contains the expected error
+
+  ## Examples
+
+      iex> errors = ["error 1", "error 2"]
+      iex> assert_has_error(errors, "error 1")
+      true
+
+      iex> errors = []
+      iex> assert_has_error(errors, "error 1")
+      false
+  """
+  @spec assert_has_error([String.t()], String.t()) :: boolean()
+  def assert_has_error(errors, expected_error)
+      when is_list(errors) and is_binary(expected_error) do
+    assert Enum.any?(errors, fn error -> error =~ expected_error end),
+           "Error message not found. Expected #{inspect(expected_error)}, received #{inspect(errors)}."
+  end
 end

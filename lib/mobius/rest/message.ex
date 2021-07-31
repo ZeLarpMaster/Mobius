@@ -93,4 +93,15 @@ defmodule Mobius.Rest.Message do
     )
     |> Client.parse_response(&Message.parse/1)
   end
+
+  def list_messages(client, channel_id, params) do
+    query = Keyword.new(params)
+
+    client
+    |> Tesla.get("/channels/:channel_id/messages",
+      opts: [path_params: [channel_id: channel_id]],
+      query: query
+    )
+    |> Client.parse_response(fn messages -> Enum.map(messages, &Message.parse/1) end)
+  end
 end

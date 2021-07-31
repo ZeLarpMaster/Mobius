@@ -3,6 +3,7 @@ defmodule Mobius.Actions.ChannelTest do
 
   import Mobius.Fixtures
   import Mobius.Generators
+  import Mobius.TestUtils
   import Tesla.Mock, only: [mock: 1]
 
   alias Mobius.Actions.Channel
@@ -111,11 +112,5 @@ defmodule Mobius.Actions.ChannelTest do
       {:ok, channel} = Channel.delete_channel(ctx.channel_id)
       assert channel == Models.Channel.parse(ctx.raw_channel)
     end
-  end
-
-  defp assert_has_error(errors, expected_error)
-       when is_list(errors) and is_binary(expected_error) do
-    assert Enum.any?(errors, fn error -> error =~ expected_error end),
-           "Error message not found. Expected #{inspect(expected_error)}, received #{inspect(errors)}."
   end
 end
