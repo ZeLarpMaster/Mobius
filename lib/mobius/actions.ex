@@ -3,7 +3,7 @@ defmodule Mobius.Actions do
   Generation of Mobius actions
 
   This module contains the macros and functions necessary to generate Mobius
-  actions form endpoint definitions.
+  actions from endpoint definitions.
 
   ## Warning about exported functions
 

@@ -8,7 +8,7 @@ defmodule Mobius.Endpoint do
   - url: The url at which Discord exposes the endpoint.
   - method: The HTTP method to use when sending requests to Discord.
   - params: The list of query parameters the endpoint accepts.
-  - opts: The options that the endpoint accpets. These generaly correspond to
+  - opts: The options that the endpoint accepts. These generally correspond to
   the HTTP request's body.
   """
 
