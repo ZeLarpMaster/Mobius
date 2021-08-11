@@ -26,8 +26,6 @@ defmodule Mobius.Actions do
 
       alias Mobius.Actions
 
-      resource = __MODULE__ |> Module.split() |> List.last()
-
       Enum.each(endpoints, fn endpoint ->
         name = endpoint.name
         param_names = Actions.get_arguments(endpoint)
@@ -36,24 +34,20 @@ defmodule Mobius.Actions do
         def unquote(name)(unquote_splicing(param_names)) do
           Actions.execute(
             unquote(Macro.escape(endpoint)),
-            unquote(params_keyword),
-            unquote(resource)
+            unquote(params_keyword)
           )
         end
       end)
     end
   end
 
-  @spec execute(Endpoint.t(), Keyword.t(any()), atom() | binary()) :: any()
-  def execute(%Endpoint{} = endpoint, params, resource) do
-    rest_module = Module.concat([:Mobius, :Rest, resource])
-
+  @spec execute(Endpoint.t(), keyword()) :: any()
+  def execute(%Endpoint{} = endpoint, params) do
     validators = get_validators(endpoint)
 
     case ActionValidations.validate_params(Keyword.get(params, :params, %{}), validators) do
       :ok ->
-        param_values = Enum.map(params, fn {_name, value} -> value end)
-        apply(rest_module, endpoint.name, [Bot.get_client!() | param_values])
+        Mobius.Rest.execute(endpoint, Bot.get_client!(), params)
 
       {:error, errors} ->
         {:error, errors}
@@ -63,19 +57,16 @@ defmodule Mobius.Actions do
   @spec get_arguments(Endpoint.t()) :: [Macro.input()]
   def get_arguments(%Endpoint{} = endpoint) do
     endpoint
-    |> get_arguments_names()
+    |> Endpoint.get_arguments_names()
     |> Enum.map(&Macro.var(&1, __MODULE__))
   end
 
   @spec get_arguments_keyword(Endpoint.t()) :: Keyword.t(Macro.input())
   def get_arguments_keyword(%Endpoint{} = endpoint) do
     endpoint
-    |> get_arguments_names()
+    |> Endpoint.get_arguments_names()
     |> Enum.map(fn argument -> {argument, Macro.var(argument, __MODULE__)} end)
   end
-
-  defp get_arguments_names(%Endpoint{opts: _} = endpoint), do: endpoint.params ++ [:params]
-  defp get_arguments_names(%Endpoint{} = endpoint), do: endpoint.params
 
   defp get_validators(%Endpoint{} = endpoint) do
     Enum.map(endpoint.opts, fn
