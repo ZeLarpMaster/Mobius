@@ -10,16 +10,25 @@ defmodule Mobius.Endpoint do
   - params: The list of query parameters the endpoint accepts.
   - opts: The options that the endpoint accepts. These generally correspond to
   the HTTP request's body.
+  - model: The Mobius model HTTP responses should be parsed into. No model means
+  that the request is not expected to return any data.
+  - list_response?: Whether or not the request returns a list of entities.
   """
 
   @enforce_keys ~w(name url method params)a
-  defstruct [:name, :url, :method, :params, :opts]
+  defstruct [:name, :url, :method, :params, :opts, :model, :list_response?]
 
   @type t :: %__MODULE__{
           name: atom(),
           url: String.t(),
           method: :get | :post,
           params: [atom()],
-          opts: map()
+          opts: map() | nil,
+          model: atom() | nil,
+          list_response?: boolean() | nil
         }
+
+  @spec get_arguments_names(t()) :: [atom()]
+  def get_arguments_names(%__MODULE__{opts: _} = endpoint), do: endpoint.params ++ [:params]
+  def get_arguments_names(%__MODULE__{} = endpoint), do: endpoint.params
 end

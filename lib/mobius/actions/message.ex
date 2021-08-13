@@ -6,6 +6,7 @@ defmodule Mobius.Actions.Message do
   import Mobius.Validations.ActionValidations
 
   alias Mobius.Actions
+  alias Mobius.Endpoint
   alias Mobius.Models.Message
   alias Mobius.Models.Snowflake
   alias Mobius.Rest
@@ -14,7 +15,22 @@ defmodule Mobius.Actions.Message do
 
   require Actions
 
-  Actions.setup_actions(Mobius.Endpoint.Message.endpoints())
+  Actions.setup_actions([
+    %Endpoint{
+      name: :list_messages,
+      url: "/channels/:channel_id/messages",
+      method: :get,
+      params: [:channel_id],
+      opts: %{
+        around: :snowflake,
+        before: :snowflake,
+        after: :snowflake,
+        limit: {:integer, [min: 1, max: 100]}
+      },
+      list_response?: true,
+      model: Mobius.Models.Message
+    }
+  ])
 
   @type file :: Rest.Message.file()
   @type message_body :: Rest.Message.message_body()
