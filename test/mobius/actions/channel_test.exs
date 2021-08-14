@@ -58,7 +58,7 @@ defmodule Mobius.Actions.ChannelTest do
 
     test "returns an error if the channel type is in the allowed list", ctx do
       {:error, errors} = Channel.edit_channel(ctx.channel_id, %{type: :some_invalid_type})
-      assert_has_error(errors, "can only be converted to text or news")
+      assert_has_error(errors, "to be either :guild_text or :guild_news")
     end
 
     test "returns an error if the channel topic length is outside the allowed range", ctx do

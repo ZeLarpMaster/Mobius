@@ -37,12 +37,12 @@ defmodule Mobius.Actions.Channel do
     # TODO validate permissions
 
     validators = [
-      string_length_validator(:name, 2, 100),
-      &validate_channel_type/1,
-      string_length_validator(:topic, 0, 1024),
-      integer_range_validator(:rate_limit_per_user, 0, 21_600),
-      integer_range_validator(:bitrate, 8000, 96_000),
-      integer_range_validator(:user_limit, 0, 99)
+      {:name, string_length_validator(2, 100)},
+      {:type, &validate_channel_type/1},
+      {:topic, string_length_validator(0, 1024)},
+      {:rate_limit_per_user, integer_range_validator(0, 21_600)},
+      {:bitrate, integer_range_validator(8000, 96_000)},
+      {:user_limit, integer_range_validator(0, 99)}
     ]
 
     case validate_params(params, validators) do
@@ -68,10 +68,8 @@ defmodule Mobius.Actions.Channel do
   # TODO validate permissions
   def delete_channel(channel_id), do: Rest.Channel.delete_channel(Bot.get_client!(), channel_id)
 
-  defp validate_channel_type(%{type: type}) when type in [:guild_text, :guild_news], do: :ok
+  defp validate_channel_type(type) when type in [:guild_text, :guild_news], do: :ok
 
-  defp validate_channel_type(%{type: _type}),
-    do: {:error, "Channel type can only be converted to text or news"}
-
-  defp validate_channel_type(_params), do: :ok
+  defp validate_channel_type(type),
+    do: {:error, "to be either :guild_text or :guild_news, got #{type}"}
 end

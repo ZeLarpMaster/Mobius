@@ -1,74 +1,76 @@
 defmodule Mobius.Validations.ActionValidations do
   @moduledoc false
 
-  @type validator :: (map() -> :ok | {:error, String.t()})
+  @type validator_type ::
+          :string | :integer | {:integer, keyword()} | :string | {:string, keyword()} | :snowflake
+  @type validator :: (any() -> :ok | {:error, String.t()})
 
-  @spec string_length_validator(Map.key(), non_neg_integer(), non_neg_integer()) ::
+  @spec string_length_validator(non_neg_integer(), non_neg_integer()) ::
           validator()
-  def string_length_validator(key, min, max) do
-    fn params ->
-      with :ok <- string_validator(key).(params),
-           :ok <- length_validator(key, min, max).(params) do
+  def string_length_validator(min, max) do
+    fn value ->
+      with :ok <- string_validator().(value),
+           :ok <- length_validator(min, max).(value) do
         :ok
       end
     end
   end
 
-  @spec integer_range_validator(Map.key(), integer(), integer()) ::
+  @spec integer_range_validator(integer(), integer()) ::
           validator()
-  def integer_range_validator(key, min, max) do
-    fn params ->
-      with :ok <- integer_validator(key).(params),
-           :ok <- range_validator(key, min, max).(params) do
+  def integer_range_validator(min, max) do
+    fn value ->
+      with :ok <- integer_validator().(value),
+           :ok <- range_validator(min, max).(value) do
         :ok
       end
     end
   end
 
-  @spec string_validator(Map.key()) :: validator()
-  def string_validator(key) do
+  @spec string_validator :: validator()
+  def string_validator do
     fn
-      %{^key => val} when is_binary(val) -> :ok
-      %{^key => val} -> {:error, "Expected #{key} to be a string, got #{inspect(val)}"}
-      _ -> :ok
+      val when is_binary(val) -> :ok
+      val -> {:error, "be a string, got #{inspect(val)}"}
     end
   end
 
-  @spec integer_validator(Map.key()) :: validator()
-  def integer_validator(key) do
+  @spec integer_validator :: validator()
+  def integer_validator do
     fn
-      %{^key => val} when is_integer(val) -> :ok
-      %{^key => val} -> {:error, "Expected #{key} to be an integer, got #{inspect(val)}"}
-      _ -> :ok
+      val when is_integer(val) -> :ok
+      val -> {:error, "be an integer, got #{inspect(val)}"}
     end
   end
 
-  def snowflake_validator(key) do
-    get_error_message = fn val -> "Expected #{key} to be a snowflake, got #{inspect(val)}" end
+  @spec snowflake_validator :: validator()
+  def snowflake_validator do
+    get_error_message = fn val -> "be a snowflake, got #{inspect(val)}" end
 
     fn
-      %{^key => val} when not is_binary(val) ->
+      val when not is_binary(val) ->
         {:error, get_error_message.(val)}
 
-      %{^key => val} ->
+      val ->
         if Integer.parse(val) == :error do
           {:error, get_error_message.(val)}
         else
           :ok
         end
-
-      _ ->
-        :ok
     end
   end
 
-  @spec validate_params(map(), [validator()]) :: :ok | {:error, [String.t()]}
+  @spec validate_params(map(), [{atom(), validator()}]) :: :ok | {:error, [String.t()]}
   def validate_params(params, validators) do
     errors =
-      Enum.reduce(validators, [], fn validator, errors ->
-        case validator.(params) do
-          :ok -> errors
-          {:error, error} -> [error | errors]
+      Enum.reduce(validators, [], fn {param_name, validator}, errors ->
+        if Map.has_key?(params, param_name) do
+          case validator.(params[param_name]) do
+            :ok -> errors
+            {:error, error} -> ["Expected #{param_name} to #{error}" | errors]
+          end
+        else
+          errors
         end
       end)
 
@@ -79,30 +81,48 @@ defmodule Mobius.Validations.ActionValidations do
     end
   end
 
-  defp length_validator(key, min, max) do
+  @spec get_validator(validator_type()) :: validator()
+  def get_validator(:snowflake), do: snowflake_validator()
+  def get_validator(:integer), do: integer_validator()
+  def get_validator({:integer, opts}), do: get_integer_range_validator(opts)
+  def get_validator(:string), do: string_validator()
+  def get_validator({:string, opts}), do: get_string_length_validator(opts)
+
+  defp length_validator(min, max) do
     fn
-      %{^key => val} ->
+      val ->
         len = String.length(val)
 
         if len < min or len > max do
           {:error,
-           "Expected #{key} to contain between #{min} and #{max} characters, got #{val} with #{len} characters"}
+           "contain between #{min} and #{max} characters, got #{val} with #{len} characters"}
         else
           :ok
         end
+    end
+  end
+
+  defp range_validator(min, max) do
+    fn
+      value when value < min or value > max ->
+        {:error, "be between #{min} and #{max}, got #{value}"}
 
       _ ->
         :ok
     end
   end
 
-  defp range_validator(key, min, max) do
-    fn
-      %{^key => value} when value < min or value > max ->
-        {:error, "Expected #{key} to be between #{min} and #{max}, got #{value}"}
+  defp get_integer_range_validator(opts) do
+    min = Keyword.fetch!(opts, :min)
+    max = Keyword.fetch!(opts, :max)
 
-      _ ->
-        :ok
-    end
+    integer_range_validator(min, max)
+  end
+
+  defp get_string_length_validator(opts) do
+    min = Keyword.fetch!(opts, :min)
+    max = Keyword.fetch!(opts, :max)
+
+    string_length_validator(min, max)
   end
 end
