@@ -15,6 +15,8 @@ defmodule Mobius.Endpoint do
   - list_response?: Whether or not the request returns a list of entities.
   """
 
+  alias Mobius.Validations.ActionValidations
+
   @enforce_keys ~w(name url method params)a
   defstruct [:name, :url, :method, :params, :opts, :model, :list_response?]
 
@@ -23,7 +25,7 @@ defmodule Mobius.Endpoint do
           url: String.t(),
           method: :get | :post,
           params: [atom()],
-          opts: map() | nil,
+          opts: %{atom() => ActionValidations.validator_type()} | nil,
           model: atom() | nil,
           list_response?: boolean() | nil
         }

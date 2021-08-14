@@ -68,22 +68,8 @@ defmodule Mobius.Actions do
     |> Enum.map(fn argument -> {argument, Macro.var(argument, __MODULE__)} end)
   end
 
+  @spec get_validators(Endpoint.t()) :: [{:atom, ActionValidations.validator()}]
   defp get_validators(%Endpoint{} = endpoint) do
-    Enum.map(endpoint.opts, fn
-      {name, :snowflake} -> ActionValidations.snowflake_validator(name)
-      {name, :integer} -> ActionValidations.integer_validator(name)
-      {name, {:integer, opts}} -> get_integer_range_validator(name, opts)
-    end)
-  end
-
-  defp get_integer_range_validator(name, opts) do
-    min = Keyword.fetch!(opts, :min)
-    max = Keyword.fetch!(opts, :max)
-
-    if min != nil and max != nil do
-      ActionValidations.integer_range_validator(name, min, max)
-    else
-      ActionValidations.integer_validator(name)
-    end
+    Enum.map(endpoint.opts, fn {name, type} -> {name, ActionValidations.get_validator(type)} end)
   end
 end
