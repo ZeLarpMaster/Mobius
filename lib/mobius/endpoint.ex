@@ -23,7 +23,7 @@ defmodule Mobius.Endpoint do
   @type t :: %__MODULE__{
           name: atom(),
           url: String.t(),
-          method: :get | :post,
+          method: :get | :post | :patch | :delete,
           params: [atom()],
           opts: %{atom() => ActionValidations.validator_type()} | nil,
           model: atom() | nil,
@@ -31,6 +31,6 @@ defmodule Mobius.Endpoint do
         }
 
   @spec get_arguments_names(t()) :: [atom()]
-  def get_arguments_names(%__MODULE__{opts: _} = endpoint), do: endpoint.params ++ [:params]
-  def get_arguments_names(%__MODULE__{} = endpoint), do: endpoint.params
+  def get_arguments_names(%__MODULE__{opts: nil} = endpoint), do: endpoint.params
+  def get_arguments_names(%__MODULE__{} = endpoint), do: endpoint.params ++ [:params]
 end

@@ -19,10 +19,10 @@ defmodule Mobius.Rest do
       end
 
     tesla_response =
-      if endpoint.method == :post do
-        Tesla.post(client, endpoint.url, body, tesla_options)
+      if endpoint.method in [:post, :patch] do
+        apply(Tesla, endpoint.method, [client, endpoint.url, body, tesla_options])
       else
-        Tesla.get(client, endpoint.url, tesla_options)
+        apply(Tesla, endpoint.method, [client, endpoint.url, tesla_options])
       end
 
     cond do

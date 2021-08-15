@@ -2,7 +2,13 @@ defmodule Mobius.Validations.ActionValidations do
   @moduledoc false
 
   @type validator_type ::
-          :string | :integer | {:integer, keyword()} | :string | {:string, keyword()} | :snowflake
+          :string
+          | :integer
+          | {:integer, keyword()}
+          | :string
+          | {:string, keyword()}
+          | :snowflake
+          | {atom(), atom()}
   @type validator :: (any() -> :ok | {:error, String.t()})
 
   @spec string_length_validator(non_neg_integer(), non_neg_integer()) ::
@@ -87,6 +93,7 @@ defmodule Mobius.Validations.ActionValidations do
   def get_validator({:integer, opts}), do: get_integer_range_validator(opts)
   def get_validator(:string), do: string_validator()
   def get_validator({:string, opts}), do: get_string_length_validator(opts)
+  def get_validator({module, function}), do: fn val -> apply(module, function, [val]) end
 
   defp length_validator(min, max) do
     fn

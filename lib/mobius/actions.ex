@@ -69,6 +69,8 @@ defmodule Mobius.Actions do
   end
 
   @spec get_validators(Endpoint.t()) :: [{:atom, ActionValidations.validator()}]
+  defp get_validators(%Endpoint{opts: nil}), do: []
+
   defp get_validators(%Endpoint{} = endpoint) do
     Enum.map(endpoint.opts, fn {name, type} -> {name, ActionValidations.get_validator(type)} end)
   end
