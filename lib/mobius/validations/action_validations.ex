@@ -73,7 +73,7 @@ defmodule Mobius.Validations.ActionValidations do
         val = params[param_name]
 
         if val != nil do
-          case validator.(params[param_name]) do
+          case validator.(val) do
             :ok -> errors
             {:error, error} -> ["Expected #{param_name} to #{error}" | errors]
           end
