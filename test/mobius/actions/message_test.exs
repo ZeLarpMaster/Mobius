@@ -91,6 +91,11 @@ defmodule Mobius.Actions.MessageTest do
       assert_has_error(errors, "Expected after to be a snowflake")
     end
 
+    test "returns an error if channel id is not a snowflake" do
+      {:error, errors} = Message.list_messages(:not_a_snowflake, %{})
+      assert_has_error(errors, "Expected channel_id to be a snowflake")
+    end
+
     test "returns the list of messages", ctx do
       {:ok, messages} = Message.list_messages(ctx.channel_id, %{})
       assert messages == [Models.Message.parse(ctx.raw_message)]

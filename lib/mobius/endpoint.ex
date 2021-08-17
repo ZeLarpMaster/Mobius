@@ -24,13 +24,20 @@ defmodule Mobius.Endpoint do
           name: atom(),
           url: String.t(),
           method: :get | :post | :patch | :delete,
-          params: [atom()],
+          params: [{atom(), ActionValidations.validator_type()}],
           opts: %{atom() => ActionValidations.validator_type()} | nil,
           model: atom() | nil,
           list_response?: boolean() | nil
         }
 
   @spec get_arguments_names(t()) :: [atom()]
-  def get_arguments_names(%__MODULE__{opts: nil} = endpoint), do: endpoint.params
-  def get_arguments_names(%__MODULE__{} = endpoint), do: endpoint.params ++ [:params]
+  def get_arguments_names(%__MODULE__{} = endpoint) do
+    params_names = Enum.map(endpoint.params, fn {name, _type} -> name end)
+
+    if endpoint.opts == nil do
+      params_names
+    else
+      params_names ++ [:params]
+    end
+  end
 end

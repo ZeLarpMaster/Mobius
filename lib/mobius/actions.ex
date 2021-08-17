@@ -45,7 +45,9 @@ defmodule Mobius.Actions do
   def execute(%Endpoint{} = endpoint, params) do
     validators = get_validators(endpoint)
 
-    case ActionValidations.validate_params(Keyword.get(params, :params, %{}), validators) do
+    path_params = params |> Keyword.get(:params, %{}) |> Keyword.new()
+
+    case ActionValidations.validate_args(params ++ path_params, validators) do
       :ok ->
         Mobius.Rest.execute(endpoint, Bot.get_client!(), params)
 
@@ -69,9 +71,23 @@ defmodule Mobius.Actions do
   end
 
   @spec get_validators(Endpoint.t()) :: [{:atom, ActionValidations.validator()}]
-  defp get_validators(%Endpoint{opts: nil}), do: []
+  defp get_validators(%Endpoint{} = endpoint),
+    do: get_param_validators(endpoint) ++ get_option_validators(endpoint)
 
-  defp get_validators(%Endpoint{} = endpoint) do
-    Enum.map(endpoint.opts, fn {name, type} -> {name, ActionValidations.get_validator(type)} end)
+  @spec get_param_validators(Endpoint.t()) :: [{:atom, ActionValidations.validator()}]
+  defp get_param_validators(%Endpoint{} = endpoint) do
+    Enum.map(endpoint.params, &type_tuple_to_validator_tuple/1)
   end
+
+  @spec get_option_validators(Endpoint.t()) :: [{:atom, ActionValidations.validator()}]
+  defp get_option_validators(%Endpoint{opts: nil}), do: []
+
+  defp get_option_validators(%Endpoint{} = endpoint) do
+    Enum.map(endpoint.opts, &type_tuple_to_validator_tuple/1)
+  end
+
+  @spec type_tuple_to_validator_tuple({atom(), ActionValidations.validator_type()}) ::
+          {atom(), ActionValidations.validator()}
+  defp type_tuple_to_validator_tuple({name, type}),
+    do: {name, ActionValidations.get_validator(type)}
 end

@@ -26,6 +26,11 @@ defmodule Mobius.Actions.ChannelTest do
       [channel_id: channel_id, raw_channel: raw]
     end
 
+    test "returns an error if channel_id is not a snowflake" do
+      {:error, errors} = Channel.get_channel(:not_a_snowflake)
+      assert_has_error(errors, "Expected channel_id to be a snowflake")
+    end
+
     test "returns the channel if successful", ctx do
       {:ok, channel} = Channel.get_channel(ctx.channel_id)
       assert channel == Models.Channel.parse(ctx.raw_channel)
@@ -97,6 +102,11 @@ defmodule Mobius.Actions.ChannelTest do
       {:error, errors} = Channel.edit_channel(ctx.channel_id, %{user_limit: 100})
       assert_has_error(errors, error_message)
     end
+
+    test "returns an error if channel_id is not a snowflake" do
+      {:error, errors} = Channel.edit_channel(:not_a_snowflake, %{})
+      assert_has_error(errors, "Expected channel_id to be a snowflake")
+    end
   end
 
   describe "delete_channel/1" do
@@ -111,6 +121,11 @@ defmodule Mobius.Actions.ChannelTest do
     test "returns the channel if successful", ctx do
       {:ok, channel} = Channel.delete_channel(ctx.channel_id)
       assert channel == Models.Channel.parse(ctx.raw_channel)
+    end
+
+    test "returns an error if channel_id is not a snowflake" do
+      {:error, errors} = Channel.delete_channel(:not_a_snowflake)
+      assert_has_error(errors, "Expected channel_id to be a snowflake")
     end
   end
 end
