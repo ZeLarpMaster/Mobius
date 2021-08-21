@@ -66,12 +66,14 @@ defmodule Mobius.Validations.ActionValidations do
     end
   end
 
-  @spec validate_params(map(), [{atom(), validator()}]) :: :ok | {:error, [String.t()]}
-  def validate_params(params, validators) do
+  @spec validate_args(Access.t(), [{atom(), validator()}]) :: :ok | {:error, [String.t()]}
+  def validate_args(params, validators) do
     errors =
       Enum.reduce(validators, [], fn {param_name, validator}, errors ->
-        if Map.has_key?(params, param_name) do
-          case validator.(params[param_name]) do
+        val = params[param_name]
+
+        if val != nil do
+          case validator.(val) do
             :ok -> errors
             {:error, error} -> ["Expected #{param_name} to #{error}" | errors]
           end

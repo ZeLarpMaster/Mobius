@@ -20,7 +20,7 @@ defmodule Mobius.Actions.Message do
       name: :list_messages,
       url: "/channels/:channel_id/messages",
       method: :get,
-      params: [:channel_id],
+      params: [{:channel_id, :snowflake}],
       opts: %{
         around: :snowflake,
         before: :snowflake,

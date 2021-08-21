@@ -66,13 +66,13 @@ defmodule Mobius.Validations.ActionValidationsTest do
     end
   end
 
-  describe "validate_params/2" do
+  describe "validate_args/2" do
     test "returns all errors returned by the validators" do
       validator1 = fn _ -> {:error, "error 1"} end
       validator2 = fn _ -> {:error, "error 2"} end
 
       {:error, errors} =
-        ActionValidations.validate_params(%{foo: :foo, bar: :bar}, [
+        ActionValidations.validate_args(%{foo: :foo, bar: :bar}, [
           {:foo, validator1},
           {:bar, validator2}
         ])
@@ -81,7 +81,7 @@ defmodule Mobius.Validations.ActionValidationsTest do
     end
 
     test "returns :ok if no validator returns an error" do
-      assert :ok = ActionValidations.validate_params(%{}, [])
+      assert :ok = ActionValidations.validate_args(%{}, [])
     end
   end
 end

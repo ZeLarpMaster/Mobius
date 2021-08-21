@@ -18,14 +18,14 @@ defmodule Mobius.Actions.Channel do
       name: :get_channel,
       url: "/channels/:channel_id",
       method: :get,
-      params: [:channel_id],
+      params: [{:channel_id, :snowflake}],
       model: Mobius.Models.Channel
     },
     %Endpoint{
       name: :edit_channel,
       url: "/channels/:channel_id",
       method: :patch,
-      params: [:channel_id],
+      params: [{:channel_id, :snowflake}],
       opts: %{
         name: {:string, [min: 2, max: 100]},
         type: {__MODULE__, :validate_channel_type},
@@ -40,7 +40,7 @@ defmodule Mobius.Actions.Channel do
       name: :delete_channel,
       url: "/channels/:channel_id",
       method: :delete,
-      params: [:channel_id],
+      params: [{:channel_id, :snowflake}],
       model: Mobius.Models.Channel
     }
   ])
