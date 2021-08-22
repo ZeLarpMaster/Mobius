@@ -28,6 +28,24 @@ defmodule Mobius.Actions.Message do
         limit: {:integer, [min: 1, max: 100]}
       },
       list_response?: true,
+      discord_doc_url:
+        "https://discord.com/developers/docs/resources/channel#get-channel-messages",
+      doc: """
+      Fetches the list of messages in a channel
+
+      This function accepts the following options:
+      - around: The ID of a message that should be in the middle of the returned list
+      - before: The ID of a message that should be right after the last message in the returned list
+      - after: The ID of a message that should be right before the first message in the returned list
+      - limit: The number of messages to be fetched (between 1 and 100, defaults to 50)
+
+      `:around`, `:before` and `:after` are mutually exclusive.
+
+      ## Example
+
+          iex> list_messages("123456789", limit: 1)
+          {:ok, [%Mobius.Models.Message{} = message]}
+      """,
       model: Mobius.Models.Message
     }
   ])

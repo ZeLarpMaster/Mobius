@@ -42,7 +42,11 @@ defmodule Mobius.Actions.ChannelTest do
       channel_id = random_snowflake()
       updated_raw = channel(id: channel_id, name: "new_name")
       url = Client.base_url() <> "/channels/#{channel_id}"
-      mock(fn %{method: :patch, url: ^url} -> json(updated_raw) end)
+
+      mock(fn %{method: :patch, url: ^url} ->
+        json(updated_raw)
+      end)
+
       [channel_id: channel_id, raw_updated_channel: updated_raw]
     end
 

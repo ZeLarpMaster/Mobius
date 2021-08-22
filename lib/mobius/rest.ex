@@ -4,19 +4,11 @@ defmodule Mobius.Rest do
   alias Mobius.Endpoint
   alias Mobius.Rest.Client
 
-  @spec execute(Endpoint.t(), Tesla.Client.t(), keyword()) :: Client.result(any())
+  @spec execute(Endpoint.t(), Client.client(), keyword()) :: Client.result(any())
   def execute(%Endpoint{} = endpoint, client, args) do
-    {query_params, args} = Keyword.pop(args, :params)
-    {body, args} = Keyword.pop(args, :body)
+    {args, query_params, body} = get_query_params_and_body(endpoint, args)
 
-    base_tesla_options = [opts: [path_params: args]]
-
-    tesla_options =
-      if query_params == nil do
-        base_tesla_options
-      else
-        Keyword.put(base_tesla_options, :query, query_params)
-      end
+    tesla_options = [opts: [path_params: args], query: query_params]
 
     tesla_response =
       if endpoint.method in [:post, :patch] do
@@ -37,5 +29,16 @@ defmodule Mobius.Rest do
       true ->
         Client.parse_response(tesla_response, &apply(endpoint.model, :parse, [&1]))
     end
+  end
+
+  @spec get_query_params_and_body(Endpoint.t(), keyword()) :: {keyword(), keyword(), map()}
+  defp get_query_params_and_body(%Endpoint{method: :get}, args) do
+    {query_params, args} = Keyword.pop(args, :params)
+    {args, query_params, %{}}
+  end
+
+  defp get_query_params_and_body(%Endpoint{}, args) do
+    {body, args} = Keyword.pop(args, :params, %{})
+    {args, %{}, Map.new(body)}
   end
 end

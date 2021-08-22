@@ -30,7 +30,9 @@ defmodule Mobius.Actions do
         name = endpoint.name
         param_names = Actions.get_arguments(endpoint)
         params_keyword = Actions.get_arguments_keyword(endpoint)
+        docs = Actions.get_docs(endpoint)
 
+        @doc docs
         def unquote(name)(unquote_splicing(param_names)) do
           Actions.execute(
             unquote(Macro.escape(endpoint)),
@@ -41,7 +43,7 @@ defmodule Mobius.Actions do
     end
   end
 
-  @spec execute(Endpoint.t(), keyword()) :: any()
+  @spec execute(Endpoint.t(), keyword()) :: Mobius.Rest.Client.result(any())
   def execute(%Endpoint{} = endpoint, params) do
     validators = get_validators(endpoint)
 
@@ -68,6 +70,18 @@ defmodule Mobius.Actions do
     endpoint
     |> Endpoint.get_arguments_names()
     |> Enum.map(fn argument -> {argument, Macro.var(argument, __MODULE__)} end)
+  end
+
+  @spec get_docs(Endpoint.t()) :: String.t()
+  def get_docs(%Endpoint{} = endpoint) do
+    """
+    #{endpoint.doc}
+
+    ## Documentation
+
+    Relevant documentation:
+    #{endpoint.discord_doc_url}
+    """
   end
 
   @spec get_validators(Endpoint.t()) :: [{:atom, ActionValidations.validator()}]

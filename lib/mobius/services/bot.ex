@@ -54,7 +54,7 @@ defmodule Mobius.Services.Bot do
 
   This may raise a `KeyError` if this service isn't started yet
   """
-  @spec get_client!() :: Rest.Client.t()
+  @spec get_client!() :: Rest.Client.client()
   def get_client! do
     __MODULE__
     |> :persistent_term.get(%{})
