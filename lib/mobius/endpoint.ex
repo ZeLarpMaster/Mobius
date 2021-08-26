@@ -8,17 +8,31 @@ defmodule Mobius.Endpoint do
   - url: The url at which Discord exposes the endpoint.
   - method: The HTTP method to use when sending requests to Discord.
   - params: The list of query parameters the endpoint accepts.
-  - opts: The options that the endpoint accepts. These generally correspond to
-  the HTTP request's body.
+  - opts: The options that the endpoint accepts. These correspond to
+  the HTTP request's body for POST and PATCH requests or to optional query
+  parameters for GET requests.
   - model: The Mobius model HTTP responses should be parsed into. No model means
   that the request is not expected to return any data.
   - list_response?: Whether or not the request returns a list of entities.
+  - discord_doc_url: The URL for the official Discord documentation for this
+  endpoint.
+  - doc: The documentation of the function.
   """
 
   alias Mobius.Validations.ActionValidations
 
-  @enforce_keys ~w(name url method params)a
-  defstruct [:name, :url, :method, :params, :opts, :model, :list_response?]
+  @enforce_keys ~w(name url method params discord_doc_url doc)a
+  defstruct [
+    :name,
+    :url,
+    :method,
+    :params,
+    :opts,
+    :model,
+    :discord_doc_url,
+    :doc,
+    list_response?: false
+  ]
 
   @type t :: %__MODULE__{
           name: atom(),
@@ -27,7 +41,9 @@ defmodule Mobius.Endpoint do
           params: [{atom(), ActionValidations.validator_type()}],
           opts: %{atom() => ActionValidations.validator_type()} | nil,
           model: atom() | nil,
-          list_response?: boolean() | nil
+          discord_doc_url: String.t(),
+          doc: String.t(),
+          list_response?: boolean()
         }
 
   @spec get_arguments_names(t()) :: [atom()]
