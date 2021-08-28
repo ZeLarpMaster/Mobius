@@ -88,8 +88,10 @@ defmodule Mobius.Models.User do
 
   @doc "Parses the given term into a `t:t()` if possible; returns nil otherwise"
   @spec parse(any) :: t() | nil
-  def parse(map) when is_map(map) do
-    %__MODULE__{}
+  def parse(map, current \\ %__MODULE__{})
+
+  def parse(map, current) when is_map(map) do
+    current
     |> add_field(map, :id, &Snowflake.parse/1)
     |> add_field(map, :username)
     |> add_field(map, :discriminator)
@@ -105,7 +107,7 @@ defmodule Mobius.Models.User do
     |> add_field(map, :public_flags, &parse_flags(&1, @flags))
   end
 
-  def parse(_), do: nil
+  def parse(_, _), do: nil
 
   defp parse_premium_type(0), do: :none
   defp parse_premium_type(1), do: :nitro_classic

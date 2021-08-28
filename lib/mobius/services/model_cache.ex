@@ -76,8 +76,7 @@ defmodule Mobius.Services.ModelCache do
 
     guild
     |> Map.get("members", [])
-    |> Enum.map(fn member -> member["user"] end)
-    |> cache_users()
+    |> Enum.each(fn member -> cache_user(member["user"]) end)
   end
 
   def cache_event(:guild_member_update, member) do
@@ -95,10 +94,6 @@ defmodule Mobius.Services.ModelCache do
 
   defp cache_user(user), do: Cachex.put(__MODULE__.User, user["id"], user)
 
-  defp cache_users(users) do
-    Cachex.put_many(__MODULE__.User, Enum.map(users, fn user -> {user["id"], user} end))
-  end
-
   defp cache_member(member) do
     user = member["user"]
     cache_user(user)
@@ -111,10 +106,10 @@ defmodule Mobius.Services.ModelCache do
     Cachex.del(__MODULE__.Member, {guild_id, id})
   end
 
-  defp update_cache(cache, key, new_value) do
+  defp update_cache(cache, key, new_value, updater \\ &Map.merge/2) do
     Cachex.get_and_update(cache, key, fn
       nil -> {:commit, new_value}
-      old_value -> {:commit, Map.merge(old_value, new_value)}
+      old_value -> {:commit, updater.(old_value, new_value)}
     end)
   end
 

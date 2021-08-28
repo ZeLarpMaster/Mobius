@@ -9,17 +9,19 @@ defmodule Mobius.Models.Utils do
   Note that the struct key is an atom,
   but is converted to a String before being used as a key in the map
 
+  If the map doesn't contain the key, the struct is returned as is
+
   The value goes through the parser function before being put in the struct
   This will raise an exception if the struct_key isn't a part of the struct
   """
   @spec add_field(struct, map, atom, (any -> any)) :: struct when struct: struct()
   def add_field(struct, map, struct_key, parser \\ fn x -> x end) do
-    value =
-      map
-      |> Map.get(Atom.to_string(struct_key))
-      |> parser.()
-
-    struct!(struct, [{struct_key, value}])
+    map
+    |> Map.fetch(Atom.to_string(struct_key))
+    |> case do
+      {:ok, value} -> struct!(struct, [{struct_key, parser.(value)}])
+      :error -> struct
+    end
   end
 
   @spec parse_list(any, (any -> output)) :: [output] | nil when output: var
