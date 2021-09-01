@@ -3,10 +3,52 @@ defmodule Mobius.Actions.Message do
   Actions related to Discord messages such as sending, editing, and deleting messages
   """
 
+  import Mobius.Validations.ActionValidations
+
+  alias Mobius.Actions
+  alias Mobius.Endpoint
   alias Mobius.Models.Message
+  alias Mobius.Models.Snowflake
   alias Mobius.Rest
   alias Mobius.Rest.Client
   alias Mobius.Services.Bot
+
+  require Actions
+
+  Actions.setup_actions([
+    %Endpoint{
+      name: :list_messages,
+      url: "/channels/:channel_id/messages",
+      method: :get,
+      params: [{:channel_id, :snowflake}],
+      opts: %{
+        around: :snowflake,
+        before: :snowflake,
+        after: :snowflake,
+        limit: {:integer, [min: 1, max: 100]}
+      },
+      list_response?: true,
+      discord_doc_url:
+        "https://discord.com/developers/docs/resources/channel#get-channel-messages",
+      doc: """
+      Fetches the list of messages in a channel
+
+      This function accepts the following options:
+      - around: The ID of a message that should be in the middle of the returned list
+      - before: The ID of a message that should be right after the last message in the returned list
+      - after: The ID of a message that should be right before the first message in the returned list
+      - limit: The number of messages to be fetched (between 1 and 100, defaults to 50)
+
+      `:around`, `:before` and `:after` are mutually exclusive.
+
+      ## Example
+
+          iex> list_messages("123456789", limit: 1)
+          {:ok, [%Mobius.Models.Message{} = message]}
+      """,
+      model: Mobius.Models.Message
+    }
+  ])
 
   @type file :: Rest.Message.file()
   @type message_body :: Rest.Message.message_body()

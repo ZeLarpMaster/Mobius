@@ -7,6 +7,10 @@ defmodule Mobius.Core.Command do
   @enforce_keys [:name, :args, :handler]
   defstruct [:name, :args, :handler, description: ""]
 
+  @type context :: %{
+          message: Message.t()
+        }
+
   @type t :: %__MODULE__{
           name: String.t(),
           description: String.t() | false | nil,
@@ -14,11 +18,8 @@ defmodule Mobius.Core.Command do
           handler: function()
         }
 
-  @type processed :: %{
-          String.t() => %{
-            non_neg_integer() => [t()]
-          }
-        }
+  @type command_arities :: %{non_neg_integer() => [t()]}
+  @type processed :: %{String.t() => command_arities()}
 
   @type handle_message_result ::
           {:ok, any()}
@@ -48,7 +49,8 @@ defmodule Mobius.Core.Command do
          {:ok, groups} <- get_command(commands, name),
          {:ok, clauses} <- get_clauses(groups, length(arg_values)),
          {:ok, command, values} <- find_clause(clauses, arg_values) do
-      {:ok, apply(command.handler, [message | values])}
+      context = %{message: message}
+      {:ok, apply(command.handler, [context | values])}
     end
   end
 
@@ -58,6 +60,19 @@ defmodule Mobius.Core.Command do
     |> Enum.reverse()
     |> Enum.group_by(fn %__MODULE__{name: name} -> name end)
     |> Map.new(fn {name, commands} -> {name, Enum.group_by(commands, &arg_count/1)} end)
+  end
+
+  @doc """
+  Returns a description for a command based on its `t:command_arities/0`
+
+  It returns the description of the first clause which has a description out of the clauses
+  with the lowest arity.
+  """
+  @spec find_command_description(command_arities()) :: String.t()
+  def find_command_description(arities) do
+    {_arity, commands} = Enum.min_by(arities, fn {arity, _commands} -> arity end)
+
+    Enum.find_value(commands, "", fn %__MODULE__{description: description} -> description end)
   end
 
   defp get_command(commands, name) do

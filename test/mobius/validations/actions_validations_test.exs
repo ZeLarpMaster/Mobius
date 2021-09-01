@@ -10,33 +10,29 @@ defmodule Mobius.Validations.ActionValidationsTest do
     setup do
       min = 2
       max = 4
-      validator = ActionValidations.string_length_validator(:foo, min, max)
+      validator = ActionValidations.string_length_validator(min, max)
 
       [min: min, max: max, validator: validator]
     end
 
     test "returns an error when provided a non-string input", ctx do
-      {:error, error} = ctx.validator.(%{foo: :bar})
+      {:error, error} = ctx.validator.(:bar)
 
-      assert error =~ "Expected foo to be a string"
+      assert error =~ "be a string"
     end
 
     test "returns an error when provided string length is outside allowed range", ctx do
-      error_message = "Expected foo to contain between #{ctx.min} and #{ctx.max} characters"
+      error_message = "contain between #{ctx.min} and #{ctx.max} characters"
 
-      {:error, error} = ctx.validator.(%{foo: random_text(ctx.min - 1)})
+      {:error, error} = ctx.validator.(random_text(ctx.min - 1))
       assert error =~ error_message
 
-      {:error, error} = ctx.validator.(%{foo: random_text(ctx.max + 1)})
+      {:error, error} = ctx.validator.(random_text(ctx.max + 1))
       assert error =~ error_message
     end
 
     test "returns :ok when provided string length is inside the allowed range", ctx do
-      assert :ok = ctx.validator.(%{foo: random_text(ctx.max - 1)})
-    end
-
-    test "returns :ok when the key is not in the provided input", ctx do
-      assert :ok = ctx.validator.(%{})
+      assert :ok = ctx.validator.(random_text(ctx.max - 1))
     end
   end
 
@@ -44,48 +40,48 @@ defmodule Mobius.Validations.ActionValidationsTest do
     setup do
       min = 2
       max = 4
-      validator = ActionValidations.integer_range_validator(:foo, min, max)
+      validator = ActionValidations.integer_range_validator(min, max)
 
       [min: min, max: max, validator: validator]
     end
 
     test "returns an error when provided a non-integer input", ctx do
-      {:error, error} = ctx.validator.(%{foo: :bar})
+      {:error, error} = ctx.validator.(:bar)
 
-      assert error =~ "Expected foo to be an integer"
+      assert error =~ "be an integer"
     end
 
     test "returns an error when provided integer is outside allowed range", ctx do
-      error_message = "Expected foo to be between #{ctx.min} and #{ctx.max}"
+      error_message = "be between #{ctx.min} and #{ctx.max}"
 
-      {:error, error} = ctx.validator.(%{foo: ctx.min - 1})
+      {:error, error} = ctx.validator.(ctx.min - 1)
       assert error =~ error_message
 
-      {:error, error} = ctx.validator.(%{foo: ctx.max + 1})
+      {:error, error} = ctx.validator.(ctx.max + 1)
       assert error =~ error_message
     end
 
     test "returns :ok when provided integer is inside the allowed range", ctx do
-      assert :ok = ctx.validator.(%{foo: ctx.max - 1})
-    end
-
-    test "returns :ok when the key is not in the provided input", ctx do
-      assert :ok = ctx.validator.(%{})
+      assert :ok = ctx.validator.(ctx.max - 1)
     end
   end
 
-  describe "validate_params/2" do
+  describe "validate_args/2" do
     test "returns all errors returned by the validators" do
       validator1 = fn _ -> {:error, "error 1"} end
       validator2 = fn _ -> {:error, "error 2"} end
 
-      {:error, errors} = ActionValidations.validate_params(%{}, [validator1, validator2])
+      {:error, errors} =
+        ActionValidations.validate_args(%{foo: :foo, bar: :bar}, [
+          {:foo, validator1},
+          {:bar, validator2}
+        ])
 
-      assert_list_unordered(errors, ["error 1", "error 2"])
+      assert_list_unordered(errors, ["Expected bar to error 2", "Expected foo to error 1"])
     end
 
     test "returns :ok if no validator returns an error" do
-      assert :ok = ActionValidations.validate_params(%{}, [])
+      assert :ok = ActionValidations.validate_args(%{}, [])
     end
   end
 end

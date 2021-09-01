@@ -3,6 +3,7 @@ defmodule Mobius.Actions.ChannelTest do
 
   import Mobius.Fixtures
   import Mobius.Generators
+  import Mobius.TestUtils
   import Tesla.Mock, only: [mock: 1]
 
   alias Mobius.Actions.Channel
@@ -25,6 +26,11 @@ defmodule Mobius.Actions.ChannelTest do
       [channel_id: channel_id, raw_channel: raw]
     end
 
+    test "returns an error if channel_id is not a snowflake" do
+      {:error, errors} = Channel.get_channel(:not_a_snowflake)
+      assert_has_error(errors, "Expected channel_id to be a snowflake")
+    end
+
     test "returns the channel if successful", ctx do
       {:ok, channel} = Channel.get_channel(ctx.channel_id)
       assert channel == Models.Channel.parse(ctx.raw_channel)
@@ -36,7 +42,11 @@ defmodule Mobius.Actions.ChannelTest do
       channel_id = random_snowflake()
       updated_raw = channel(id: channel_id, name: "new_name")
       url = Client.base_url() <> "/channels/#{channel_id}"
-      mock(fn %{method: :patch, url: ^url} -> json(updated_raw) end)
+
+      mock(fn %{method: :patch, url: ^url} ->
+        json(updated_raw)
+      end)
+
       [channel_id: channel_id, raw_updated_channel: updated_raw]
     end
 
@@ -57,7 +67,7 @@ defmodule Mobius.Actions.ChannelTest do
 
     test "returns an error if the channel type is in the allowed list", ctx do
       {:error, errors} = Channel.edit_channel(ctx.channel_id, %{type: :some_invalid_type})
-      assert_has_error(errors, "can only be converted to text or news")
+      assert_has_error(errors, "to be either :guild_text or :guild_news")
     end
 
     test "returns an error if the channel topic length is outside the allowed range", ctx do
@@ -96,13 +106,30 @@ defmodule Mobius.Actions.ChannelTest do
       {:error, errors} = Channel.edit_channel(ctx.channel_id, %{user_limit: 100})
       assert_has_error(errors, error_message)
     end
+
+    test "returns an error if channel_id is not a snowflake" do
+      {:error, errors} = Channel.edit_channel(:not_a_snowflake, %{})
+      assert_has_error(errors, "Expected channel_id to be a snowflake")
+    end
   end
 
-  defp assert_has_error(errors, expected_error)
-       when is_list(errors) and is_binary(expected_error) do
-    assert Enum.any?(errors, fn error -> error =~ expected_error end),
-           "Error message not found. Expected #{inspect(expected_error)}, received #{
-             inspect(errors)
-           }."
+  describe "delete_channel/1" do
+    setup do
+      channel_id = random_snowflake()
+      raw = channel(id: channel_id)
+      url = Client.base_url() <> "/channels/#{channel_id}"
+      mock(fn %{method: :delete, url: ^url} -> json(raw) end)
+      [channel_id: channel_id, raw_channel: raw]
+    end
+
+    test "returns the channel if successful", ctx do
+      {:ok, channel} = Channel.delete_channel(ctx.channel_id)
+      assert channel == Models.Channel.parse(ctx.raw_channel)
+    end
+
+    test "returns an error if channel_id is not a snowflake" do
+      {:error, errors} = Channel.delete_channel(:not_a_snowflake)
+      assert_has_error(errors, "Expected channel_id to be a snowflake")
+    end
   end
 end

@@ -13,7 +13,7 @@ defmodule Mobius.Stubs.Cog do
     send_to_test(:nothing)
   end
 
-  command "send", context do
+  command "send", %{message: context} do
     send_to_test(context)
   end
 
@@ -29,7 +29,7 @@ defmodule Mobius.Stubs.Cog do
     send_to_test(num1 + num2)
   end
 
-  command "everything", context, value: :string do
+  command "everything", %{message: context}, value: :string do
     send_to_test({:everything, context, value})
   end
 
