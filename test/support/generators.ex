@@ -120,7 +120,9 @@ defmodule Mobius.Generators do
       "owner_id" => random_snowflake(),
       "application_id" => random_snowflake(),
       "parent_id" => random_snowflake(),
-      "last_pin_timestamp" => DateTime.to_iso8601(DateTime.utc_now())
+      "last_pin_timestamp" => DateTime.to_iso8601(DateTime.utc_now()),
+      "rtc_region" => random_hex(8),
+      "video_quality_mode" => 1
     }
 
     merge_opts(defaults, opts)
@@ -202,7 +204,8 @@ defmodule Mobius.Generators do
       "self_mute" => true,
       "self_stream" => true,
       "self_video" => false,
-      "suppress" => false
+      "suppress" => false,
+      "request_to_speak_timestamp" => DateTime.to_iso8601(DateTime.utc_now())
     }
 
     merge_opts(defaults, opts)
@@ -422,6 +425,18 @@ defmodule Mobius.Generators do
       "permissions" => ["*"],
       "team_id" => random_snowflake(),
       "user" => partial_user(Keyword.get(opts, :user, []))
+    }
+
+    merge_opts(defaults, opts)
+  end
+
+  @spec stage_instance(keyword) :: map
+  def stage_instance(opts \\ []) do
+    defaults = %{
+      "id" => random_snowflake(),
+      "guild_id" => random_snowflake(),
+      "channel_id" => random_snowflake(),
+      "topic" => random_hex(16)
     }
 
     merge_opts(defaults, opts)

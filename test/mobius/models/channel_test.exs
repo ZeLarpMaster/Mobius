@@ -40,6 +40,8 @@ defmodule Mobius.Models.ChannelTest do
       |> assert_field(:application_id, nil)
       |> assert_field(:parent_id, nil)
       |> assert_field(:last_pin_timestamp, nil)
+      |> assert_field(:rtc_region, nil)
+      |> assert_field(:video_quality_mode, nil)
     end
 
     test "parses all fields as expected" do
@@ -65,6 +67,8 @@ defmodule Mobius.Models.ChannelTest do
       |> assert_field(:application_id, Snowflake.parse(map["application_id"]))
       |> assert_field(:parent_id, Snowflake.parse(map["parent_id"]))
       |> assert_field(:last_pin_timestamp, Timestamp.parse(map["last_pin_timestamp"]))
+      |> assert_field(:rtc_region, map["rtc_region"])
+      |> assert_field(:video_quality_mode, :auto)
     end
   end
 

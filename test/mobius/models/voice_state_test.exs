@@ -6,6 +6,7 @@ defmodule Mobius.Models.VoiceStateTest do
 
   alias Mobius.Models.Member
   alias Mobius.Models.Snowflake
+  alias Mobius.Models.Timestamp
   alias Mobius.Models.VoiceState
 
   describe "parse/1" do
@@ -31,6 +32,7 @@ defmodule Mobius.Models.VoiceStateTest do
       |> assert_field(:self_stream, nil)
       |> assert_field(:self_video, nil)
       |> assert_field(:suppress, nil)
+      |> assert_field(:request_to_speak_timestamp, nil)
     end
 
     test "parses all fields as expected" do
@@ -50,6 +52,10 @@ defmodule Mobius.Models.VoiceStateTest do
       |> assert_field(:self_stream, map["self_stream"])
       |> assert_field(:self_video, map["self_video"])
       |> assert_field(:suppress, map["suppress"])
+      |> assert_field(
+        :request_to_speak_timestamp,
+        Timestamp.parse(map["request_to_speak_timestamp"])
+      )
     end
   end
 end
