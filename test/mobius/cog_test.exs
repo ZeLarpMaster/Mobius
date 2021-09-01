@@ -1,6 +1,7 @@
 defmodule Mobius.CogTest do
   use ExUnit.Case
 
+  import Mobius.CogTestUtils
   import Mobius.Fixtures
   import ExUnit.CaptureLog
 
@@ -11,8 +12,7 @@ defmodule Mobius.CogTest do
 
   setup do
     Process.register(self(), :cog_test_process)
-    start_supervised!(Mobius.Stubs.Cog)
-
+    start_cog(Mobius.Stubs.Cog)
     :ok
   end
 
@@ -65,7 +65,7 @@ defmodule Mobius.CogTest do
                send_command_payload("add")
                Process.sleep(10)
              end) =~
-               "Wrong number of arguments for command \"add\". Expected 1 arguments, got 0."
+               "Wrong number of arguments. Expected one of 1, 2 arguments, got 0."
     end
 
     test "should notify of invalid arguments" do
@@ -73,7 +73,7 @@ defmodule Mobius.CogTest do
                send_command_payload("add 2 hello")
                Process.sleep(10)
              end) =~
-               ~s'Invalid type for argument "num2". Expected "integer", got "hello".'
+               ~s'Type mismatch for the command "add" with 2 arguments'
     end
   end
 
@@ -83,5 +83,70 @@ defmodule Mobius.CogTest do
 
       assert_receive {:everything, ^message, "123"}
     end
+  end
+
+  describe "command/2-4 return" do
+    setup :setup_rest_api_mock
+
+    test "should send a message if the command returns {:reply, msg}" do
+      send_command_payload("reply")
+
+      assert_message_sent(%{content: "The answer"})
+    end
+
+    test "should raise an error if the command returns something unsupported" do
+      assert capture_log(fn ->
+               send_command_payload("unsupported")
+
+               assert_cog_died(Mobius.Stubs.Cog)
+             end) =~
+               "(FunctionClauseError) no function clause matching in Mobius.Cog.handle_return/2"
+    end
+  end
+
+  describe "undocumented cog" do
+    defmodule UndocumentedCog do
+      use Mobius.Cog
+    end
+
+    test "should not have a description" do
+      assert nil == UndocumentedCog.__cog__().description
+    end
+  end
+
+  describe "documented cog" do
+    defmodule DocumentedCog do
+      @moduledoc "This cog is documented"
+      use Mobius.Cog
+
+      @doc "Fun command"
+      command "fun", do: nil
+
+      @doc false
+      command "hidden", do: nil
+
+      command "nodoc", do: nil
+    end
+
+    test "should keep track of the cog's doc" do
+      assert "This cog is documented" == DocumentedCog.__cog__().description
+    end
+
+    test "should keep track of command doc" do
+      assert "Fun command" == get_command(DocumentedCog, "fun").description
+    end
+
+    test "should have false as command description if @doc false is given" do
+      assert false == get_command(DocumentedCog, "hidden").description
+    end
+
+    test "should have nil as command description if no doc is given" do
+      assert nil == get_command(DocumentedCog, "nodoc").description
+    end
+  end
+
+  defp get_command(cog, command_name) do
+    cog_info = cog.__cog__()
+    hd(cog_info.commands[command_name][0])
   end
 end

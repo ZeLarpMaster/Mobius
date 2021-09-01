@@ -1,11 +1,10 @@
 defmodule Mobius.Cogs.PingPong do
-  @moduledoc false
+  @moduledoc "Defines the ping pong command"
 
   use Mobius.Cog
 
-  import Mobius.Actions.Message
-
-  command "ping", context do
-    send_message(%{content: "Pong!"}, context["channel_id"])
+  @doc ~s(Replies with "Pong!")
+  command "ping" do
+    {:reply, %{content: "Pong!"}}
   end
 end

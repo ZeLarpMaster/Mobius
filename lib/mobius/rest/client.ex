@@ -22,7 +22,7 @@ defmodule Mobius.Rest.Client do
     headers = [
       {"User-Agent",
        "DiscordBot" <>
-         " (#{@lib_url}, #{Application.spec(:mobius, :vsn)}" <>
+         " (#{@lib_url}, #{Application.spec(:mobius, :vsn)})" <>
          " Elixir/#{System.version()}"},
       {"Authorization", "Bot #{token}"}
     ]
@@ -38,6 +38,7 @@ defmodule Mobius.Rest.Client do
     :fuse.reset(__MODULE__)
 
     middleware = [
+      Tesla.Middleware.KeepRequest,
       {Tesla.Middleware.Fuse, fuse_opts},
       {Tesla.Middleware.Retry, max_retries: retries, should_retry: &client_should_retry?/1},
       Mobius.Rest.Middleware.Ratelimit,

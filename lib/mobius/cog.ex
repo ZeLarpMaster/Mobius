@@ -53,7 +53,12 @@ defmodule Mobius.Cog do
   `handle_info/2` match a different pattern.
   """
 
+  import Mobius.Actions.Message
+
+  alias Mobius.Core.Cog
   alias Mobius.Core.Command
+
+  require Logger
 
   @doc false
   defmacro __using__(_call) do
@@ -90,28 +95,32 @@ defmodule Mobius.Cog do
       alias Mobius.Actions.Events
       alias Mobius.Services.Bot
 
-      @computed_commands Enum.reverse(@commands)
+      @computed_commands Command.preprocess_commands(@commands)
+
+      @doc false
+      def __cog__ do
+        %Cog{
+          module: __MODULE__,
+          name: __MODULE__ |> Module.split() |> List.last(),
+          description: @moduledoc,
+          commands: @computed_commands
+        }
+      end
 
       listen :message_create, message do
         case Command.execute_command(@computed_commands, Bot.get_global_prefix!(), message) do
-          {:ok, _} ->
-            :ok
+          {:ok, value} ->
+            Mobius.Cog.handle_return(value, message)
 
-          {:too_few_args, command, received} ->
+          {:too_few_args, arities, received} ->
             Logger.info(
-              "Wrong number of arguments for command \"#{command.name}\". Expected #{
-                Command.arg_count(command)
-              } arguments, got #{received}."
+              "Wrong number of arguments. Expected one of #{arities |> Enum.map(&Integer.to_string/1) |> Enum.join(", ")} arguments, got #{received}."
             )
 
-          {:invalid_args, errors} ->
-            Enum.each(errors, fn {{arg_name, arg_type}, value} ->
-              Logger.info(
-                ~s(Invalid type for argument "#{arg_name}". Expected "#{Atom.to_string(arg_type)}", got "#{
-                  value
-                }".)
-              )
-            end)
+          {:invalid_args, [clause | _clauses]} ->
+            Logger.info(
+              ~s(Type mismatch for the command "#{clause.name}" with #{Command.arg_count(clause)} arguments)
+            )
 
           :not_a_command ->
             :ok
@@ -131,14 +140,14 @@ defmodule Mobius.Cog do
 
         Events.subscribe(event_names)
 
-        Logger.debug("Cog \"#{__MODULE__}\" subscribed to events #{inspect(event_names)}")
+        Logger.debug("Cog \"#{__cog__().name}\" subscribed to events #{inspect(event_names)}")
 
         {:ok, nil}
       end
 
       @impl true
       def handle_info({event_name, data}, state) when is_atom(event_name) and is_map(data) do
-        Logger.debug("Cog \"#{__MODULE__}\" received event #{inspect(event_name)}")
+        Logger.debug("Cog \"#{__cog__().name}\" received event #{inspect(event_name)}")
 
         @event_handlers
         |> Enum.filter(&match?({^event_name, _handler}, &1))
@@ -178,6 +187,7 @@ defmodule Mobius.Cog do
         {event_name, Function.capture(__MODULE__, name, 1)}
       )
 
+      @doc false
       def unquote(name)(unquote(payload)), do: unquote(contents)
     end
   end
@@ -190,12 +200,20 @@ defmodule Mobius.Cog do
 
   The second parameter defines the argument where the command context will be received.
   If omitted, the command context won't be available inside the command's body.
+  The context is of type `t:Mobius.Core.Command.context/0` and contains information about the
+  command invocation such as the message which triggered the command.
 
   The third parameter defines the list of arguments that the command accepts,
   along with their type. If a user passes more arguments than are defined by the
   command, the extraneous arguments will be ignored.
   If omitted, the command will be called regardless of what comes after the name
   of the command in the message.
+
+  ## Return values
+  Commands support the following return values:
+
+  * `:ok` which does nothing
+  * `{:reply, Mobius.Actions.Message.message_body()}` sends the message in the channel where the command was invoked
 
   ## Command types
 
@@ -219,14 +237,16 @@ defmodule Mobius.Cog do
 
   command "ping", context do
     send_message(%{content: "Pong!"}, context.channel_id)
+    :ok
   end
 
   command "hello", you: :string do
-    IO.inspect(you, label: "Your name is")
+    {:reply, %{content: "Your name is #{you}"}}
   end
 
   command "add", context, num1: :integer, num2: :integer do
     send_message(%{content: "#{num1 + num2}"}, context.channel_id)
+    :ok
   end
   ```
 
@@ -237,7 +257,7 @@ defmodule Mobius.Cog do
   user: ping
   myBot: Pong!
   user: hello User
-  myBot (prints in the terminal): Your name is: "User"
+  myBot: Your name is: "User"
   user: add 1 2
   myBot: 3
   user: add 1 hello
@@ -250,30 +270,28 @@ defmodule Mobius.Cog do
           "Command names must only contain lowercase alphanumeric characters or underscores"
     end
 
-    handler_name = Command.command_handler_name(command_name)
-
-    # +1 to the length of args to leave room for the context
-    new_command = %Command{
-      name: command_name,
-      args: args,
-      handler: Function.capture(__CALLER__.module, handler_name, length(args) + 1)
-    }
-
-    arg_vars = Enum.map(args, fn {variable, type} -> {type, Macro.var(variable, nil)} end)
-
     quote bind_quoted: [
-            handler_name: handler_name,
+            command_name: command_name,
             contents: Macro.escape(block, unquote: true),
-            arg_vars: Macro.escape(arg_vars),
+            args: Macro.escape(args),
             context: Macro.escape(context),
-            command: Macro.escape(new_command),
-            line: __CALLER__.line,
-            file: __CALLER__.file
+            module: __CALLER__.module
           ] do
-      existing_commands = Module.get_attribute(__MODULE__, :commands)
+      handler_name = Command.command_handler_name(command_name)
 
-      Module.put_attribute(__MODULE__, :commands, command)
+      # +1 to the length of args to leave room for the context
+      new_command = %Command{
+        name: command_name,
+        description: Mobius.Cog.pop_doc(module),
+        args: args,
+        handler: Function.capture(module, handler_name, length(args) + 1)
+      }
 
+      arg_vars = Enum.map(args, fn {variable, type} -> {type, Macro.var(variable, nil)} end)
+
+      Module.put_attribute(__MODULE__, :commands, new_command)
+
+      @doc false
       def unquote(handler_name)(unquote(context), unquote_splicing(arg_vars)),
         do: unquote(contents)
     end
@@ -315,9 +333,26 @@ defmodule Mobius.Cog do
   end
 
   @doc false
+  def handle_return(:ok, _context), do: :ok
+  def handle_return({:reply, body}, context), do: send_message(body, context.channel_id)
+
+  @doc false
   def __event_handler_name__(event_name, event_handlers) do
     handler_id = Enum.count(event_handlers, &(elem(&1, 0) === event_name))
 
     :"__mobius_event_#{event_name}_#{handler_id}__"
+  end
+
+  @doc false
+  def pop_doc(module) do
+    doc =
+      case Module.get_attribute(module, :doc) do
+        {_line, false} -> false
+        {_line, doc} -> doc
+        _ -> nil
+      end
+
+    Module.delete_attribute(module, :doc)
+    doc
   end
 end

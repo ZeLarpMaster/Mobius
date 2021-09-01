@@ -119,6 +119,8 @@ defmodule Mobius.Fixtures do
 
   def random_discriminator, do: random_n_chars(4, "0123456789")
 
+  def random_text(len), do: random_n_chars(len, "abcdefghijklmnopqrstuvwxyz")
+
   def json(term, status_code \\ 200) do
     {status_code, [{"content-type", "application/json"}], Jason.encode!(term)}
   end

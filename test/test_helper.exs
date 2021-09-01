@@ -3,4 +3,4 @@ Mobius.Fixtures.mock_gateway_bot()
 
 Application.ensure_all_started(:mobius)
 
-ExUnit.start(capture_log: true)
+ExUnit.start(capture_log: true, exclude: [:skip])
