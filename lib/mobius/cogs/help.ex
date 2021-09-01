@@ -26,10 +26,7 @@ defmodule Mobius.Cogs.Help do
   command "help" do
     CogLoader.list_cogs()
     |> format_cog_list()
-    |> case do
-      nil -> {:reply, %{content: @not_found}}
-      content -> {:reply, %{content: content, allowed_mentions: %{parse: []}}}
-    end
+    |> reply()
   end
 
   @doc """
@@ -41,12 +38,17 @@ defmodule Mobius.Cogs.Help do
   command "help", cog_or_command_name: :string do
     cogs = CogLoader.list_cogs()
 
-    with nil <- try_cog(cog_or_command_name, cogs),
-         nil <- try_command(cog_or_command_name, cogs) do
-      {:reply, %{content: @not_found}}
-    else
-      content -> {:reply, %{content: content, allowed_mentions: %{parse: []}}}
-    end
+    content =
+      with nil <- try_cog(cog_or_command_name, cogs),
+           nil <- try_command(cog_or_command_name, cogs) do
+        @not_found
+      end
+
+    reply(content)
+  end
+
+  defp reply(content) do
+    {:reply, %{content: content, allowed_mentions: %{parse: []}}}
   end
 
   defp try_cog(part, cogs) do
