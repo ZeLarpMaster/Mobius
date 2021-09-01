@@ -31,7 +31,9 @@ defmodule Mobius.Models.Channel do
     :owner_id,
     :application_id,
     :parent_id,
-    :last_pin_timestamp
+    :last_pin_timestamp,
+    :rtc_region,
+    :video_quality_mode
   ]
 
   @type type ::
@@ -42,6 +44,9 @@ defmodule Mobius.Models.Channel do
           | :guild_category
           | :guild_news
           | :guild_store
+          | :guild_stage_voice
+
+  @type video_quality_mode :: :auto | :full
 
   @type partial :: %__MODULE__{
           id: Snowflake.t(),
@@ -67,7 +72,9 @@ defmodule Mobius.Models.Channel do
           owner_id: Snowflake.t() | nil,
           application_id: Snowflake.t() | nil,
           parent_id: Snowflake.t() | nil,
-          last_pin_timestamp: DateTime.t() | nil
+          last_pin_timestamp: DateTime.t() | nil,
+          rtc_region: String.t() | nil,
+          video_quality_mode: video_quality_mode() | nil
         }
 
   @doc "Parses the given term into a `t:t()` if possible; returns nil otherwise"
@@ -92,6 +99,8 @@ defmodule Mobius.Models.Channel do
     |> add_field(map, :application_id, &Snowflake.parse/1)
     |> add_field(map, :parent_id, &Snowflake.parse/1)
     |> add_field(map, :last_pin_timestamp, &Timestamp.parse/1)
+    |> add_field(map, :rtc_region)
+    |> add_field(map, :video_quality_mode, &parse_video_mode/1)
   end
 
   def parse(_), do: nil
@@ -104,7 +113,12 @@ defmodule Mobius.Models.Channel do
   def parse_type(4), do: :guild_category
   def parse_type(5), do: :guild_news
   def parse_type(6), do: :guild_store
+  def parse_type(13), do: :guild_stage_voice
   def parse_type(_), do: nil
+
+  defp parse_video_mode(1), do: :auto
+  defp parse_video_mode(2), do: :full
+  defp parse_video_mode(_), do: nil
 
   defp parse_overwrites(overwrites), do: parse_list(overwrites, &PermissionsOverwrite.parse/1)
   defp parse_recipients(recipients), do: parse_list(recipients, &User.parse/1)

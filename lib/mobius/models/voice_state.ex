@@ -10,6 +10,7 @@ defmodule Mobius.Models.VoiceState do
 
   alias Mobius.Models.Member
   alias Mobius.Models.Snowflake
+  alias Mobius.Models.Timestamp
 
   defstruct [
     :guild_id,
@@ -23,7 +24,8 @@ defmodule Mobius.Models.VoiceState do
     :self_mute,
     :self_stream,
     :self_video,
-    :suppress
+    :suppress,
+    :request_to_speak_timestamp
   ]
 
   @type t :: %__MODULE__{
@@ -38,7 +40,8 @@ defmodule Mobius.Models.VoiceState do
           self_mute: boolean,
           self_stream: boolean | nil,
           self_video: boolean,
-          suppress: boolean
+          suppress: boolean,
+          request_to_speak_timestamp: DateTime.t() | nil
         }
 
   @doc "Parses the given term into a `t:t()` if possible; returns nil otherwise"
@@ -57,6 +60,7 @@ defmodule Mobius.Models.VoiceState do
     |> add_field(map, :self_stream)
     |> add_field(map, :self_video)
     |> add_field(map, :suppress)
+    |> add_field(map, :request_to_speak_timestamp, &Timestamp.parse/1)
   end
 
   def parse(_), do: nil
