@@ -47,6 +47,23 @@ defmodule Mobius.Actions.Message do
           {:ok, [%Mobius.Models.Message{} = message]}
       """,
       model: Mobius.Models.Message
+    },
+    %Endpoint{
+      name: :get_message,
+      url: "/channels/:channel_id/messages/:message_id",
+      method: :get,
+      params: [{:channel_id, :snowflake}, {:message_id, :snowflake}],
+      discord_doc_url:
+        "https://discord.com/developers/docs/resources/channel#get-channel-message",
+      doc: """
+      Fetches a single message in a channel
+
+      ## Example
+
+          iex> get_message("123456789", "987654321")
+          {:ok, %Mobius.Molels.Message{} = message}
+      """,
+      model: Mobius.Models.Message
     }
   ])
 

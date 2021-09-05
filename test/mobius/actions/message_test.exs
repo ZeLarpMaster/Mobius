@@ -101,4 +101,32 @@ defmodule Mobius.Actions.MessageTest do
       assert messages == [Models.Message.parse(ctx.raw_message)]
     end
   end
+
+  describe "get_message/2" do
+    setup :handshake_shard
+
+    setup do
+      channel_id = random_snowflake()
+      message_id = random_snowflake()
+      raw = message(channel_id: channel_id, id: message_id)
+      url = Client.base_url() <> "/channels/#{channel_id}/messages/#{message_id}"
+      mock(fn %{method: :get, url: ^url} -> json(raw) end)
+      [channel_id: channel_id, message_id: message_id, raw_message: raw]
+    end
+
+    test "returns an error if channel_id is not a snowflake", ctx do
+      {:error, errors} = Message.get_message(1324, ctx.message_id)
+      assert_has_error(errors, "Expected channel_id to be a snowflake")
+    end
+
+    test "returns an error if message_id is not a snowflake", ctx do
+      {:error, errors} = Message.get_message(ctx.channel_id, 1234)
+      assert_has_error(errors, "Expected message_id to be a snowflake")
+    end
+
+    test "returns a message", ctx do
+      {:ok, message} = Message.get_message(ctx.channel_id, ctx.message_id)
+      assert message == Models.Message.parse(ctx.raw_message)
+    end
+  end
 end

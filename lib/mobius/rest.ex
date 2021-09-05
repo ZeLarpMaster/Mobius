@@ -33,12 +33,12 @@ defmodule Mobius.Rest do
 
   @spec get_query_params_and_body(Endpoint.t(), keyword()) :: {keyword(), keyword(), map()}
   defp get_query_params_and_body(%Endpoint{method: :get}, args) do
-    {query_params, args} = Keyword.pop(args, :params)
+    {query_params, args} = Keyword.pop(args, :params, [])
     {args, query_params, %{}}
   end
 
   defp get_query_params_and_body(%Endpoint{}, args) do
     {body, args} = Keyword.pop(args, :params, %{})
-    {args, %{}, Map.new(body)}
+    {args, [], Map.new(body)}
   end
 end
