@@ -61,7 +61,7 @@ defmodule Mobius.Actions.Message do
       ## Example
 
           iex> get_message("123456789", "987654321")
-          {:ok, %Mobius.Molels.Message{} = message}
+          {:ok, %Mobius.Models.Message{} = message}
       """,
       model: Mobius.Models.Message
     }
