@@ -9,6 +9,7 @@ defmodule Mobius.Validations.ActionValidations do
           | {:string, keyword()}
           | :snowflake
           | {atom(), atom()}
+          | :emoji
   @type validator :: (any() -> :ok | {:error, String.t()})
 
   @spec string_length_validator(non_neg_integer(), non_neg_integer()) ::
@@ -66,6 +67,14 @@ defmodule Mobius.Validations.ActionValidations do
     end
   end
 
+  @spec emoji_validator :: validator()
+  defp emoji_validator do
+    fn
+      %Mobius.Models.Emoji{} -> :ok
+      val -> {:error, "be an emoji, got #{inspect(val)}"}
+    end
+  end
+
   @spec validate_args(Access.t(), [{atom(), validator()}]) :: :ok | {:error, [String.t()]}
   def validate_args(params, validators) do
     errors =
@@ -96,6 +105,7 @@ defmodule Mobius.Validations.ActionValidations do
   def get_validator(:string), do: string_validator()
   def get_validator({:string, opts}), do: get_string_length_validator(opts)
   def get_validator({module, function}), do: fn val -> apply(module, function, [val]) end
+  def get_validator(:emoji), do: emoji_validator()
 
   defp length_validator(min, max) do
     fn

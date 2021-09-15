@@ -3,10 +3,34 @@ defmodule Mobius.Actions.Reaction do
   Actions related to Discord reactions such as creating, removing and listing reactions.
   """
 
+  alias Mobius.Actions
+  alias Mobius.Endpoint
   alias Mobius.Models.Emoji
   alias Mobius.Models.Snowflake
   alias Mobius.Rest
   alias Mobius.Services.Bot
+
+  require Actions
+
+  Actions.setup_actions([
+    %Endpoint{
+      name: :delete_own_reaction,
+      url: "/channels/:channel_id/messages/:message_id/reactions/:emoji/@me",
+      method: :delete,
+      params: [{:emoji, :emoji}, {:channel_id, :snowflake}, {:message_id, :snowflake}],
+      discord_doc_url:
+        "https://discord.com/developers/docs/resources/channel#delete-own-reaction",
+      doc: """
+      Deletes one of your own reactions
+
+      ## Example
+
+          iex> emoji = %Mobius.Models.Emoji{name: "👌"}
+          ...> Mobius.Actions.Reactions.delete_own_reaction(emoji, "123456789", "987654321")
+          :ok
+      """
+    }
+  ])
 
   @doc """
   Add a reaction to a message
