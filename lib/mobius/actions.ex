@@ -13,6 +13,7 @@ defmodule Mobius.Actions do
   """
 
   alias Mobius.Endpoint
+  alias Mobius.Models.Emoji
   alias Mobius.Services.Bot
   alias Mobius.Validations.ActionValidations
 
@@ -51,7 +52,8 @@ defmodule Mobius.Actions do
 
     case ActionValidations.validate_args(params ++ path_params, validators) do
       :ok ->
-        Mobius.Rest.execute(endpoint, Bot.get_client!(), params)
+        processed_params = pre_process_params(endpoint, params)
+        Mobius.Rest.execute(endpoint, Bot.get_client!(), processed_params)
 
       {:error, errors} ->
         {:error, errors}
@@ -84,16 +86,16 @@ defmodule Mobius.Actions do
     """
   end
 
-  @spec get_validators(Endpoint.t()) :: [{:atom, ActionValidations.validator()}]
+  @spec get_validators(Endpoint.t()) :: [{atom(), ActionValidations.validator()}]
   defp get_validators(%Endpoint{} = endpoint),
     do: get_param_validators(endpoint) ++ get_option_validators(endpoint)
 
-  @spec get_param_validators(Endpoint.t()) :: [{:atom, ActionValidations.validator()}]
+  @spec get_param_validators(Endpoint.t()) :: [{atom(), ActionValidations.validator()}]
   defp get_param_validators(%Endpoint{} = endpoint) do
     Enum.map(endpoint.params, &type_tuple_to_validator_tuple/1)
   end
 
-  @spec get_option_validators(Endpoint.t()) :: [{:atom, ActionValidations.validator()}]
+  @spec get_option_validators(Endpoint.t()) :: [{atom(), ActionValidations.validator()}]
   defp get_option_validators(%Endpoint{opts: nil}), do: []
 
   defp get_option_validators(%Endpoint{} = endpoint) do
@@ -104,4 +106,19 @@ defmodule Mobius.Actions do
           {atom(), ActionValidations.validator()}
   defp type_tuple_to_validator_tuple({name, type}),
     do: {name, ActionValidations.get_validator(type)}
+
+  @spec pre_process_params(Endpoint.t(), keyword()) :: keyword()
+  defp pre_process_params(%Endpoint{params: params}, params_values) do
+    Enum.map(params_values, fn {name, value} ->
+      processed_value = pre_process_param_value(params[name], value)
+
+      {name, processed_value}
+    end)
+  end
+
+  @spec pre_process_param_value(ActionValidations.validator_type(), any()) :: any()
+  defp pre_process_param_value(:emoji, %Emoji{} = emoji),
+    do: Emoji.get_identifier(emoji)
+
+  defp pre_process_param_value(_, value), do: value
 end
