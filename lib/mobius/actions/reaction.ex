@@ -29,6 +29,28 @@ defmodule Mobius.Actions.Reaction do
           ...> Mobius.Actions.Reactions.delete_own_reaction(emoji, "123456789", "987654321")
           :ok
       """
+    },
+    %Endpoint{
+      name: :delete_reaction,
+      url: "/channels/:channel_id/messages/:message_id/reactions/:emoji/:user_id",
+      method: :delete,
+      params: [
+        {:emoji, :emoji},
+        {:channel_id, :snowflake},
+        {:message_id, :snowflake},
+        {:user_id, :snowflake}
+      ],
+      discord_doc_url:
+        "https://discord.com/developers/docs/resources/channel#delete-user-reaction",
+      doc: """
+      Deletes another user's reaction
+
+      ## Example
+
+          iex> emoji = %Mobius.Models.Emoji{name: "👌"}
+          ...> Mobius.Actions.Reactions.delete_reaction(emoji, "123456789", "987654321", "5432167890")
+          :ok
+      """
     }
   ])
 
