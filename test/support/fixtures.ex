@@ -115,7 +115,7 @@ defmodule Mobius.Fixtures do
 
   def random_hex(len), do: random_n_chars(len, "0123456789abcdef")
 
-  def random_snowflake, do: Integer.to_string(:rand.uniform(100_000_000_000))
+  def random_snowflake, do: :rand.uniform(100_000_000_000)
 
   def random_discriminator, do: random_n_chars(4, "0123456789")
 

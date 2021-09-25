@@ -68,7 +68,7 @@ defmodule Mobius.Actions.MessageTest do
     end
 
     test "returns an error if around is not a snowflake", ctx do
-      {:error, errors} = Message.list_messages(ctx.channel_id, %{around: 10})
+      {:error, errors} = Message.list_messages(ctx.channel_id, %{around: :not_a_snowflake})
       assert_has_error(errors, "Expected around to be a snowflake")
 
       {:error, errors} = Message.list_messages(ctx.channel_id, %{around: "a"})
@@ -76,7 +76,7 @@ defmodule Mobius.Actions.MessageTest do
     end
 
     test "returns an error if before is not a snowflake", ctx do
-      {:error, errors} = Message.list_messages(ctx.channel_id, %{before: 10})
+      {:error, errors} = Message.list_messages(ctx.channel_id, %{before: :not_a_snowflake})
       assert_has_error(errors, "Expected before to be a snowflake")
 
       {:error, errors} = Message.list_messages(ctx.channel_id, %{before: "a"})
@@ -84,7 +84,7 @@ defmodule Mobius.Actions.MessageTest do
     end
 
     test "returns an error if after is not a snowflake", ctx do
-      {:error, errors} = Message.list_messages(ctx.channel_id, %{after: 10})
+      {:error, errors} = Message.list_messages(ctx.channel_id, %{after: :not_a_snowflake})
       assert_has_error(errors, "Expected after to be a snowflake")
 
       {:error, errors} = Message.list_messages(ctx.channel_id, %{after: "a"})
@@ -115,12 +115,12 @@ defmodule Mobius.Actions.MessageTest do
     end
 
     test "returns an error if channel_id is not a snowflake", ctx do
-      {:error, errors} = Message.get_message(1324, ctx.message_id)
+      {:error, errors} = Message.get_message("1324", ctx.message_id)
       assert_has_error(errors, "Expected channel_id to be a snowflake")
     end
 
     test "returns an error if message_id is not a snowflake", ctx do
-      {:error, errors} = Message.get_message(ctx.channel_id, 1234)
+      {:error, errors} = Message.get_message(ctx.channel_id, "1234")
       assert_has_error(errors, "Expected message_id to be a snowflake")
     end
 

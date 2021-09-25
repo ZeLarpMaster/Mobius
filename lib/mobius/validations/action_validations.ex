@@ -55,15 +55,11 @@ defmodule Mobius.Validations.ActionValidations do
     get_error_message = fn val -> "be a snowflake, got #{inspect(val)}" end
 
     fn
-      val when not is_binary(val) ->
-        {:error, get_error_message.(val)}
+      val when is_integer(val) ->
+        :ok
 
       val ->
-        if Integer.parse(val) == :error do
-          {:error, get_error_message.(val)}
-        else
-          :ok
-        end
+        {:error, get_error_message.(val)}
     end
   end
 
