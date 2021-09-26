@@ -7,6 +7,7 @@ defmodule Mobius.Actions.Reaction do
   alias Mobius.Endpoint
   alias Mobius.Models.Emoji
   alias Mobius.Models.Snowflake
+  alias Mobius.Models.User
   alias Mobius.Rest
   alias Mobius.Services.Bot
 
@@ -26,7 +27,7 @@ defmodule Mobius.Actions.Reaction do
       ## Example
 
           iex> emoji = %Mobius.Models.Emoji{name: "👌"}
-          ...> Mobius.Actions.Reactions.delete_own_reaction(emoji, "123456789", "987654321")
+          ...> Mobius.Actions.Reaction.delete_own_reaction(emoji, "123456789", "987654321")
           :ok
       """
     },
@@ -48,8 +49,30 @@ defmodule Mobius.Actions.Reaction do
       ## Example
 
           iex> emoji = %Mobius.Models.Emoji{name: "👌"}
-          ...> Mobius.Actions.Reactions.delete_reaction(emoji, "123456789", "987654321", "5432167890")
+          ...> Mobius.Actions.Reaction.delete_reaction(emoji, "123456789", "987654321", "5432167890")
           :ok
+      """
+    },
+    %Endpoint{
+      name: :list_reactions,
+      url: "/channels/:channel_id/messages/:message_id/reactions/:emoji",
+      method: :get,
+      params: [
+        {:emoji, :emoji},
+        {:channel_id, :snowflake},
+        {:message_id, :snowflake}
+      ],
+      model: User,
+      list_response?: true,
+      discord_doc_url: "https://discord.com/developers/docs/resources/channel#get-reactions",
+      doc: """
+      List the users that reacted to the given message with the given emoji
+
+      ## Example
+
+          iex> emoji = %Mobius.Models.Emoji{name: "👌"}
+          ...> Mobius.Actions.Reaction.list_reactions(emoji, "123456789", "987654321")
+          {:ok, [%Mobius.Models.User{id: "234587098"}]}
       """
     }
   ])
