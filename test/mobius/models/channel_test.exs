@@ -2,7 +2,7 @@ defmodule Mobius.Models.ChannelTest do
   use ExUnit.Case, async: true
 
   import Mobius.Generators
-  import Mobius.Models.Utils
+  import Mobius.Model
   import Mobius.TestUtils
 
   alias Mobius.Models.Channel

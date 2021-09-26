@@ -6,9 +6,11 @@ defmodule Mobius.Models.Sticker do
   https://discord.com/developers/docs/resources/channel#message-object-message-sticker-structure
   """
 
-  import Mobius.Models.Utils
+  import Mobius.Model
 
   alias Mobius.Models.Snowflake
+
+  @behaviour Mobius.Model
 
   defstruct [
     :id,
@@ -35,6 +37,7 @@ defmodule Mobius.Models.Sticker do
         }
 
   @doc "Parses the given term into a `t:t()` if possible; returns nil otherwise"
+  @impl true
   @spec parse(any) :: t() | nil
   def parse(map) when is_map(map) do
     %__MODULE__{}

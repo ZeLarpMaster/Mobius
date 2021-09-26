@@ -1,6 +1,8 @@
 defmodule Mobius.Models.Timestamp do
   @moduledoc false
 
+  @behaviour Mobius.Model
+
   @doc """
   Parse an ISO8601 datetime into a `t:DateTime.t()` or return nil if it was invalid
 
@@ -17,6 +19,7 @@ defmodule Mobius.Models.Timestamp do
       iex> parse(%{})
       nil
   """
+  @impl true
   @spec parse(String.t()) :: DateTime.t() | nil
   def parse(stamp) when is_binary(stamp) do
     case DateTime.from_iso8601(stamp) do

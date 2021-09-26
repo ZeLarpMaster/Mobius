@@ -2,6 +2,7 @@ defmodule Mobius.Core.Event do
   @moduledoc false
 
   alias Mobius.Core.ShardInfo
+  alias Mobius.Model
   alias Mobius.Models
 
   @valid_names [
@@ -318,7 +319,7 @@ defmodule Mobius.Core.Event do
 
   defp add_field(map, _, _, _), do: map
 
-  defp parse_guilds(data), do: Models.Utils.parse_list(data, &Models.Guild.parse/1)
-  defp parse_emojis(data), do: Models.Utils.parse_list(data, &Models.Emoji.parse/1)
-  defp parse_snowflakes(data), do: Models.Utils.parse_list(data, &Models.Snowflake.parse/1)
+  defp parse_guilds(data), do: Model.parse_list(data, &Models.Guild.parse/1)
+  defp parse_emojis(data), do: Model.parse_list(data, &Models.Emoji.parse/1)
+  defp parse_snowflakes(data), do: Model.parse_list(data, &Models.Snowflake.parse/1)
 end

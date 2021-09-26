@@ -6,12 +6,14 @@ defmodule Mobius.Models.GuildTemplate do
   https://discord.com/developers/docs/resources/template#template-object
   """
 
-  import Mobius.Models.Utils
+  import Mobius.Model
 
   alias Mobius.Models.Guild
   alias Mobius.Models.Snowflake
   alias Mobius.Models.Timestamp
   alias Mobius.Models.User
+
+  @behaviour Mobius.Model
 
   defstruct [
     :code,
@@ -42,6 +44,7 @@ defmodule Mobius.Models.GuildTemplate do
         }
 
   @doc "Parses the given term into a `t:t()` if possible; returns nil otherwise"
+  @impl true
   @spec parse(any) :: t() | nil
   def parse(map) when is_map(map) do
     %__MODULE__{}

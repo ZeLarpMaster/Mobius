@@ -3,7 +3,7 @@ defmodule Mobius.Models.MessageTest do
 
   import Mobius.Generators
   import Mobius.TestUtils
-  import Mobius.Models.Utils
+  import Mobius.Model
 
   alias Mobius.Models.Attachment
   alias Mobius.Models.ChannelMention

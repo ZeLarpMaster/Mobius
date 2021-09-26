@@ -6,9 +6,11 @@ defmodule Mobius.Models.RoleTags do
   https://discord.com/developers/docs/topics/permissions#role-object-role-tags-structure
   """
 
-  import Mobius.Models.Utils
+  import Mobius.Model
 
   alias Mobius.Models.Snowflake
+
+  @behaviour Mobius.Model
 
   defstruct [
     :bot_id,
@@ -35,6 +37,7 @@ defmodule Mobius.Models.RoleTags do
       iex> parse(%{"bot_id" => "123456", "integration_id" => nil, "premium_subscriber" => nil})
       %RoleTags{bot_id: 123456}
   """
+  @impl true
   @spec parse(any) :: t() | nil
   def parse(map) when is_map(map) do
     %__MODULE__{}

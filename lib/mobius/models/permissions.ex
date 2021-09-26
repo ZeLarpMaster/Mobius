@@ -7,7 +7,9 @@ defmodule Mobius.Models.Permissions do
   """
 
   alias Mobius.Core.Bitflags
-  alias Mobius.Models.Utils
+  alias Mobius.Model
+
+  @behaviour Model
 
   # Order is important, use nil for missing bitflags
   @permissions [
@@ -88,9 +90,10 @@ defmodule Mobius.Models.Permissions do
   def all_permissions, do: MapSet.new(@permissions)
 
   @doc "Parses the given term into a `t:t()` if possible; returns nil otherwise"
+  @impl true
   @spec parse(any) :: MapSet.t(permission()) | nil
   def parse(string) when is_binary(string) do
-    case Utils.parse_integer(string) do
+    case Model.parse_integer(string) do
       nil -> nil
       integer -> Bitflags.parse_bitflags(integer, @permissions)
     end

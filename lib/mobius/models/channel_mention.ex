@@ -6,10 +6,12 @@ defmodule Mobius.Models.ChannelMention do
   https://discord.com/developers/docs/resources/channel#channel-mention-object
   """
 
-  import Mobius.Models.Utils
+  import Mobius.Model
 
   alias Mobius.Models.Channel
   alias Mobius.Models.Snowflake
+
+  @behaviour Mobius.Model
 
   defstruct [
     :id,
@@ -26,6 +28,7 @@ defmodule Mobius.Models.ChannelMention do
         }
 
   @doc "Parses the given term into a `t:t()` if possible; returns nil otherwise"
+  @impl true
   @spec parse(any) :: t() | nil
   def parse(map) when is_map(map) do
     %__MODULE__{}

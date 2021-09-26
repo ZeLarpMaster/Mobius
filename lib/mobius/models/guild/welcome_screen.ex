@@ -6,9 +6,11 @@ defmodule Mobius.Models.Guild.WelcomeScreen do
   https://discord.com/developers/docs/resources/guild#welcome-screen-object
   """
 
-  import Mobius.Models.Utils
+  import Mobius.Model
 
   alias Mobius.Models.Guild.WelcomeChannel
+
+  @behaviour Mobius.Model
 
   defstruct [
     :description,
@@ -21,6 +23,7 @@ defmodule Mobius.Models.Guild.WelcomeScreen do
         }
 
   @doc "Parses the given term into a `t:t()` if possible; returns nil otherwise"
+  @impl true
   @spec parse(any) :: t() | nil
   def parse(map) when is_map(map) do
     %__MODULE__{}

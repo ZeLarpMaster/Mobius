@@ -2,6 +2,7 @@ defmodule Mobius.Rest do
   @moduledoc false
 
   alias Mobius.Endpoint
+  alias Mobius.Model
   alias Mobius.Rest.Client
 
   @spec execute(Endpoint.t(), Client.client(), keyword()) :: Client.result(any())
@@ -23,11 +24,11 @@ defmodule Mobius.Rest do
 
       endpoint.list_response? ->
         Client.parse_response(tesla_response, fn entities ->
-          Enum.map(entities, &apply(endpoint.model, :parse, [&1]))
+          Enum.map(entities, &Model.parse(endpoint.model, &1))
         end)
 
       true ->
-        Client.parse_response(tesla_response, &apply(endpoint.model, :parse, [&1]))
+        Client.parse_response(tesla_response, &Model.parse(endpoint.model, &1))
     end
   end
 

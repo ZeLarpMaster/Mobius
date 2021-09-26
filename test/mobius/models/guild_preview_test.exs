@@ -5,10 +5,10 @@ defmodule Mobius.Models.GuildPreviewTest do
   import Mobius.Generators
   import Mobius.TestUtils
 
+  alias Mobius.Model
   alias Mobius.Models.Emoji
   alias Mobius.Models.GuildPreview
   alias Mobius.Models.Snowflake
-  alias Mobius.Models.Utils
 
   describe "parse/1" do
     test "returns nil for non-maps" do
@@ -54,7 +54,7 @@ defmodule Mobius.Models.GuildPreviewTest do
       |> assert_field(:icon, map["icon"])
       |> assert_field(:splash, map["splash"])
       |> assert_field(:discovery_splash, map["discovery_splash"])
-      |> assert_field(:emojis, Utils.parse_list(map["emojis"], &Emoji.parse/1))
+      |> assert_field(:emojis, Model.parse_list(map["emojis"], &Emoji.parse/1))
       |> assert_field(:features, map["features"])
       |> assert_field(:approximate_member_count, map["approximate_member_count"])
       |> assert_field(:approximate_presence_count, map["approximate_presence_count"])

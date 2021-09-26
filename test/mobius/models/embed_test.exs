@@ -4,6 +4,7 @@ defmodule Mobius.Models.EmbedTest do
   import Mobius.Generators
   import Mobius.TestUtils
 
+  alias Mobius.Model
   alias Mobius.Models.Embed
   alias Mobius.Models.Embed.Author
   alias Mobius.Models.Embed.Field
@@ -11,7 +12,6 @@ defmodule Mobius.Models.EmbedTest do
   alias Mobius.Models.Embed.Media
   alias Mobius.Models.Embed.Provider
   alias Mobius.Models.Timestamp
-  alias Mobius.Models.Utils
 
   describe "parse/1" do
     test "returns nil for non-maps" do
@@ -56,7 +56,7 @@ defmodule Mobius.Models.EmbedTest do
       |> assert_field(:video, Media.parse(map["video"]))
       |> assert_field(:provider, Provider.parse(map["provider"]))
       |> assert_field(:author, Author.parse(map["author"]))
-      |> assert_field(:fields, Utils.parse_list(map["fields"], &Field.parse/1))
+      |> assert_field(:fields, Model.parse_list(map["fields"], &Field.parse/1))
     end
   end
 end

@@ -6,11 +6,13 @@ defmodule Mobius.Models.Integration do
   https://discord.com/developers/docs/resources/guild#integration-object
   """
 
-  import Mobius.Models.Utils
+  import Mobius.Model
 
   alias Mobius.Models.Snowflake
   alias Mobius.Models.Timestamp
   alias Mobius.Models.User
+
+  @behaviour Mobius.Model
 
   defstruct [
     :id,
@@ -52,6 +54,7 @@ defmodule Mobius.Models.Integration do
         }
 
   @doc "Parses the given term into a `t:t()` if possible; returns nil otherwise"
+  @impl true
   @spec parse(any) :: t() | nil
   def parse(map) when is_map(map) do
     %__MODULE__{}
