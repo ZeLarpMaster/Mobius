@@ -7,6 +7,8 @@ defmodule Mobius.Application do
 
   alias Mobius.Core.Intents
 
+  @config_save_interval_ms Application.compile_env(:mobius, :config_save_interval_ms, 60_000)
+
   @spec start(any, list) :: {:ok, pid}
   def start(_type, _args) do
     children = [
@@ -24,7 +26,7 @@ defmodule Mobius.Application do
       {Mobius.Services.EventPipeline, []},
       {Mobius.Services.CommandsRatelimiter, []},
       {Mobius.Services.ConnectionRatelimiter, connection_delay_ms: 5_000, ack_timeout_ms: 10_000},
-      {Mobius.Services.ConfigSaver, []},
+      {Mobius.Services.ConfigSaver, save_interval_ms: @config_save_interval_ms},
       {Mobius.Services.Bot,
        token: System.get_env("MOBIUS_BOT_TOKEN"), intents: Intents.all_intents()},
       {Mobius.Services.CogLoader, []}
