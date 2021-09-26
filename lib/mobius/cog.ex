@@ -129,7 +129,7 @@ defmodule Mobius.Cog do
 
       @impl true
       def init(_opts) do
-        Enum.each(@configs, &Mobius.Config.start/1)
+        Enum.each(@configs, &Mobius.Config.start_link/1)
 
         Logger.debug("Cog \"#{__MODULE__}\" started configs: #{inspect(@configs)}")
 
