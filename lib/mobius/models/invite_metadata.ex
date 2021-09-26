@@ -6,9 +6,11 @@ defmodule Mobius.Models.InviteMetadata do
   https://discord.com/developers/docs/resources/invite#invite-metadata-object
   """
 
-  import Mobius.Models.Utils
+  import Mobius.Model
 
   alias Mobius.Models.Timestamp
+
+  @behaviour Mobius.Model
 
   defstruct [
     :uses,
@@ -27,6 +29,7 @@ defmodule Mobius.Models.InviteMetadata do
         }
 
   @doc "Parses the given term into a `t:t()` if possible; returns nil otherwise"
+  @impl true
   @spec parse(any) :: t() | nil
   def parse(map) when is_map(map) do
     %__MODULE__{}

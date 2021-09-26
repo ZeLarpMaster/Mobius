@@ -6,8 +6,9 @@ defmodule Mobius.Models.Guild do
   https://discord.com/developers/docs/resources/guild#guild-object
   """
 
-  import Mobius.Models.Utils
+  import Mobius.Model
 
+  alias Mobius.Model
   alias Mobius.Models.Channel
   alias Mobius.Models.Emoji
   alias Mobius.Models.Guild.WelcomeScreen
@@ -17,8 +18,9 @@ defmodule Mobius.Models.Guild do
   alias Mobius.Models.Role
   alias Mobius.Models.Snowflake
   alias Mobius.Models.Timestamp
-  alias Mobius.Models.Utils
   alias Mobius.Models.VoiceState
+
+  @behaviour Mobius.Model
 
   defstruct [
     :id,
@@ -154,6 +156,7 @@ defmodule Mobius.Models.Guild do
         }
 
   @doc "Parses the given term into a `t:t()` if possible; returns nil otherwise"
+  @impl true
   @spec parse(any) :: t() | nil
   def parse(map) when is_map(map) do
     %__MODULE__{}
@@ -239,10 +242,10 @@ defmodule Mobius.Models.Guild do
   defp parse_premium_tier(3), do: :tier_3
   defp parse_premium_tier(_), do: nil
 
-  defp parse_roles(roles), do: Utils.parse_list(roles, &Role.parse/1)
-  defp parse_emojis(emojis), do: Utils.parse_list(emojis, &Emoji.parse/1)
-  defp parse_voice_states(states), do: Utils.parse_list(states, &VoiceState.parse/1)
-  defp parse_members(members), do: Utils.parse_list(members, &Member.parse/1)
-  defp parse_channels(channels), do: Utils.parse_list(channels, &Channel.parse/1)
-  defp parse_presences(presences), do: Utils.parse_list(presences, &Presence.parse/1)
+  defp parse_roles(roles), do: Model.parse_list(roles, &Role.parse/1)
+  defp parse_emojis(emojis), do: Model.parse_list(emojis, &Emoji.parse/1)
+  defp parse_voice_states(states), do: Model.parse_list(states, &VoiceState.parse/1)
+  defp parse_members(members), do: Model.parse_list(members, &Member.parse/1)
+  defp parse_channels(channels), do: Model.parse_list(channels, &Channel.parse/1)
+  defp parse_presences(presences), do: Model.parse_list(presences, &Presence.parse/1)
 end

@@ -6,9 +6,11 @@ defmodule Mobius.Models.Guild.WelcomeChannel do
   https://discord.com/developers/docs/resources/guild#welcome-screen-object-welcome-screen-channel-structure
   """
 
-  import Mobius.Models.Utils
+  import Mobius.Model
 
   alias Mobius.Models.Snowflake
+
+  @behaviour Mobius.Model
 
   defstruct [
     :channel_id,
@@ -25,6 +27,7 @@ defmodule Mobius.Models.Guild.WelcomeChannel do
         }
 
   @doc "Parses the given term into a `t:t()` if possible; returns nil otherwise"
+  @impl true
   @spec parse(any) :: t() | nil
   def parse(map) when is_map(map) do
     %__MODULE__{}

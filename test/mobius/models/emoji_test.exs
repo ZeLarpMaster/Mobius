@@ -5,10 +5,10 @@ defmodule Mobius.Models.EmojiTest do
   import Mobius.Generators
   import Mobius.TestUtils
 
+  alias Mobius.Model
   alias Mobius.Models.Emoji
   alias Mobius.Models.Snowflake
   alias Mobius.Models.User
-  alias Mobius.Models.Utils
 
   describe "parse/1" do
     test "returns nil for non-maps" do
@@ -38,7 +38,7 @@ defmodule Mobius.Models.EmojiTest do
       |> Emoji.parse()
       |> assert_field(:id, Snowflake.parse(map["id"]))
       |> assert_field(:name, map["name"])
-      |> assert_field(:roles, Utils.parse_list(map["roles"], &Snowflake.parse/1))
+      |> assert_field(:roles, Model.parse_list(map["roles"], &Snowflake.parse/1))
       |> assert_field(:user, User.parse(map["user"]))
       |> assert_field(:require_colons, map["require_colons"])
       |> assert_field(:managed, map["managed"])

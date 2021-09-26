@@ -12,7 +12,9 @@ defmodule Mobius.Models.Snowflake do
 
   import Bitwise
 
-  alias Mobius.Models.Utils
+  alias Mobius.Model
+
+  @behaviour Mobius.Model
 
   @type t :: pos_integer()
 
@@ -23,8 +25,9 @@ defmodule Mobius.Models.Snowflake do
 
   Returns nil if the value isn't a string or isn't only a number
   """
+  @impl true
   @spec parse(any) :: t() | nil
-  def parse(value), do: Utils.parse_integer(value)
+  def parse(value), do: Model.parse_integer(value)
 
   @doc """
   Returns the timestamp part (in milliseconds) of the snowflake

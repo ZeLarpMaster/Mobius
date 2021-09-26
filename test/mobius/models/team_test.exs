@@ -4,10 +4,10 @@ defmodule Mobius.Models.TeamTest do
   import Mobius.Generators
   import Mobius.TestUtils
 
+  alias Mobius.Model
   alias Mobius.Models.Snowflake
   alias Mobius.Models.Team
   alias Mobius.Models.TeamMember
-  alias Mobius.Models.Utils
 
   describe "parse/1" do
     test "returns nil for non-maps" do
@@ -33,7 +33,7 @@ defmodule Mobius.Models.TeamTest do
       |> Team.parse()
       |> assert_field(:id, Snowflake.parse(map["id"]))
       |> assert_field(:icon, map["icon"])
-      |> assert_field(:members, Utils.parse_list(map["members"], &TeamMember.parse/1))
+      |> assert_field(:members, Model.parse_list(map["members"], &TeamMember.parse/1))
       |> assert_field(:owner_user_id, Snowflake.parse(map["owner_user_id"]))
     end
   end

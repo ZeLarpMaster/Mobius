@@ -4,6 +4,7 @@ defmodule Mobius.Models.GuildTest do
   import Mobius.Generators
   import Mobius.TestUtils
 
+  alias Mobius.Model
   alias Mobius.Models.Channel
   alias Mobius.Models.Emoji
   alias Mobius.Models.Guild
@@ -13,7 +14,6 @@ defmodule Mobius.Models.GuildTest do
   alias Mobius.Models.Role
   alias Mobius.Models.Snowflake
   alias Mobius.Models.Timestamp
-  alias Mobius.Models.Utils
   alias Mobius.Models.VoiceState
 
   describe "parse/1" do
@@ -97,8 +97,8 @@ defmodule Mobius.Models.GuildTest do
       |> assert_field(:verification_level, :high)
       |> assert_field(:default_message_notifications, :only_mentions)
       |> assert_field(:explicit_content_filter, :members_without_roles)
-      |> assert_field(:roles, Utils.parse_list(map["roles"], &Role.parse/1))
-      |> assert_field(:emojis, Utils.parse_list(map["emojis"], &Emoji.parse/1))
+      |> assert_field(:roles, Model.parse_list(map["roles"], &Role.parse/1))
+      |> assert_field(:emojis, Model.parse_list(map["emojis"], &Emoji.parse/1))
       |> assert_field(:features, MapSet.new([:community, :welcome_screen_enabled]))
       |> assert_field(:mfa_level, :elevated)
       |> assert_field(:application_id, Snowflake.parse(map["application_id"]))
@@ -112,10 +112,10 @@ defmodule Mobius.Models.GuildTest do
       |> assert_field(:large, map["large"])
       |> assert_field(:unavailable, map["unavailable"])
       |> assert_field(:member_count, map["member_count"])
-      |> assert_field(:voice_states, Utils.parse_list(map["voice_states"], &VoiceState.parse/1))
-      |> assert_field(:members, Utils.parse_list(map["members"], &Member.parse/1))
-      |> assert_field(:channels, Utils.parse_list(map["channels"], &Channel.parse/1))
-      |> assert_field(:presences, Utils.parse_list(map["presences"], &Presence.parse/1))
+      |> assert_field(:voice_states, Model.parse_list(map["voice_states"], &VoiceState.parse/1))
+      |> assert_field(:members, Model.parse_list(map["members"], &Member.parse/1))
+      |> assert_field(:channels, Model.parse_list(map["channels"], &Channel.parse/1))
+      |> assert_field(:presences, Model.parse_list(map["presences"], &Presence.parse/1))
       |> assert_field(:max_presences, map["max_presences"])
       |> assert_field(:max_members, map["max_members"])
       |> assert_field(:vanity_url_code, map["vanity_url_code"])

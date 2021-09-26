@@ -6,10 +6,12 @@ defmodule Mobius.Models.Presence do
   https://discord.com/developers/docs/topics/gateway#presence-update
   """
 
-  import Mobius.Models.Utils
+  import Mobius.Model
 
   alias Mobius.Models.Activity
   alias Mobius.Models.Snowflake
+
+  @behaviour Mobius.Model
 
   defstruct [
     :user_id,
@@ -30,6 +32,7 @@ defmodule Mobius.Models.Presence do
         }
 
   @doc "Parses the given term into a `t:t()` if possible; returns nil otherwise"
+  @impl true
   @spec parse(any) :: t() | nil
   def parse(map) when is_map(map) do
     %__MODULE__{user_id: Snowflake.parse(map["user"]["id"])}

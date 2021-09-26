@@ -10,7 +10,9 @@ defmodule Mobius.Models.Embed.Media do
   https://discord.com/developers/docs/resources/channel#embed-object-embed-video-structure
   """
 
-  import Mobius.Models.Utils
+  import Mobius.Model
+
+  @behaviour Mobius.Model
 
   defstruct [
     :url,
@@ -27,6 +29,7 @@ defmodule Mobius.Models.Embed.Media do
         }
 
   @doc "Parses the given term into a `t:t()` if possible; returns nil otherwise"
+  @impl true
   @spec parse(any) :: t() | nil
   def parse(map) when is_map(map) do
     %__MODULE__{}

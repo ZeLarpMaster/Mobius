@@ -6,11 +6,13 @@ defmodule Mobius.Models.VoiceState do
   https://discord.com/developers/docs/resources/voice#voice-state-object
   """
 
-  import Mobius.Models.Utils
+  import Mobius.Model
 
   alias Mobius.Models.Member
   alias Mobius.Models.Snowflake
   alias Mobius.Models.Timestamp
+
+  @behaviour Mobius.Model
 
   defstruct [
     :guild_id,
@@ -45,6 +47,7 @@ defmodule Mobius.Models.VoiceState do
         }
 
   @doc "Parses the given term into a `t:t()` if possible; returns nil otherwise"
+  @impl true
   @spec parse(any) :: t() | nil
   def parse(map) when is_map(map) do
     %__MODULE__{}

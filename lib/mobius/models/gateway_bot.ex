@@ -5,9 +5,11 @@ defmodule Mobius.Models.GatewayBot do
   Related documentation: https://discord.com/developers/docs/topics/gateway#get-gateway-bot
   """
 
-  import Mobius.Models.Utils
+  import Mobius.Model
 
   alias Mobius.Models.SessionStartLimit
+
+  @behaviour Mobius.Model
 
   defstruct [:url, :shards, :session_start_limit]
 
@@ -30,6 +32,7 @@ defmodule Mobius.Models.GatewayBot do
       iex> parse(%{"url" => "wss://something", "shards" => 1, "session_start_limit" => %{}})
       %GatewayBot{url: "wss://something", shards: 1, session_start_limit: %SessionStartLimit{}}
   """
+  @impl true
   @spec parse(any) :: t() | nil
   def parse(map) when is_map(map) do
     %__MODULE__{}

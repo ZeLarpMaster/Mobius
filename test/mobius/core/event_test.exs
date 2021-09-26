@@ -7,6 +7,7 @@ defmodule Mobius.Core.EventTest do
 
   alias Mobius.Core.Event
   alias Mobius.Core.ShardInfo
+  alias Mobius.Model
   alias Mobius.Models
 
   describe "parse_name/1" do
@@ -69,7 +70,7 @@ defmodule Mobius.Core.EventTest do
       |> assert_field(:v, data["v"])
       |> assert_field(:user, Models.User.parse(data["user"]))
       |> assert_field(:private_channels, data["private_channels"])
-      |> assert_field(:guilds, Models.Utils.parse_list(data["guilds"], &Models.Guild.parse/1))
+      |> assert_field(:guilds, Model.parse_list(data["guilds"], &Models.Guild.parse/1))
       |> assert_field(:session_id, data["session_id"])
       |> assert_field(:shard, ShardInfo.from_list(data["shard"]))
       |> assert_field(:application, Models.Application.parse(data["application"]))
@@ -162,7 +163,7 @@ defmodule Mobius.Core.EventTest do
 
       parsed
       |> assert_field(:guild_id, Models.Snowflake.parse(data["guild_id"]))
-      |> assert_field(:emojis, Models.Utils.parse_list(data["emojis"], &Models.Emoji.parse/1))
+      |> assert_field(:emojis, Model.parse_list(data["emojis"], &Models.Emoji.parse/1))
     end
 
     test "parses :guild_integrations_update" do
@@ -213,7 +214,7 @@ defmodule Mobius.Core.EventTest do
       |> assert_field(:guild_id, Models.Snowflake.parse(data["guild_id"]))
       |> assert_field(
         :roles,
-        Models.Utils.parse_list(data["roles"], &Models.Snowflake.parse/1)
+        Model.parse_list(data["roles"], &Models.Snowflake.parse/1)
       )
       |> assert_field(:user, Models.User.parse(data["user"]))
       |> assert_field(:nick, data["nick"])
@@ -344,7 +345,7 @@ defmodule Mobius.Core.EventTest do
       parsed = Event.parse_data(:message_delete_bulk, data)
 
       parsed
-      |> assert_field(:ids, Models.Utils.parse_list(data["ids"], &Models.Snowflake.parse/1))
+      |> assert_field(:ids, Model.parse_list(data["ids"], &Models.Snowflake.parse/1))
       |> assert_field(:channel_id, Models.Snowflake.parse(data["channel_id"]))
       |> assert_field(:guild_id, Models.Snowflake.parse(data["guild_id"]))
     end

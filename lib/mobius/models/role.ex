@@ -6,11 +6,13 @@ defmodule Mobius.Models.Role do
   https://discord.com/developers/docs/topics/permissions#role-object
   """
 
-  import Mobius.Models.Utils
+  import Mobius.Model
 
   alias Mobius.Models.Permissions
   alias Mobius.Models.RoleTags
   alias Mobius.Models.Snowflake
+
+  @behaviour Mobius.Model
 
   defstruct [
     :id,
@@ -37,6 +39,7 @@ defmodule Mobius.Models.Role do
         }
 
   @doc "Parses the given term into a `t:t()` if possible; returns nil otherwise"
+  @impl true
   @spec parse(any) :: t() | nil
   def parse(map) when is_map(map) do
     %__MODULE__{}

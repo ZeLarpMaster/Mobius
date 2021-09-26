@@ -5,7 +5,9 @@ defmodule Mobius.Models.SessionStartLimit do
   Related documentation: https://discord.com/developers/docs/topics/gateway#get-gateway-bot
   """
 
-  import Mobius.Models.Utils
+  import Mobius.Model
+
+  @behaviour Mobius.Model
 
   defstruct [:total, :remaining, :reset_after, :max_concurrency]
 
@@ -29,6 +31,7 @@ defmodule Mobius.Models.SessionStartLimit do
       iex> parse(%{"total" => 10, "remaining" => 9, "reset_after" => 0, "max_concurrency" => 1})
       %SessionStartLimit{max_concurrency: 1, remaining: 9, reset_after: 0, total: 10}
   """
+  @impl true
   @spec parse(any) :: t() | nil
   def parse(map) when is_map(map) do
     %__MODULE__{}

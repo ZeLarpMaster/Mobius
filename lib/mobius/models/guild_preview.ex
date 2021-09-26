@@ -9,10 +9,12 @@ defmodule Mobius.Models.GuildPreview do
   https://discord.com/developers/docs/resources/guild#guild-preview-object
   """
 
-  import Mobius.Models.Utils
+  import Mobius.Model
 
   alias Mobius.Models.Emoji
   alias Mobius.Models.Snowflake
+
+  @behaviour Mobius.Model
 
   defstruct [
     :id,
@@ -41,6 +43,7 @@ defmodule Mobius.Models.GuildPreview do
         }
 
   @doc "Parses the given term into a `t:t()` if possible; returns nil otherwise"
+  @impl true
   @spec parse(any) :: t() | nil
   def parse(map) when is_map(map) do
     %__MODULE__{}
