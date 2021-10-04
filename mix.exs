@@ -34,7 +34,7 @@ defmodule Mobius.MixProject do
       {:gun, "~> 1.3"},
       {:castore, "~> 0.1"},
       {:jason, ">= 1.2.2"},
-      {:hackney, "~> 1.17"},
+      {:hackney, "~> 1.18"},
       {:fuse, "~> 2.5"},
       {:tesla, "~> 1.4.0"},
       {:ex2ms, "~> 1.6"},
