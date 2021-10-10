@@ -74,6 +74,25 @@ defmodule Mobius.Actions.Reaction do
           ...> Mobius.Actions.Reaction.list_reactions(emoji, "123456789", "987654321")
           {:ok, [%Mobius.Models.User{id: "234587098"}]}
       """
+    },
+    %Endpoint{
+      name: :delete_all_reactions,
+      url: "/channels/:channel_id/messages/:message_id/reactions",
+      method: :delete,
+      params: [
+        {:channel_id, :snowflake},
+        {:message_id, :snowflake}
+      ],
+      discord_doc_url:
+        "https://discord.com/developers/docs/resources/channel#delete-all-reactions",
+      doc: """
+      Delete all reactions on the given message.
+
+      ## Example
+
+          iex> Mobius.Actions.Reaction.delete_all_reactions("123456789", "987654321")
+          :ok
+      """
     }
   ])
 
