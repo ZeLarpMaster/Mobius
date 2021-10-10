@@ -179,4 +179,40 @@ defmodule Mobius.Actions.ReactionTest do
       assert_has_error(errors, "Expected message_id to be a snowflake")
     end
   end
+
+  describe "delete_all_reactions_for_emoji/2" do
+    setup do
+      message_id = random_snowflake()
+      channel_id = random_snowflake()
+      emoji = Emoji.parse(emoji())
+
+      url =
+        Client.base_url() <>
+          "/channels/#{channel_id}/messages/#{message_id}/reactions/#{Emoji.get_identifier(emoji)}"
+
+      mock(fn %{method: :delete, url: ^url} -> empty_response() end)
+
+      [message_id: message_id, channel_id: channel_id, emoji: emoji]
+    end
+
+    test "returns :ok if successful", ctx do
+      assert :ok =
+               Reaction.delete_all_reactions_for_emoji(ctx.emoji, ctx.channel_id, ctx.message_id)
+    end
+
+    test "returns an error if emoji is not an emoji" do
+      {:error, errors} = Reaction.delete_all_reactions_for_emoji("", "", "")
+      assert_has_error(errors, "Expected emoji to be an emoji")
+    end
+
+    test "returns an error if channel_id is not a snowflake" do
+      {:error, errors} = Reaction.delete_all_reactions_for_emoji("", :not_a_snowflake, 0)
+      assert_has_error(errors, "Expected channel_id to be a snowflake")
+    end
+
+    test "returns an error if message_id is not a snowflake" do
+      {:error, errors} = Reaction.delete_all_reactions_for_emoji("", 0, :not_a_snowflake)
+      assert_has_error(errors, "Expected message_id to be a snowflake")
+    end
+  end
 end
