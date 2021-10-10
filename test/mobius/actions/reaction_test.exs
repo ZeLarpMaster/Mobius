@@ -150,4 +150,33 @@ defmodule Mobius.Actions.ReactionTest do
       assert_has_error(errors, "Expected message_id to be a snowflake")
     end
   end
+
+  describe "delete_all_reactions/2" do
+    setup do
+      message_id = random_snowflake()
+      channel_id = random_snowflake()
+
+      url =
+        Client.base_url() <>
+          "/channels/#{channel_id}/messages/#{message_id}/reactions"
+
+      mock(fn %{method: :delete, url: ^url} -> empty_response() end)
+
+      [message_id: message_id, channel_id: channel_id]
+    end
+
+    test "returns :ok if successful", ctx do
+      assert :ok = Reaction.delete_all_reactions(ctx.channel_id, ctx.message_id)
+    end
+
+    test "returns an error if channel_id is not a snowflake" do
+      {:error, errors} = Reaction.delete_all_reactions(:not_a_snowflake, 0)
+      assert_has_error(errors, "Expected channel_id to be a snowflake")
+    end
+
+    test "returns an error if message_id is not a snowflake" do
+      {:error, errors} = Reaction.delete_all_reactions(0, :not_a_snowflake)
+      assert_has_error(errors, "Expected message_id to be a snowflake")
+    end
+  end
 end
