@@ -51,6 +51,12 @@ defmodule Mobius.Fixtures do
 
     Socket.notify_payload(data, @shard)
 
+    # Yield to give the shard time to handle the message. Not a very safe way to
+    # do this, but since there's barely anything going on during tests it works
+    # well enough.
+    Process.sleep(5)
+    assert Bot.ready?()
+
     [session_id: session_id, token: token()]
   end
 

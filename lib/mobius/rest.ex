@@ -4,6 +4,7 @@ defmodule Mobius.Rest do
   alias Mobius.Endpoint
   alias Mobius.Model
   alias Mobius.Rest.Client
+  alias Tesla.Multipart
 
   @spec execute(Endpoint.t(), Client.client(), keyword()) :: Client.result(any())
   def execute(%Endpoint{} = endpoint, client, args) do
@@ -36,6 +37,29 @@ defmodule Mobius.Rest do
   defp get_query_params_and_body(%Endpoint{method: :get}, args) do
     {query_params, args} = Keyword.pop(args, :params, [])
     {args, query_params, %{}}
+  end
+
+  defp get_query_params_and_body(%Endpoint{multipart?: true}, args) do
+    {body, args} = Keyword.pop(args, :params, %{})
+
+    if Map.has_key?(body, :file) do
+      body = Map.drop(body, [:file])
+      %{file: {file, filename}} = body
+
+      multipart =
+        Multipart.new()
+        |> Multipart.add_field("payload_json", Jason.encode!(body),
+          headers: [{"content-type", "application/json"}]
+        )
+        |> Multipart.add_file_content(file, filename,
+          name: "file",
+          detect_content_type: true
+        )
+
+      {args, [], multipart}
+    else
+      {args, [], Map.new(body)}
+    end
   end
 
   defp get_query_params_and_body(%Endpoint{}, args) do

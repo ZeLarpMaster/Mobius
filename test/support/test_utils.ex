@@ -71,7 +71,12 @@ defmodule Mobius.TestUtils do
       iex> assert_has_error(errors, "error 1")
       false
   """
-  @spec assert_has_error([String.t()], String.t()) :: boolean()
+  @spec assert_has_error(String.t() | [String.t()], String.t()) :: boolean()
+  def assert_has_error(error, expected_error)
+      when is_binary(error) and is_binary(expected_error) do
+    assert_has_error([error], expected_error)
+  end
+
   def assert_has_error(errors, expected_error)
       when is_list(errors) and is_binary(expected_error) do
     assert Enum.any?(errors, fn error -> error =~ expected_error end),

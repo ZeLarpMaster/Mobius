@@ -17,6 +17,10 @@ defmodule Mobius.Endpoint do
   - discord_doc_url: The URL for the official Discord documentation for this
   endpoint.
   - doc: The documentation of the function.
+  - multipart?: Whether the endpoint can contain multipart form data. If true,
+  the endpoint has to have an option with the name `:file`.
+  - constraints: Additional contstraints for `:opts` that that involve
+  contextual information about multiple options at a time.
   """
 
   alias Mobius.Validations.ActionValidations
@@ -31,7 +35,9 @@ defmodule Mobius.Endpoint do
     :model,
     :discord_doc_url,
     :doc,
-    list_response?: false
+    list_response?: false,
+    constraints: [],
+    multipart?: false
   ]
 
   @type t :: %__MODULE__{
@@ -43,7 +49,9 @@ defmodule Mobius.Endpoint do
           model: atom() | nil,
           discord_doc_url: String.t(),
           doc: String.t(),
-          list_response?: boolean()
+          list_response?: boolean(),
+          constraints: [ActionValidations.constraint()],
+          multipart?: boolean()
         }
 
   @spec get_arguments_names(t()) :: [atom()]
@@ -53,7 +61,7 @@ defmodule Mobius.Endpoint do
     if endpoint.opts == nil do
       params_names
     else
-      params_names ++ [:params]
+      params_names ++ [:options]
     end
   end
 end
