@@ -44,14 +44,14 @@ defmodule Mobius.Validations.ActionValidations do
 
   ## Constraints
 
-  Contsraints are similar to validator in that they verify that some conditions
+  Constraints are similar to validator in that they verify that some conditions
   are met. The main difference between the two is that while validators operate
   on a single parameter at a time, constraints can operate on multiple
   parameters at a time.
 
   Following is the list of available constraints.
 
-  ### {:one_of, [atom()]}
+  ### {:at_least_one_of, [atom()]}
 
   Verifies that at least one of the specified parameter was provided to the
   action.
@@ -68,7 +68,7 @@ defmodule Mobius.Validations.ActionValidations do
           | :any
   @type validator :: (any() -> :ok | {:error, String.t()})
 
-  @type constraint :: {:one_of, [atom()]}
+  @type constraint :: {:at_least_one_of, [atom()]}
 
   @spec string_length_validator(non_neg_integer(), non_neg_integer()) ::
           validator()
@@ -131,7 +131,7 @@ defmodule Mobius.Validations.ActionValidations do
 
   def validate_constraints(params, constraints) do
     errors =
-      Enum.reduce(constraints, [], fn {:one_of, options}, errors ->
+      Enum.reduce(constraints, [], fn {:at_least_one_of, options}, errors ->
         valid? =
           options
           |> Enum.map(fn option -> params[option] end)

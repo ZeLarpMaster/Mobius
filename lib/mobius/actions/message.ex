@@ -77,17 +77,17 @@ defmodule Mobius.Actions.Message do
         file: :any,
         allowed_mentions: :any
       },
-      constraints: [{:one_of, [:content, :embed, :file]}],
+      constraints: [{:at_least_one_of, [:content, :embed, :file]}],
       discord_doc_url: "https://discord.com/developers/docs/resources/channel#edit-message",
       model: Mobius.Models.Message,
       multipart?: true,
       doc: """
-      Edits an exsting message
+      Edits an existing message
 
       Only the original author of the message may edit the "content" and
       "embeds" fields. Flags may be edited by anyone.
 
-      Be awarae that updating flags works as a complete replacement. This means
+      Be aware that updating flags works as a complete replacement. This means
       that if you want to add a new flag, you also need to set all existing
       flags along with the new one.
 

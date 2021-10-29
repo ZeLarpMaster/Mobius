@@ -122,7 +122,7 @@ defmodule Mobius.Actions do
   defp pre_process_param_value(_, value), do: value
 
   @spec check_bot_ready() :: :ok | {:error, String.t()}
-  defp check_bot_ready() do
+  defp check_bot_ready do
     if Bot.ready?() do
       :ok
     else

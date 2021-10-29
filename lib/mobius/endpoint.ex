@@ -19,7 +19,7 @@ defmodule Mobius.Endpoint do
   - doc: The documentation of the function.
   - multipart?: Whether the endpoint can contain multipart form data. If true,
   the endpoint has to have an option with the name `:file`.
-  - constraints: Additional contstraints for `:opts` that that involve
+  - constraints: Additional constraints for `:opts` that that involve
   contextual information about multiple options at a time.
   """
 
