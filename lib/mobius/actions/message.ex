@@ -64,6 +64,40 @@ defmodule Mobius.Actions.Message do
           {:ok, %Mobius.Models.Message{} = message}
       """,
       model: Mobius.Models.Message
+    },
+    %Endpoint{
+      name: :edit_message,
+      url: "/channels/:channel_id/messages/:message_id",
+      method: :patch,
+      params: [{:channel_id, :snowflake}, {:message_id, :snowflake}],
+      opts: %{
+        content: {:string, [max: 2000]},
+        embed: :any,
+        flags: :integer,
+        file: :any,
+        allowed_mentions: :any
+      },
+      constraints: [{:at_least_one_of, [:content, :embed, :file]}],
+      discord_doc_url: "https://discord.com/developers/docs/resources/channel#edit-message",
+      model: Mobius.Models.Message,
+      multipart?: true,
+      doc: """
+      Edits an existing message
+
+      Only the original author of the message may edit the "content" and
+      "embeds" fields. Flags may be edited by anyone.
+
+      Be aware that updating flags works as a complete replacement. This means
+      that if you want to add a new flag, you also need to set all existing
+      flags along with the new one.
+
+      Refer to `send_message/2` for more information on the message body format.
+
+      ## Example
+
+          iex> send_message(%{content: "Some content"}, channel_id)
+          {:ok, %Mobius.Models.Message{} = message}
+      """
     }
   ])
 

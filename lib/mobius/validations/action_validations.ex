@@ -1,16 +1,74 @@
 defmodule Mobius.Validations.ActionValidations do
-  @moduledoc false
+  @moduledoc """
+  Validation utilities for actions
+
+  ## Validator types
+
+  ### :any
+
+  Any value.
+
+  ### :string
+
+  Any string.
+
+  ### {:string, keyword()}
+
+  A string with options. The supported options are:
+  - min: The minimum length of the string. Defaults to 0.
+  - max: The maximum length of the string. Required.
+
+  ### :integer
+
+  Any integer.
+
+  ### {:integer, keyword()}
+
+  An integer with options. The supported options are:
+  - min: The minimum value of the integer. Required.
+  - max: The maximum value of the integer. Required.
+
+  ### :snowflake
+
+  Any snowflake.
+
+  ### {module(), atom()}
+
+  A custom validator. The first element must be a module name and the second one
+  a one-arity function in that module. The function will receive the option
+  value as its only argument.
+
+  ### :emoji
+
+  An emoji. Must be a `Mobius.Models.Emoji` struct.
+
+  ## Constraints
+
+  Constraints are similar to validator in that they verify that some conditions
+  are met. The main difference between the two is that while validators operate
+  on a single parameter at a time, constraints can operate on multiple
+  parameters at a time.
+
+  Following is the list of available constraints.
+
+  ### {:at_least_one_of, [atom()]}
+
+  Verifies that at least one of the specified parameter was provided to the
+  action.
+  """
 
   @type validator_type ::
           :string
+          | {:string, keyword()}
           | :integer
           | {:integer, keyword()}
-          | :string
-          | {:string, keyword()}
           | :snowflake
-          | {atom(), atom()}
+          | {module(), atom()}
           | :emoji
+          | :any
   @type validator :: (any() -> :ok | {:error, String.t()})
+
+  @type constraint :: {:at_least_one_of, [atom()]}
 
   @spec string_length_validator(non_neg_integer(), non_neg_integer()) ::
           validator()
@@ -71,6 +129,32 @@ defmodule Mobius.Validations.ActionValidations do
     end
   end
 
+  def validate_constraints(params, constraints) do
+    errors =
+      Enum.reduce(constraints, [], fn {:at_least_one_of, options}, errors ->
+        valid? =
+          options
+          |> Enum.map(fn option -> params[option] end)
+          |> Enum.any?(fn val -> val != nil end)
+
+        if valid? do
+          errors
+        else
+          expected_options =
+            options
+            |> Enum.join(", ")
+
+          ["Expected at least one of #{expected_options} but all were missing or nil." | errors]
+        end
+      end)
+
+    if Enum.empty?(errors) do
+      :ok
+    else
+      {:error, errors}
+    end
+  end
+
   @spec validate_args(Access.t(), [{atom(), validator()}]) :: :ok | {:error, [String.t()]}
   def validate_args(params, validators) do
     errors =
@@ -102,6 +186,7 @@ defmodule Mobius.Validations.ActionValidations do
   def get_validator({:string, opts}), do: get_string_length_validator(opts)
   def get_validator({module, function}), do: fn val -> apply(module, function, [val]) end
   def get_validator(:emoji), do: emoji_validator()
+  def get_validator(:any), do: fn _ -> :ok end
 
   defp length_validator(min, max) do
     fn
@@ -135,7 +220,7 @@ defmodule Mobius.Validations.ActionValidations do
   end
 
   defp get_string_length_validator(opts) do
-    min = Keyword.fetch!(opts, :min)
+    min = Keyword.get(opts, :min, 0)
     max = Keyword.fetch!(opts, :max)
 
     string_length_validator(min, max)

@@ -48,6 +48,45 @@ defmodule Mobius.Actions.MessageTest do
     end
   end
 
+  test "edit_message/2 when the bot isn't ready" do
+    {:error, error} =
+      Message.edit_message(random_snowflake(), random_snowflake(), %{content: random_text(8)})
+
+    assert error =~ "must be ready"
+  end
+
+  describe "edit_message/2 when the bot is ready" do
+    setup :handshake_shard
+
+    setup do
+      channel_id = random_snowflake()
+      message_id = random_snowflake()
+      raw = message(channel_id: channel_id)
+      url = Client.base_url() <> "/channels/#{channel_id}/messages/#{message_id}"
+      mock(fn %{method: :patch, url: ^url} -> json(raw) end)
+      [channel_id: channel_id, message_id: message_id, raw_message: raw]
+    end
+
+    test "returns an error if none of content, embed or file is given", ctx do
+      {:error, errors} = Message.edit_message(ctx.channel_id, ctx.message_id, %{})
+      assert_has_error(errors, "at least one of content, embed, file")
+    end
+
+    test "returns an error if content is longer than 2000 chars", ctx do
+      {:error, errors} =
+        Message.edit_message(ctx.channel_id, ctx.message_id, %{content: random_text(2001)})
+
+      assert_has_error(errors, "Expected content to contain between 0 and 2000 characters")
+    end
+
+    test "returns the message if successful", ctx do
+      {:ok, message} =
+        Message.edit_message(ctx.channel_id, ctx.message_id, %{content: random_text(2000)})
+
+      assert message == Models.Message.parse(ctx.raw_message)
+    end
+  end
+
   describe "list_messages/2" do
     setup :handshake_shard
 

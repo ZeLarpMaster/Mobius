@@ -48,15 +48,14 @@ defmodule Mobius.Actions do
   def execute(%Endpoint{} = endpoint, params) do
     validators = get_validators(endpoint)
 
-    path_params = params |> Keyword.get(:params, %{}) |> Keyword.new()
+    options = params |> Keyword.get(:options, %{}) |> Keyword.new()
 
-    case ActionValidations.validate_args(params ++ path_params, validators) do
-      :ok ->
-        processed_params = pre_process_params(endpoint, params)
-        Mobius.Rest.execute(endpoint, Bot.get_client!(), processed_params)
-
-      {:error, errors} ->
-        {:error, errors}
+    with :ok <- check_bot_ready(),
+         :ok <- ActionValidations.validate_args(params ++ options, validators),
+         :ok <-
+           ActionValidations.validate_constraints(params ++ options, endpoint.constraints) do
+      processed_params = pre_process_params(endpoint, params)
+      Mobius.Rest.execute(endpoint, Bot.get_client!(), processed_params)
     end
   end
 
@@ -121,4 +120,13 @@ defmodule Mobius.Actions do
     do: Emoji.get_identifier(emoji)
 
   defp pre_process_param_value(_, value), do: value
+
+  @spec check_bot_ready() :: :ok | {:error, String.t()}
+  defp check_bot_ready do
+    if Bot.ready?() do
+      :ok
+    else
+      {:error, "The bot must be ready before using actions"}
+    end
+  end
 end
