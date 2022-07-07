@@ -69,8 +69,17 @@ defmodule Mobius.Cog do
 
       Module.register_attribute(__MODULE__, :event_handlers, accumulate: true)
       Module.register_attribute(__MODULE__, :commands, accumulate: true)
+      Module.register_attribute(__MODULE__, :configs, accumulate: true)
 
-      import unquote(__MODULE__), only: [listen: 2, listen: 3, command: 2, command: 3, command: 4]
+      import unquote(__MODULE__),
+        only: [
+          listen: 2,
+          listen: 3,
+          command: 2,
+          command: 3,
+          command: 4,
+          config: 1
+        ]
 
       @spec start_link(keyword) :: GenServer.on_start()
       def start_link(opts) do
@@ -120,6 +129,10 @@ defmodule Mobius.Cog do
 
       @impl true
       def init(_opts) do
+        Enum.each(@configs, &Mobius.Config.start_link/1)
+
+        Logger.debug("Cog \"#{__MODULE__}\" started configs: #{inspect(@configs)}")
+
         event_names =
           @event_handlers
           |> Enum.map(&elem(&1, 0))
@@ -299,6 +312,23 @@ defmodule Mobius.Cog do
   defmacro command(command_name, do: block) do
     quote do
       command(unquote(command_name), _, [], do: unquote(block))
+    end
+  end
+
+  @doc """
+  Defines a config namespace
+  """
+  defmacro config(name) do
+    cog_name =
+      __CALLER__.module
+      |> Module.split()
+      |> List.last()
+
+    config_name = :"mobius_config_#{cog_name}_#{name}"
+
+    quote bind_quoted: [config_name: config_name] do
+      @config config_name
+      config_name
     end
   end
 
